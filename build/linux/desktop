@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Talus Echo
+Comment=English learning companion
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/talus_echo_loop.exe %u
+Terminal=false
+Type=Application
+Icon=talus_echo_loop.exe
+Categories=Utility;
+StartupWMClass=talus_echo_loop.exe
+
+ 

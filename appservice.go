@@ -1,0 +1,63 @@
+package main
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+
+	"github.com/songwei.ma/talus_echo_loop/internal/database"
+	"github.com/songwei.ma/talus_echo_loop/internal/store"
+)
+
+// AppService exposes application and persistence APIs to the frontend.
+type AppService struct {
+	db *database.DB
+}
+
+func NewAppService(db *database.DB) *AppService {
+	return &AppService{db: db}
+}
+
+// DatabasePath returns the on-disk SQLite database file path.
+func (a *AppService) DatabasePath() string {
+	return a.db.Path
+}
+
+// ListSettings returns all stored key/value settings.
+func (a *AppService) ListSettings() ([]store.Setting, error) {
+	ctx := context.Background()
+	items, err := a.db.Queries.ListSettings(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list settings: %w", err)
+	}
+	if items == nil {
+		return []store.Setting{}, nil
+	}
+	return items, nil
+}
+
+// GetSetting returns a single setting by key.
+func (a *AppService) GetSetting(key string) (store.Setting, error) {
+	ctx := context.Background()
+	setting, err := a.db.Queries.GetSetting(ctx, key)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return store.Setting{}, fmt.Errorf("setting %q not found", key)
+		}
+		return store.Setting{}, fmt.Errorf("get setting: %w", err)
+	}
+	return setting, nil
+}
+
+// SetSetting creates or updates a key/value setting.
+func (a *AppService) SetSetting(key, value string) error {
+	ctx := context.Background()
+	if err := a.db.Queries.UpsertSetting(ctx, store.UpsertSettingParams{
+		Key:   key,
+		Value: value,
+	}); err != nil {
+		return fmt.Errorf("set setting: %w", err)
+	}
+	return nil
+}
