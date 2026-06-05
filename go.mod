@@ -1,4 +1,4 @@
-module github.com/songwei.ma/talus_echo_loop
+module github.com/songwei.ma/talus-mofish
 
 go 1.24.0
 

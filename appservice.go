@@ -6,22 +6,42 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/songwei.ma/talus_echo_loop/internal/database"
-	"github.com/songwei.ma/talus_echo_loop/internal/store"
+	"github.com/songwei.ma/talus-mofish/internal/config"
+	"github.com/songwei.ma/talus-mofish/internal/database"
+	"github.com/songwei.ma/talus-mofish/internal/store"
 )
 
 // AppService exposes application and persistence APIs to the frontend.
 type AppService struct {
-	db *database.DB
+	db     *database.DB
+	config *config.Store
 }
 
-func NewAppService(db *database.DB) *AppService {
-	return &AppService{db: db}
+func NewAppService(db *database.DB, cfg *config.Store) *AppService {
+	return &AppService{db: db, config: cfg}
 }
 
 // DatabasePath returns the on-disk SQLite database file path.
 func (a *AppService) DatabasePath() string {
 	return a.db.Path
+}
+
+// ConfigPath returns the on-disk config.json file path.
+func (a *AppService) ConfigPath() string {
+	return a.config.Path()
+}
+
+// GetConfig returns the current application settings.
+func (a *AppService) GetConfig() config.App {
+	return a.config.Get()
+}
+
+// SaveConfig persists updated application settings to config.json.
+func (a *AppService) SaveConfig(cfg config.App) error {
+	if err := a.config.Update(cfg); err != nil {
+		return fmt.Errorf("save config: %w", err)
+	}
+	return nil
 }
 
 // ListSettings returns all stored key/value settings.

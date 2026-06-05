@@ -7,7 +7,7 @@ includes:
   linux: ./build/linux/Taskfile.yml
 
 vars:
-  APP_NAME: "talus_echo_loop"
+  APP_NAME: "talus-mofish"
   BIN_DIR: "bin"
   VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
 
@@ -24,6 +24,8 @@ tasks:
 
   run:
     summary: Runs the application
+    deps:
+      - build
     cmds:
       - task: "{{OS}}:run"
 

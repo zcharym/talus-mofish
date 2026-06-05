@@ -3,7 +3,7 @@
 #
 # The lines below are called `modelines`. See `:help modeline`
 
-name: "talus_echo_loop.exe"
+name: "talus-mofish.exe"
 arch: ${GOARCH}
 platform: "linux"
 version: "0.1.0"
@@ -17,12 +17,12 @@ license: "MIT"
 release: "1"
 
 contents:
-  - src: "./bin/talus_echo_loop.exe"
-    dst: "/usr/local/bin/talus_echo_loop.exe"
+  - src: "./bin/talus-mofish.exe"
+    dst: "/usr/local/bin/talus-mofish.exe"
   - src: "./build/appicon.png"
-    dst: "/usr/share/icons/hicolor/128x128/apps/talus_echo_loop.exe.png"
-  - src: "./build/linux/talus_echo_loop.exe.desktop"
-    dst: "/usr/share/applications/talus_echo_loop.exe.desktop"
+    dst: "/usr/share/icons/hicolor/128x128/apps/talus-mofish.exe.png"
+  - src: "./build/linux/talus-mofish.exe.desktop"
+    dst: "/usr/share/applications/talus-mofish.exe.desktop"
 
 # Default dependencies for Debian 12/Ubuntu 22.04+ with WebKit 4.1
 depends:

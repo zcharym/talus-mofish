@@ -8,7 +8,7 @@
         AllowPromptForPassword="false">
     </Settings>
     <Installer
-        Path="talus_echo_loop.exe"
+        Path="talus-mofish.exe"
         Arguments=""
         InstallLocation="C:\Program Files\Talus\Talus Echo">
     </Installer>
@@ -28,7 +28,7 @@
                 Id="com.talus.echoloop"
                 Description="English learning companion"
                 DisplayName="Talus Echo"
-                ExecutableName="talus_echo_loop.exe"
+                ExecutableName="talus-mofish.exe"
                 EntryPoint="Windows.FullTrustApplication">
                 
             </Application>
@@ -47,7 +47,7 @@
             <Logo>Assets\AppIcon.png</Logo>
         </Properties>
     </PackageInformation>
-    <SaveLocation PackagePath="talus_echo_loop.msix" />
+    <SaveLocation PackagePath="talus-mofish.msix" />
     <PackageIntegrity>
         <CertificatePath></CertificatePath>
     </PackageIntegrity>

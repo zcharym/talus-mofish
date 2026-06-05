@@ -1,52 +1,85 @@
-import { useState } from 'react'
-import {GreetService, AppService} from "../bindings/github.com/songwei.ma/talus_echo_loop";
+import { useCallback, useEffect, useState } from 'react';
+import '@mantine/core/styles.css';
+import { AppShell, MantineProvider, Text, Title } from '@mantine/core';
+import { AppService } from '../bindings/github.com/songwei.ma/talus-mofish';
+import { NavbarSegmented } from './components/NavbarSegmented';
+import { ConfigPage } from './pages/ConfigPage';
 
-function App() {
-  const [name, setName] = useState<string>('');
-  const [result, setResult] = useState<string>('Talus Echo — English learning (infrastructure ready)');
-  const [dbPath, setDbPath] = useState<string>('');
+type ThemeOption = 'auto' | 'light' | 'dark';
 
-  const doGreet = () => {
-    const localName = name || 'anonymous';
-    GreetService.Greet(localName).then((resultValue: string) => {
-      setResult(resultValue);
-    }).catch((err: unknown) => {
-      console.error(err);
-    });
-  }
+const pageTitles: Record<string, string> = {
+  database: 'Database',
+  clipboard: 'Clipboard',
+  notes: 'Notes',
+  settings: 'Settings',
+  reading: 'Reading',
+  recite: 'Recite Words',
+  vocabulary: 'Vocabulary',
+  listening: 'Listening',
+  grammar: 'Grammar',
+  config: 'Configuration',
+  about: 'About',
+};
 
-  const loadDbPath = () => {
-    AppService.DatabasePath().then((path: string) => {
-      setDbPath(path);
-    }).catch((err: unknown) => {
-      console.error(err);
-    });
+function MainContent({ activeItem, onThemeChange }: { activeItem: string; onThemeChange: (theme: ThemeOption) => void }) {
+  const title = pageTitles[activeItem] ?? 'Talus Echo';
+
+  if (activeItem === 'config') {
+    return (
+      <>
+        <Title order={2}>{title}</Title>
+        <ConfigPage onThemeChange={onThemeChange} />
+      </>
+    );
   }
 
   return (
-    <div className="container">
-      <div>
-        <a data-wml-openURL="https://wails.io">
-          <img src="/wails.png" className="logo" alt="Wails logo"/>
-        </a>
-        <a data-wml-openURL="https://reactjs.org">
-          <img src="/react.svg" className="logo react" alt="React logo"/>
-        </a>
-      </div>
-      <h1>Talus Echo</h1>
-      <div className="result">{result}</div>
-      <div className="card">
-        <div className="input-box">
-          <input className="input" value={name} onChange={(e) => setName(e.target.value)} type="text" autoComplete="off" placeholder="Your name"/>
-          <button className="btn" onClick={doGreet}>Greet</button>
-        </div>
-        <div className="input-box" style={{ marginTop: '1rem' }}>
-          <button className="btn" type="button" onClick={loadDbPath}>Show database path</button>
-        </div>
-        {dbPath ? <p className="hint">SQLite: {dbPath}</p> : null}
-      </div>
-    </div>
-  )
+    <>
+      <Title order={2}>{title}</Title>
+      <Text c="dimmed" mt="sm">
+        {activeItem === 'about'
+          ? 'Talus Echo — English learning and work tools.'
+          : 'Content coming soon. This is a placeholder for the selected section.'}
+      </Text>
+    </>
+  );
 }
 
-export default App
+function App() {
+  const [activeItem, setActiveItem] = useState('database');
+  const [colorScheme, setColorScheme] = useState<ThemeOption>('auto');
+
+  const applyTheme = useCallback((theme: ThemeOption) => {
+    setColorScheme(theme);
+  }, []);
+
+  useEffect(() => {
+    AppService.GetConfig()
+      .then((cfg) => {
+        const theme = (cfg.theme as ThemeOption) || 'auto';
+        applyTheme(theme);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+      });
+  }, [applyTheme]);
+
+  return (
+    <MantineProvider
+      defaultColorScheme="auto"
+      forceColorScheme={colorScheme === 'auto' ? undefined : colorScheme}
+    >
+      <AppShell navbar={{ width: 300, breakpoint: 'sm' }} padding="md">
+        <AppShell.Navbar p={0}>
+          <NavbarSegmented activeItem={activeItem} onActiveItemChange={setActiveItem} />
+        </AppShell.Navbar>
+
+        <AppShell.Main>
+          <MainContent activeItem={activeItem} onThemeChange={applyTheme} />
+        </AppShell.Main>
+      </AppShell>
+    </MantineProvider>
+  );
+}
+
+export default App;

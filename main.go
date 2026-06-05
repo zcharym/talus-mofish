@@ -4,7 +4,8 @@ import (
 	"embed"
 	"log"
 
-	"github.com/songwei.ma/talus_echo_loop/internal/database"
+	"github.com/songwei.ma/talus-mofish/internal/config"
+	"github.com/songwei.ma/talus-mofish/internal/database"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -22,10 +23,19 @@ func main() {
 		}
 	}()
 
-	appService := NewAppService(db)
+	configPath, err := database.DefaultConfigPath()
+	if err != nil {
+		log.Fatal(err)
+	}
+	cfg, err := config.Load(configPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	appService := NewAppService(db, cfg)
 
 	app := application.New(application.Options{
-		Name:        "talus_echo_loop",
+		Name:        "talus-mofish",
 		Description: "English learning companion",
 		Services: []application.Service{
 			application.NewService(appService),

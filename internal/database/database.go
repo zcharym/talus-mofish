@@ -10,7 +10,7 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/songwei.ma/talus_echo_loop/internal/store"
+	"github.com/songwei.ma/talus-mofish/internal/store"
 )
 
 //go:embed schema.sql

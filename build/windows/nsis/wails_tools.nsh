@@ -5,7 +5,7 @@
 !include "FileFunc.nsh"
 
 !ifndef INFO_PROJECTNAME
-    !define INFO_PROJECTNAME "talus_echo_loop"
+    !define INFO_PROJECTNAME "talus-mofish"
 !endif
 !ifndef INFO_COMPANYNAME
     !define INFO_COMPANYNAME "Talus"

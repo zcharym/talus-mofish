@@ -19,7 +19,7 @@ Unicode true
 ####
 ## The following information is taken from the wails_tools.nsh file, but they can be overwritten here.
 ####
-## !define INFO_PROJECTNAME    "my-project" # Default "talus_echo_loop"
+## !define INFO_PROJECTNAME    "my-project" # Default "talus-mofish"
 ## !define INFO_COMPANYNAME    "My Company" # Default "Talus"
 ## !define INFO_PRODUCTNAME    "My Product Name" # Default "Talus Echo"
 ## !define INFO_PRODUCTVERSION "1.0.0"     # Default "0.1.0"

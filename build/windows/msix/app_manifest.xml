@@ -27,7 +27,7 @@
   </Resources>
   
   <Applications>
-    <Application Id="com.talus.echoloop" Executable="talus_echo_loop.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="com.talus.echoloop" Executable="talus-mofish.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="Talus Echo"
         Description="English learning companion"
@@ -39,7 +39,7 @@
       </uap:VisualElements>
       
       <Extensions>
-        <desktop:Extension Category="windows.fullTrustProcess" Executable="talus_echo_loop.exe" />
+        <desktop:Extension Category="windows.fullTrustProcess" Executable="talus-mofish.exe" />
         
       </Extensions>
     </Application>

@@ -6,7 +6,7 @@
         <key>CFBundleName</key>
             <string>Talus Echo</string>
         <key>CFBundleExecutable</key>
-            <string>talus_echo_loop.exe</string>
+            <string>talus-mofish.exe</string>
         <key>CFBundleIdentifier</key>
             <string>com.talus.echoloop</string>
         <key>CFBundleVersion</key>

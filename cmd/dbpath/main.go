@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/songwei.ma/talus_echo_loop/internal/database"
+	"github.com/songwei.ma/talus-mofish/internal/database"
 )
 
 func main() {

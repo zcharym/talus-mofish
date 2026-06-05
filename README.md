@@ -1,4 +1,4 @@
-# Talus Echo Loop
+# Talus Mofish
 
 Cross-platform desktop app (Windows / macOS) for English learning, built with [Wails v3](https://v3.wails.io/) and [sqlc](https://sqlc.dev/) over SQLite.
 
@@ -47,10 +47,10 @@ wails3 build GOOS=darwin
 ## Database
 
 - Engine: SQLite via [`modernc.org/sqlite`](https://pkg.go.dev/modernc.org/sqlite) (pure Go; works with Wails Windows builds where `CGO_ENABLED=0`)
-- Default file: `talus_echo_loop/talus_echo_loop.db` under the OS user data directory:
-  - **Windows**: `%LOCALAPPDATA%\talus_echo_loop\` (`internal/database/paths_windows.go`)
-  - **macOS**: `~/Library/Application Support/talus_echo_loop/`
-  - **Linux**: `$XDG_CONFIG_HOME/talus_echo_loop/` or `~/.config/talus_echo_loop/` (`paths_unix.go`)
+- Default file: `talus-mofish/talus-mofish.db` under the OS user data directory:
+  - **Windows**: `%LOCALAPPDATA%\talus-mofish\` (`internal/database/paths_windows.go`)
+  - **macOS**: `~/Library/Application Support/talus-mofish/`
+  - **Linux**: `$XDG_CONFIG_HOME/talus-mofish/` or `~/.config/talus-mofish/` (`paths_unix.go`)
 - Schema: idempotent SQL in `internal/database/schema.sql` (keep in sync with `db/schema.sql`)
 
 Print the default DB path:
