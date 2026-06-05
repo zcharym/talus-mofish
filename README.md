@@ -4,8 +4,9 @@ Cross-platform desktop app (Windows / macOS) for English learning, built with [W
 
 ## Prerequisites
 
-- Go 1.24+
-- [Wails v3 CLI](https://v3.wails.io/quick-start/installation/): `go install github.com/wailsapp/wails/v3/cmd/wails3@latest`
+- Go 1.24+ (this project uses `toolchain go1.25.4` for Wails v3 alpha.60)
+- [Wails v3 CLI](https://v3.wails.io/quick-start/installation/): `go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha.60`
+- Pin `@wailsio/runtime` to `3.0.0-alpha.76` in `frontend/package.json` (must match the Go Wails module version family)
 - Node.js (for the React frontend)
 - Optional: [sqlc](https://docs.sqlc.dev/en/latest/overview/install.html) for regenerating query code
 

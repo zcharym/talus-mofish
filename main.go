@@ -50,7 +50,7 @@ func main() {
 	})
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title: "Talus Echo",
+		Title: "Talus MoFish",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:                application.MacBackdropTranslucent,
