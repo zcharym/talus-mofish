@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  Alert,
   Button,
   Code,
   Group,
@@ -11,6 +10,7 @@ import {
 } from '@mantine/core';
 import { AppService } from '../../bindings/github.com/songwei.ma/talus-mofish';
 import { App as AppConfig } from '../../bindings/github.com/songwei.ma/talus-mofish/internal/config/models';
+import { notify } from '../services/notifications';
 
 type ThemeOption = 'auto' | 'light' | 'dark';
 
@@ -25,13 +25,9 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
   const [configPath, setConfigPath] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
 
   const loadConfig = useCallback(async () => {
     setLoading(true);
-    setError(null);
-    setSaved(false);
 
     try {
       const [cfg, path] = await Promise.all([
@@ -47,7 +43,7 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
       onThemeChange(nextTheme);
     } catch (err) {
       console.error(err);
-      setError('Failed to load configuration.');
+      notify.failed('Error', 'Failed to load configuration.');
     } finally {
       setLoading(false);
     }
@@ -59,8 +55,6 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
 
   const handleSave = async () => {
     setSaving(true);
-    setError(null);
-    setSaved(false);
 
     const payload = new AppConfig({
       theme,
@@ -71,10 +65,10 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
     try {
       await AppService.SaveConfig(payload);
       onThemeChange(theme);
-      setSaved(true);
+      notify.success('Saved', 'Configuration saved to config.json.');
     } catch (err) {
       console.error(err);
-      setError('Failed to save configuration.');
+      notify.failed('Error', 'Failed to save configuration.');
     } finally {
       setSaving(false);
     }
@@ -86,18 +80,6 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
 
   return (
     <Stack maw={480} gap="md">
-      {error ? (
-        <Alert color="red" title="Error">
-          {error}
-        </Alert>
-      ) : null}
-
-      {saved ? (
-        <Alert color="green" title="Saved">
-          Configuration saved to config.json.
-        </Alert>
-      ) : null}
-
       <Select
         label="Theme"
         description="Application color scheme"
