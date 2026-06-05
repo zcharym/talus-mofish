@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
 import { AppShell, MantineProvider, Text, Title } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import { AppService } from '../bindings/github.com/songwei.ma/talus-mofish';
 import { NavbarSegmented } from './components/NavbarSegmented';
 import { ConfigPage } from './pages/ConfigPage';
@@ -69,6 +71,7 @@ function App() {
       defaultColorScheme="auto"
       forceColorScheme={colorScheme === 'auto' ? undefined : colorScheme}
     >
+      <Notifications position="top-right" limit={5} />
       <AppShell navbar={{ width: 300, breakpoint: 'sm' }} padding="md">
         <AppShell.Navbar p={0}>
           <NavbarSegmented activeItem={activeItem} onActiveItemChange={setActiveItem} />

@@ -12,6 +12,7 @@
   "dependencies": {
     "@mantine/core": "^7.17.8",
     "@mantine/hooks": "^7.17.8",
+    "@mantine/notifications": "^7.17.8",
     "@tabler/icons-react": "^3.44.0",
     "@wailsio/runtime": "3.0.0-alpha.76",
     "react": "^18.2.0",
