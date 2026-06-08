@@ -1,28 +1,29 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 import {
   Button,
   Code,
   Group,
+  HoverCard,
   NumberInput,
   Select,
   Stack,
   Text,
-} from '@mantine/core';
-import { AppService } from '../../bindings/github.com/songwei.ma/talus-mofish';
-import { App as AppConfig } from '../../bindings/github.com/songwei.ma/talus-mofish/internal/config/models';
-import { notify } from '../services/notifications';
+} from "@mantine/core";
+import { AppService } from "../../bindings/github.com/songwei.ma/talus-mofish";
+import { App as AppConfig } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/config/models";
+import { notify } from "../services/notifications";
 
-type ThemeOption = 'auto' | 'light' | 'dark';
+type ThemeOption = "auto" | "light" | "dark";
 
 interface ConfigPageProps {
   onThemeChange: (theme: ThemeOption) => void;
 }
 
 export function ConfigPage({ onThemeChange }: ConfigPageProps) {
-  const [theme, setTheme] = useState<ThemeOption>('auto');
+  const [theme, setTheme] = useState<ThemeOption>("auto");
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState(30);
   const [wordsPerSession, setWordsPerSession] = useState(20);
-  const [configPath, setConfigPath] = useState('');
+  const [configPath, setConfigPath] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -35,7 +36,7 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
         AppService.ConfigPath(),
       ]);
 
-      const nextTheme = (cfg.theme as ThemeOption) || 'auto';
+      const nextTheme = (cfg.theme as ThemeOption) || "auto";
       setTheme(nextTheme);
       setDailyGoalMinutes(cfg.dailyGoalMinutes);
       setWordsPerSession(cfg.wordsPerSession);
@@ -43,7 +44,7 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
       onThemeChange(nextTheme);
     } catch (err) {
       console.error(err);
-      notify.failed('Error', 'Failed to load configuration.');
+      notify.failed("Error", "Failed to load configuration.");
     } finally {
       setLoading(false);
     }
@@ -65,10 +66,10 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
     try {
       await AppService.SaveConfig(payload);
       onThemeChange(theme);
-      notify.success('Saved', 'Configuration saved to config.json.');
+      notify.success("Saved", "Configuration saved to config.json.");
     } catch (err) {
       console.error(err);
-      notify.failed('Error', 'Failed to save configuration.');
+      notify.failed("Error", "Failed to save configuration.");
     } finally {
       setSaving(false);
     }
@@ -84,11 +85,11 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
         label="Theme"
         description="Application color scheme"
         value={theme}
-        onChange={(value) => setTheme((value as ThemeOption) ?? 'auto')}
+        onChange={(value) => setTheme((value as ThemeOption) ?? "auto")}
         data={[
-          { value: 'auto', label: 'Auto (system)' },
-          { value: 'light', label: 'Light' },
-          { value: 'dark', label: 'Dark' },
+          { value: "auto", label: "Auto (system)" },
+          { value: "light", label: "Light" },
+          { value: "dark", label: "Dark" },
         ]}
       />
 
@@ -112,16 +113,25 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
       />
 
       <Group>
-        <Button onClick={() => void handleSave()} loading={saving}>
-          Save configuration
-        </Button>
+        {configPath ? (
+          <HoverCard width={320} shadow="md" withArrow openDelay={200}>
+            <HoverCard.Target>
+              <Button onClick={() => void handleSave()} loading={saving}>
+                Save configuration
+              </Button>
+            </HoverCard.Target>
+            <HoverCard.Dropdown>
+              <Text size="sm">
+                Config file: <Code>{configPath}</Code>
+              </Text>
+            </HoverCard.Dropdown>
+          </HoverCard>
+        ) : (
+          <Button onClick={() => void handleSave()} loading={saving}>
+            Save configuration
+          </Button>
+        )}
       </Group>
-
-      {configPath ? (
-        <Text size="sm" c="dimmed">
-          Config file: <Code>{configPath}</Code>
-        </Text>
-      ) : null}
     </Stack>
   );
 }
