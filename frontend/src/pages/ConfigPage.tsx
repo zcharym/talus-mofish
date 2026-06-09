@@ -12,10 +12,6 @@ import {
 import { AppService } from "../../bindings/github.com/songwei.ma/talus-mofish";
 import { App as AppConfig } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/config/models";
 import { notify } from "../services/notifications";
-} from '@mantine/core';
-import { AppService } from '../../bindings/github.com/songwei.ma/talus-mofish';
-import { App as AppConfig } from '../../bindings/github.com/songwei.ma/talus-mofish/internal/config/models';
-import { notify } from '../services/notifications';
 
 type ThemeOption = "auto" | "light" | "dark";
 

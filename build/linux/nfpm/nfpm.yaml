@@ -19,7 +19,7 @@ release: "1"
 contents:
   - src: "./bin/talus-mofish.exe"
     dst: "/usr/local/bin/talus-mofish.exe"
-  - src: "./build/appicon.png"
+  - src: "./assets/icon.jpg"
     dst: "/usr/share/icons/hicolor/128x128/apps/talus-mofish.exe.png"
   - src: "./build/linux/talus-mofish.exe.desktop"
     dst: "/usr/share/applications/talus-mofish.exe.desktop"
