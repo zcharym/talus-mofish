@@ -76,7 +76,6 @@ task sqlc
 
 ## Wails services
 
-- `AppService` — settings CRUD and `DatabasePath()`
-- `GreetService` — minimal example from the template (safe to remove later)
+- `AppService` — settings CRUD, config, autostart, and `DatabasePath()`
 
 Bindings are generated under `frontend/bindings/` when running `wails3 dev` or `wails3 build`.
