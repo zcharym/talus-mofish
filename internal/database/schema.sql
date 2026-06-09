@@ -1,6 +1,6 @@
 PRAGMA foreign_keys = ON;
 
--- Application key/value settings (locale, preferences, etc.)
+-- Internal app settings (key/value store for engine/runtime state).
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT NOT NULL PRIMARY KEY,
     value TEXT NOT NULL,

@@ -39,7 +39,7 @@ wails3 build GOOS=darwin
 | `main.go` | Wails app entry, service registration |
 | `appservice.go` | Backend API exposed to the frontend |
 | `frontend/` | React + TypeScript UI (Vite) |
-| `db/schema.sql` | SQLite schema (sqlc source of truth) |
+| `internal/database/schema.sql` | SQLite schema (sqlc source of truth, embedded at runtime) |
 | `db/queries/` | SQL queries consumed by sqlc |
 | `internal/store/` | sqlc-generated Go data access (`task sqlc`) |
 | `internal/database/` | DB open, migrations (goose), default path |
@@ -52,7 +52,7 @@ wails3 build GOOS=darwin
   - **Windows**: `%LOCALAPPDATA%\talus-mofish\` (`internal/database/paths_windows.go`)
   - **macOS**: `~/Library/Application Support/talus-mofish/`
   - **Linux**: `$XDG_CONFIG_HOME/talus-mofish/` or `~/.config/talus-mofish/` (`paths_unix.go`)
-- Schema: idempotent SQL in `internal/database/schema.sql` (keep in sync with `db/schema.sql`)
+- Schema: idempotent SQL in `internal/database/schema.sql` (embedded in `database.go` at build time)
 
 Print the default DB path:
 
@@ -70,13 +70,12 @@ task sqlc
 
 ## Adding schema / queries
 
-1. Edit `db/schema.sql` and mirror changes in `internal/database/schema.sql` (or add numbered migration files later).
+1. Edit `internal/database/schema.sql` (or add numbered migration files later).
 2. Add queries under `db/queries/*.sql`.
 3. Run `task sqlc` and commit `internal/store/` changes.
 
 ## Wails services
 
-- `AppService` — settings CRUD and `DatabasePath()`
-- `GreetService` — minimal example from the template (safe to remove later)
+- `AppService` — settings CRUD, config, autostart, and `DatabasePath()`
 
 Bindings are generated under `frontend/bindings/` when running `wails3 dev` or `wails3 build`.

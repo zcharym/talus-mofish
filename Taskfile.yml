@@ -33,7 +33,7 @@ tasks:
       - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
 
   sqlc:
-    summary: Regenerate type-safe queries from db/schema.sql and db/queries
+    summary: Regenerate type-safe queries from internal/database/schema.sql and db/queries
     cmds:
       - sqlc generate
 

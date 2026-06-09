@@ -46,7 +46,6 @@ func main() {
 		Description: "English learning companion",
 		Services: []application.Service{
 			application.NewService(appService),
-			application.NewService(&GreetService{}),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
