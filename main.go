@@ -4,6 +4,7 @@ import (
 	"embed"
 	"log"
 
+	"github.com/songwei.ma/talus-mofish/internal/autostart"
 	"github.com/songwei.ma/talus-mofish/internal/config"
 	"github.com/songwei.ma/talus-mofish/internal/database"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -33,7 +34,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	appService := NewAppService(db, cfg)
+	autostartManager := autostart.New(autostart.DefaultIdentifier)
+	if err := autostartManager.Sync(cfg.Get().AutoStart); err != nil {
+		log.Printf("apply autostart: %v", err)
+	}
+
+	appService := NewAppService(db, cfg, autostartManager)
 
 	app := application.New(application.Options{
 		Name:        "talus-mofish",

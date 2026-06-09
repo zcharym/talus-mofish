@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/songwei.ma/talus-mofish/internal/autostart"
 	"github.com/songwei.ma/talus-mofish/internal/config"
 	"github.com/songwei.ma/talus-mofish/internal/database"
 	"github.com/songwei.ma/talus-mofish/internal/store"
@@ -13,12 +14,13 @@ import (
 
 // AppService exposes application and persistence APIs to the frontend.
 type AppService struct {
-	db     *database.DB
-	config *config.Store
+	db        *database.DB
+	config    *config.Store
+	autostart *autostart.Manager
 }
 
-func NewAppService(db *database.DB, cfg *config.Store) *AppService {
-	return &AppService{db: db, config: cfg}
+func NewAppService(db *database.DB, cfg *config.Store, autostartManager *autostart.Manager) *AppService {
+	return &AppService{db: db, config: cfg, autostart: autostartManager}
 }
 
 // DatabasePath returns the on-disk SQLite database file path.
@@ -41,7 +43,19 @@ func (a *AppService) SaveConfig(cfg config.App) error {
 	if err := a.config.Update(cfg); err != nil {
 		return fmt.Errorf("save config: %w", err)
 	}
+	if err := a.autostart.Sync(cfg.AutoStart); err != nil {
+		return fmt.Errorf("apply autostart: %w", err)
+	}
 	return nil
+}
+
+// GetAutostartStatus returns the OS-level login autostart registration.
+func (a *AppService) GetAutostartStatus() (autostart.Status, error) {
+	status, err := a.autostart.Status()
+	if err != nil {
+		return autostart.Status{}, fmt.Errorf("autostart status: %w", err)
+	}
+	return status, nil
 }
 
 // ListSettings returns all stored key/value settings.

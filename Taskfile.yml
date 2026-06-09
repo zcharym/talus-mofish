@@ -24,8 +24,6 @@ tasks:
 
   run:
     summary: Runs the application
-    deps:
-      - build
     cmds:
       - task: "{{OS}}:run"
 

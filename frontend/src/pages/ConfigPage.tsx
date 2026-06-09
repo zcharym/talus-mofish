@@ -7,6 +7,7 @@ import {
   NumberInput,
   Select,
   Stack,
+  Switch,
   Text,
 } from "@mantine/core";
 import { AppService } from "../../bindings/github.com/songwei.ma/talus-mofish";
@@ -23,6 +24,7 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
   const [theme, setTheme] = useState<ThemeOption>("auto");
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState(30);
   const [wordsPerSession, setWordsPerSession] = useState(20);
+  const [autoStart, setAutoStart] = useState(false);
   const [configPath, setConfigPath] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,12 +42,12 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
       setTheme(nextTheme);
       setDailyGoalMinutes(cfg.dailyGoalMinutes);
       setWordsPerSession(cfg.wordsPerSession);
+      setAutoStart(cfg.autoStart);
       setConfigPath(path);
       onThemeChange(nextTheme);
     } catch (err) {
       console.error(err);
       notify.failed("Error", "Failed to load configuration.");
-      notify.failed('Error', 'Failed to load configuration.');
     } finally {
       setLoading(false);
     }
@@ -62,17 +64,16 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
       theme,
       dailyGoalMinutes,
       wordsPerSession,
+      autoStart,
     });
 
     try {
       await AppService.SaveConfig(payload);
       onThemeChange(theme);
       notify.success("Saved", "Configuration saved to config.json.");
-      notify.success('Saved', 'Configuration saved to config.json.');
     } catch (err) {
       console.error(err);
       notify.failed("Error", "Failed to save configuration.");
-      notify.failed('Error', 'Failed to save configuration.');
     } finally {
       setSaving(false);
     }
@@ -113,6 +114,13 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
         onChange={(value) => setWordsPerSession(Number(value) || 20)}
         min={1}
         max={200}
+      />
+
+      <Switch
+        label="Start at login"
+        description="Launch Talus MoFish automatically when you sign in"
+        checked={autoStart}
+        onChange={(event) => setAutoStart(event.currentTarget.checked)}
       />
 
       <Group>

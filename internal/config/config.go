@@ -13,6 +13,7 @@ type App struct {
 	Theme            string `json:"theme"`
 	DailyGoalMinutes int    `json:"dailyGoalMinutes"`
 	WordsPerSession  int    `json:"wordsPerSession"`
+	AutoStart        bool   `json:"autoStart"`
 }
 
 // Store loads and saves App settings at a fixed file path.
