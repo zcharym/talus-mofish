@@ -26,10 +26,15 @@ func setupSystemTray(app *application.App, window *application.WebviewWindow) *a
 	}
 	systemTray.SetLabel("Talus MoFish")
 
-	menu := app.NewMenu()
-	menu.Add("Config").OnClick(func(_ *application.Context) {
+	showMainWindow := func() {
 		window.Show()
 		window.Focus()
+	}
+	systemTray.OnClick(showMainWindow)
+
+	menu := app.NewMenu()
+	menu.Add("Config").OnClick(func(_ *application.Context) {
+		showMainWindow()
 		app.Event.Emit(navigateToConfigEvent, "config")
 	})
 	menu.AddSeparator()
