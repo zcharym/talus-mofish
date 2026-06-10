@@ -799,7 +799,7 @@ Already using Mantine with auto/light/dark theme support. Additional considerati
 
 | Task | Files | Description |
 |------|-------|-------------|
-| 1.1 SRS data model | `db/schema.sql`, `db/queries/srs.sql` | decks, cards, review_log tables and queries |
+| 1.1 SRS data model | `internal/database/schema.sql`, `db/queries/srs.sql` | decks, cards, review_log tables and queries |
 | 1.2 SRS engine (Go) | `internal/srs/` | Card, Scheduler, Calculator, Leech detector |
 | 1.3 SRS service | `appservice.go` | Expose SRS operations to frontend via Wails bindings |
 | 1.4 Recite page (frontend) | `frontend/src/pages/RecitePage.tsx` | Card display, tap-to-reveal, rating buttons |
@@ -815,7 +815,7 @@ Already using Mantine with auto/light/dark theme support. Additional considerati
 | Task | Files | Description |
 |------|-------|-------------|
 | 2.1 AI service (Go) | `internal/ai/` | Multi-provider HTTP client, batch translation |
-| 2.2 Article management | `db/schema.sql`, `db/queries/articles.sql` | articles, clippings tables |
+| 2.2 Article management | `internal/database/schema.sql`, `db/queries/articles.sql` | articles, clippings tables |
 | 2.3 Reading page (frontend) | `frontend/src/pages/ReadingPage.tsx` | Article display, word click popover |
 | 2.4 AI explanation popover | `frontend/src/components/WordPopover.tsx` | Popover with AI explanation |
 | 2.5 Save-to-SRS flow | `appservice.go` | Clip word → create card → add to review queue |

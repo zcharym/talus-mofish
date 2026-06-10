@@ -42,7 +42,7 @@ wails3 build GOOS=darwin
 | `internal/database/schema.sql` | SQLite schema (sqlc source of truth, embedded at runtime) |
 | `db/queries/` | SQL queries consumed by sqlc |
 | `internal/store/` | sqlc-generated Go data access (`task sqlc`) |
-| `internal/database/` | DB open, migrations (goose), default path |
+| `internal/database/` | DB open, embedded schema apply, default path |
 | `sqlc.yaml` | sqlc configuration |
 
 ## Database
