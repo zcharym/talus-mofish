@@ -1,7 +1,9 @@
-name: Release
+name: Build and Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
 
@@ -14,8 +16,63 @@ env:
   WAILS3_VERSION: v3.0.0-alpha.60
 
 jobs:
+  version-check:
+    name: Check whether to build
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+      should_release: ${{ steps.check.outputs.should_release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Decide build and release
+        id: check
+        shell: bash
+        run: |
+          if [ "${{ github.ref_type }}" = "branch" ]; then
+            echo "Push to ${GITHUB_REF_NAME}; building without publishing a release."
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          current="${GITHUB_REF_NAME#v}"
+          if ! [[ "$current" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo "Tag ${GITHUB_REF_NAME} is not semver (x.y.z); skipping build."
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          previous_tag="$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | grep -Fxv "${GITHUB_REF_NAME}" | head -1 || true)"
+          if [ -z "$previous_tag" ]; then
+            echo "No previous semver tag found; building release."
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          previous="${previous_tag#v}"
+          current_mm="$(echo "$current" | cut -d. -f1-2)"
+          previous_mm="$(echo "$previous" | cut -d. -f1-2)"
+
+          if [ "$current_mm" != "$previous_mm" ]; then
+            echo "Major/minor changed (${previous_mm} -> ${current_mm}); building release."
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Patch-only change (${previous} -> ${current}); skipping build."
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: Build (${{ matrix.name }})
+    needs: version-check
+    if: needs.version-check.outputs.should_build == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -70,7 +127,8 @@ jobs:
 
   release:
     name: Publish GitHub Release
-    needs: build
+    needs: [version-check, build]
+    if: needs.version-check.outputs.should_release == 'true'
     runs-on: ubuntu-latest
 
     steps:
