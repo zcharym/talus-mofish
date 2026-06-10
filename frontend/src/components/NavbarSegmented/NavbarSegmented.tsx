@@ -10,6 +10,7 @@ import {
   IconLanguage,
   IconSettings,
   IconTool,
+  IconUpload,
   IconVocabulary,
 } from '@tabler/icons-react';
 import { SegmentedControl, Text } from '@mantine/core';
@@ -25,6 +26,7 @@ interface NavItem {
 
 const tabs: Record<Section, NavItem[]> = {
   tools: [
+    { id: 'import', label: 'Import', icon: IconUpload },
     { id: 'database', label: 'Database', icon: IconDatabase },
     { id: 'clipboard', label: 'Clipboard', icon: IconClipboard },
     { id: 'notes', label: 'Notes', icon: IconBook },

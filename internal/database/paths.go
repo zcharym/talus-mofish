@@ -8,6 +8,11 @@ const (
 	configFileName = "config.json"
 )
 
+// UserDataDir returns the OS user data directory used for app storage.
+func UserDataDir() (string, error) {
+	return userDataDir()
+}
+
 // DefaultPath returns the per-user SQLite database file path for the current OS.
 func DefaultPath() (string, error) {
 	base, err := userDataDir()

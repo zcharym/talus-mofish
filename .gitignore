@@ -8,3 +8,4 @@ build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
 *.db
 *.db-shm
 *.db-wal
+test/testdata/*

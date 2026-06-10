@@ -7,10 +7,14 @@ import { Events } from '@wailsio/runtime';
 import { AppService } from '../bindings/github.com/songwei.ma/talus-mofish';
 import { NavbarSegmented } from './components/NavbarSegmented';
 import { ConfigPage } from './pages/ConfigPage';
+import { ImportPage } from './pages/ImportPage';
+import { ReadingPage } from './pages/ReadingPage';
+import { VocabularyPage } from './pages/VocabularyPage';
 
 type ThemeOption = 'auto' | 'light' | 'dark';
 
 const pageTitles: Record<string, string> = {
+  import: 'Import',
   database: 'Database',
   clipboard: 'Clipboard',
   notes: 'Notes',
@@ -32,6 +36,33 @@ function MainContent({ activeItem, onThemeChange }: { activeItem: string; onThem
       <>
         <Title order={2}>{title}</Title>
         <ConfigPage onThemeChange={onThemeChange} />
+      </>
+    );
+  }
+
+  if (activeItem === 'import') {
+    return (
+      <>
+        <Title order={2}>{title}</Title>
+        <ImportPage />
+      </>
+    );
+  }
+
+  if (activeItem === 'reading') {
+    return (
+      <>
+        <Title order={2}>{title}</Title>
+        <ReadingPage />
+      </>
+    );
+  }
+
+  if (activeItem === 'vocabulary') {
+    return (
+      <>
+        <Title order={2}>{title}</Title>
+        <VocabularyPage />
       </>
     );
   }
