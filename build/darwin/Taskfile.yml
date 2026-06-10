@@ -37,10 +37,14 @@ tasks:
         vars:
           ARCH: amd64
           OUTPUT: "{{.BIN_DIR}}/{{.APP_NAME}}-amd64"
+          PRODUCTION:
+            ref: .PRODUCTION
       - task: build
         vars:
           ARCH: arm64
           OUTPUT: "{{.BIN_DIR}}/{{.APP_NAME}}-arm64"
+          PRODUCTION:
+            ref: .PRODUCTION
     cmds:
       - lipo -create -output "{{.BIN_DIR}}/{{.APP_NAME}}" "{{.BIN_DIR}}/{{.APP_NAME}}-amd64" "{{.BIN_DIR}}/{{.APP_NAME}}-arm64"
       - rm "{{.BIN_DIR}}/{{.APP_NAME}}-amd64" "{{.BIN_DIR}}/{{.APP_NAME}}-arm64"
@@ -58,6 +62,8 @@ tasks:
     summary: Packages darwin universal binary (arm64 + amd64)
     deps:
       - task: build:universal
+        vars:
+          PRODUCTION: '{{.PRODUCTION | default "true"}}'
     cmds:
       - task: create:app:bundle
 
@@ -70,6 +76,14 @@ tasks:
       - cp {{.BIN_DIR}}/{{.APP_NAME}} {{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/MacOS
       - cp build/darwin/Info.plist {{.BIN_DIR}}/{{.APP_NAME}}.app/Contents
       - codesign --force --deep --sign - {{.BIN_DIR}}/{{.APP_NAME}}.app
+
+  create:dmg:
+    summary: Packages a universal `.app` bundle into a `.dmg` disk image
+    deps:
+      - task: package:universal
+    cmds:
+      - rm -f {{.BIN_DIR}}/{{.APP_NAME}}.dmg
+      - hdiutil create -volname "Talus Mofish" -srcfolder {{.BIN_DIR}}/{{.APP_NAME}}.app -ov -format UDZO {{.BIN_DIR}}/{{.APP_NAME}}.dmg
 
   run:
     cmds:
