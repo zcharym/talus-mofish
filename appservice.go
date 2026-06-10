@@ -10,6 +10,7 @@ import (
 	"github.com/songwei.ma/talus-mofish/internal/config"
 	"github.com/songwei.ma/talus-mofish/internal/database"
 	"github.com/songwei.ma/talus-mofish/internal/store"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // AppService exposes application and persistence APIs to the frontend.
@@ -17,6 +18,7 @@ type AppService struct {
 	db        *database.DB
 	config    *config.Store
 	autostart *autostart.Manager
+	wailsApp  *application.App
 }
 
 func NewAppService(db *database.DB, cfg *config.Store, autostartManager *autostart.Manager) *AppService {

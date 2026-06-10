@@ -4,8 +4,131 @@
 
 package store
 
+import (
+	"database/sql"
+)
+
+type AnkiImport struct {
+	ID           string `json:"id"`
+	Filename     string `json:"filename"`
+	ImportedAt   string `json:"imported_at"`
+	Status       string `json:"status"`
+	ErrorMessage string `json:"error_message"`
+	StatsJson    string `json:"stats_json"`
+}
+
+type AnkiImportDeck struct {
+	ImportID     string         `json:"import_id"`
+	AnkiDeckID   int64          `json:"anki_deck_id"`
+	AnkiDeckName string         `json:"anki_deck_name"`
+	TargetType   string         `json:"target_type"`
+	AnkiModelID  sql.NullInt64  `json:"anki_model_id"`
+	FieldMapping string         `json:"field_mapping"`
+	AppDeckID    sql.NullString `json:"app_deck_id"`
+}
+
+type Article struct {
+	ID           string         `json:"id"`
+	Title        string         `json:"title"`
+	Url          string         `json:"url"`
+	Content      string         `json:"content"`
+	Translation  string         `json:"translation"`
+	Level        string         `json:"level"`
+	Source       string         `json:"source"`
+	WordCount    int64          `json:"word_count"`
+	AnkiNoteGuid sql.NullString `json:"anki_note_guid"`
+	ModelCss     string         `json:"model_css"`
+	RawFields    string         `json:"raw_fields"`
+	CreatedAt    string         `json:"created_at"`
+	UpdatedAt    string         `json:"updated_at"`
+}
+
+type Card struct {
+	ID              string         `json:"id"`
+	DeckID          string         `json:"deck_id"`
+	Front           string         `json:"front"`
+	Back            string         `json:"back"`
+	ExampleSentence string         `json:"example_sentence"`
+	Hints           string         `json:"hints"`
+	CardType        string         `json:"card_type"`
+	Ease            float64        `json:"ease"`
+	Interval        int64          `json:"interval"`
+	Repetitions     int64          `json:"repetitions"`
+	DueAt           sql.NullString `json:"due_at"`
+	Lapsed          int64          `json:"lapsed"`
+	Suspended       int64          `json:"suspended"`
+	Source          string         `json:"source"`
+	AnkiCardID      sql.NullInt64  `json:"anki_card_id"`
+	AnkiNoteGuid    sql.NullString `json:"anki_note_guid"`
+	TemplateOrd     int64          `json:"template_ord"`
+	ModelCss        string         `json:"model_css"`
+	CreatedAt       string         `json:"created_at"`
+	UpdatedAt       string         `json:"updated_at"`
+}
+
+type CardVocab struct {
+	CardID  string `json:"card_id"`
+	VocabID string `json:"vocab_id"`
+}
+
+type Clipping struct {
+	ID          string         `json:"id"`
+	ArticleID   sql.NullString `json:"article_id"`
+	Text        string         `json:"text"`
+	Translation string         `json:"translation"`
+	Explanation string         `json:"explanation"`
+	Note        string         `json:"note"`
+	SavedToCard int64          `json:"saved_to_card"`
+	CreatedAt   string         `json:"created_at"`
+}
+
+type Deck struct {
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	ParentID    sql.NullString `json:"parent_id"`
+	SortOrder   int64          `json:"sort_order"`
+	CreatedAt   string         `json:"created_at"`
+	UpdatedAt   string         `json:"updated_at"`
+}
+
+type MediaAsset struct {
+	ID               string `json:"id"`
+	OriginalFilename string `json:"original_filename"`
+	StoredPath       string `json:"stored_path"`
+	MimeType         string `json:"mime_type"`
+	Sha256           string `json:"sha256"`
+	Source           string `json:"source"`
+	CreatedAt        string `json:"created_at"`
+}
+
+type ReviewLog struct {
+	ID             string          `json:"id"`
+	CardID         string          `json:"card_id"`
+	Rating         int64           `json:"rating"`
+	ElapsedMs      int64           `json:"elapsed_ms"`
+	ReviewAt       string          `json:"review_at"`
+	DaySeq         int64           `json:"day_seq"`
+	EaseBefore     sql.NullFloat64 `json:"ease_before"`
+	IntervalBefore sql.NullInt64   `json:"interval_before"`
+}
+
 type Setting struct {
 	Key       string `json:"key"`
 	Value     string `json:"value"`
 	UpdatedAt string `json:"updated_at"`
+}
+
+type Vocabulary struct {
+	ID           string         `json:"id"`
+	Word         string         `json:"word"`
+	Phonetic     string         `json:"phonetic"`
+	Pos          string         `json:"pos"`
+	Definition   string         `json:"definition"`
+	DefinitionEn string         `json:"definition_en"`
+	Examples     string         `json:"examples"`
+	Level        string         `json:"level"`
+	Source       string         `json:"source"`
+	AnkiNoteGuid sql.NullString `json:"anki_note_guid"`
+	CreatedAt    string         `json:"created_at"`
 }

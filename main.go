@@ -55,6 +55,8 @@ func main() {
 		},
 	})
 
+	appService.SetWailsApp(app)
+
 	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title: "Talus MoFish",
 		Mac: application.MacWindow{
