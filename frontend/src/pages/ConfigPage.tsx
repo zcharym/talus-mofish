@@ -118,7 +118,7 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
 
       <Switch
         label="Start at login"
-        description="Launch Talus MoFish automatically when you sign in"
+        description="Launch Talus Echo automatically when you sign in"
         checked={autoStart}
         onChange={(event) => setAutoStart(event.currentTarget.checked)}
       />

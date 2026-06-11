@@ -4,11 +4,11 @@ import (
 	"embed"
 	"log"
 
+	"github.com/songwei.ma/talus-mofish/internal/appservice"
 	"github.com/songwei.ma/talus-mofish/internal/autostart"
 	"github.com/songwei.ma/talus-mofish/internal/config"
 	"github.com/songwei.ma/talus-mofish/internal/database"
 	"github.com/wailsapp/wails/v3/pkg/application"
-	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 //go:embed all:frontend/dist
@@ -48,32 +48,26 @@ func main() {
 			application.NewService(appService),
 		},
 		Assets: application.AssetOptions{
-			Handler: application.AssetFileServerFS(assets),
+			Handler: newAssetHandler(assets),
 		},
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: false,
+		},
+		Windows: application.WindowsOptions{
+			DisableQuitOnLastWindowClosed: true,
+		},
+		Linux: application.LinuxOptions{
+			DisableQuitOnLastWindowClosed: true,
 		},
 	})
 
 	appService.SetWailsApp(app)
 
-	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title: "Talus MoFish",
-		Mac: application.MacWindow{
-			InvisibleTitleBarHeight: 50,
-			Backdrop:                application.MacBackdropTranslucent,
-			TitleBar:                application.MacTitleBarHiddenInset,
-		},
-		BackgroundColour: application.NewRGB(27, 38, 54),
-		URL:              "/",
-	})
+	windowManager := NewWindowManager(app)
+	windowManager.CreateWindows()
+	appservice.ConfigureWindows(windowManager)
 
-	window.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
-		window.Hide()
-		e.Cancel()
-	})
-
-	setupSystemTray(app, window)
+	setupSystemTray(app, windowManager)
 
 	if err := app.Run(); err != nil {
 		log.Fatal(err)

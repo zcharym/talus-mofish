@@ -32,3 +32,31 @@ func (s *Service) ListCardsByDeck(deckID string) ([]store.Card, error) {
 	}
 	return items, nil
 }
+
+// GetCard returns a single SRS card by ID.
+func (s *Service) GetCard(id string) (store.Card, error) {
+	ctx := context.Background()
+	item, err := s.db.Queries.GetCard(ctx, id)
+	if err != nil {
+		return store.Card{}, fmt.Errorf("get card: %w", err)
+	}
+	return item, nil
+}
+
+// UpdateCardContent saves editable card fields.
+func (s *Service) UpdateCardContent(input store.UpdateCardContentParams) error {
+	ctx := context.Background()
+	if err := s.db.Queries.UpdateCardContent(ctx, input); err != nil {
+		return fmt.Errorf("update card content: %w", err)
+	}
+	return nil
+}
+
+// DeleteCard removes an SRS card.
+func (s *Service) DeleteCard(id string) error {
+	ctx := context.Background()
+	if err := s.db.Queries.DeleteCard(ctx, id); err != nil {
+		return fmt.Errorf("delete card: %w", err)
+	}
+	return nil
+}

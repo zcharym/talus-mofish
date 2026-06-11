@@ -119,9 +119,9 @@ function AgentApp() {
     }
   };
 
-  const handleOpenEditor = () => {
-    AppService.ShowEditorWindow().catch((err: unknown) => {
-      notify.failed('Failed to open editor', String(err));
+  const handleOpenManagement = () => {
+    AppService.ShowManagementWindow().catch((err: unknown) => {
+      notify.failed('Failed to open management', String(err));
     });
   };
 
@@ -139,7 +139,7 @@ function AgentApp() {
           onNewChat={handleNewChat}
           onRenameSession={handleRenameSession}
           onDeleteSession={handleDeleteSession}
-          onOpenEditor={handleOpenEditor}
+          onOpenManagement={handleOpenManagement}
         />
 
         <Box className={classes.main}>

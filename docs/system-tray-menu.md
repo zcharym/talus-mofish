@@ -8,7 +8,7 @@
 
 ```
 agent   # opens the agent chat window
-editor  # opens the editor window
+manage  # opens the management window
 ---
 exit
 ```

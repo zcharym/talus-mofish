@@ -16,9 +16,10 @@ export interface FlipCardProps {
   back: React.ReactNode;
   headerExtra?: React.ReactNode;
   modelCss?: string;
+  onDelete?: () => void;
 }
 
-export function FlipCard({ title, front, back, headerExtra, modelCss }: FlipCardProps) {
+export function FlipCard({ title, front, back, headerExtra, modelCss, onDelete }: FlipCardProps) {
   const [flipped, setFlipped] = useState(false);
 
   return (
@@ -28,18 +29,20 @@ export function FlipCard({ title, front, back, headerExtra, modelCss }: FlipCard
       <Stack gap="xs">
         <Group justify="space-between" wrap="nowrap">
           <Text fw={500} lineClamp={1}>{title}</Text>
-          <Menu withinPortal position="bottom-end" shadow="sm">
-            <Menu.Target>
-              <ActionIcon variant="subtle" color="gray">
-                <IconDots size={16} />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item leftSection={<IconTrash size={14} />} color="red">
-                Delete
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
+          {onDelete && (
+            <Menu withinPortal position="bottom-end" shadow="sm">
+              <Menu.Target>
+                <ActionIcon variant="subtle" color="gray">
+                  <IconDots size={16} />
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item leftSection={<IconTrash size={14} />} color="red" onClick={onDelete}>
+                  Delete
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          )}
         </Group>
         {headerExtra}
       </Stack>

@@ -13,9 +13,7 @@ var appIconJPG []byte
 //go:embed build/windows/icon.ico
 var appIconICO []byte
 
-const navigateToConfigEvent = "frontend:navigate"
-
-func setupSystemTray(app *application.App, window *application.WebviewWindow) *application.SystemTray {
+func setupSystemTray(app *application.App, wm *WindowManager) *application.SystemTray {
 	systemTray := app.SystemTray.New()
 
 	switch runtime.GOOS {
@@ -24,18 +22,16 @@ func setupSystemTray(app *application.App, window *application.WebviewWindow) *a
 	default:
 		systemTray.SetIcon(appIconJPG)
 	}
-	systemTray.SetLabel("Talus MoFish")
+	systemTray.SetLabel("Talus Echo")
 
-	showMainWindow := func() {
-		window.Show()
-		window.Focus()
-	}
-	systemTray.OnClick(showMainWindow)
+	systemTray.OnClick(wm.ShowAgentWindow)
 
 	menu := app.NewMenu()
-	menu.Add("Config").OnClick(func(_ *application.Context) {
-		showMainWindow()
-		app.Event.Emit(navigateToConfigEvent, "config")
+	menu.Add("Agent").OnClick(func(_ *application.Context) {
+		wm.ShowAgentWindow()
+	})
+	menu.Add("Manage").OnClick(func(_ *application.Context) {
+		wm.ShowManagementWindow()
 	})
 	menu.AddSeparator()
 	menu.Add("Exit").OnClick(func(_ *application.Context) {

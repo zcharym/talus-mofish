@@ -33,7 +33,7 @@ interface SessionSidebarProps {
   onNewChat: () => Promise<void>;
   onRenameSession: (sessionId: string, title: string) => Promise<void>;
   onDeleteSession: (sessionId: string) => Promise<void>;
-  onOpenEditor: () => void;
+  onOpenManagement: () => void;
 }
 
 export function SessionSidebar({
@@ -43,7 +43,7 @@ export function SessionSidebar({
   onNewChat,
   onRenameSession,
   onDeleteSession,
-  onOpenEditor,
+  onOpenManagement,
 }: SessionSidebarProps) {
   const [renameSessionId, setRenameSessionId] = useState<string | null>(null);
   const [renameTitle, setRenameTitle] = useState('');
@@ -146,9 +146,9 @@ export function SessionSidebar({
       </ScrollArea>
 
       <Box className={classes.footer}>
-        <UnstyledButton className={classes.footerButton} onClick={onOpenEditor}>
+        <UnstyledButton className={classes.footerButton} onClick={onOpenManagement}>
           <IconLayoutSidebar size={18} />
-          <span>Open Editor</span>
+          <span>Open Management</span>
         </UnstyledButton>
       </Box>
 

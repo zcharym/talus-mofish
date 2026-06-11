@@ -3,7 +3,6 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { AppShell, MantineProvider, Text, Title } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import { Events } from '@wailsio/runtime';
 import { AppService } from '../bindings/github.com/songwei.ma/talus-mofish';
 import { NavbarSegmented } from './components/NavbarSegmented';
 import { ConfigPage } from './pages/ConfigPage';
@@ -15,15 +14,8 @@ type ThemeOption = 'auto' | 'light' | 'dark';
 
 const pageTitles: Record<string, string> = {
   import: 'Import',
-  database: 'Database',
-  clipboard: 'Clipboard',
-  notes: 'Notes',
-  settings: 'Settings',
   reading: 'Reading',
-  recite: 'Recite Words',
   vocabulary: 'Vocabulary',
-  listening: 'Listening',
-  grammar: 'Grammar',
   config: 'Configuration',
   about: 'About',
 };
@@ -67,20 +59,22 @@ function MainContent({ activeItem, onThemeChange }: { activeItem: string; onThem
     );
   }
 
-  return (
-    <>
-      <Title order={2}>{title}</Title>
-      <Text c="dimmed" mt="sm">
-        {activeItem === 'about'
-          ? 'Talus Echo — English learning and work tools.'
-          : 'Content coming soon. This is a placeholder for the selected section.'}
-      </Text>
-    </>
-  );
+  if (activeItem === 'about') {
+    return (
+      <>
+        <Title order={2}>{title}</Title>
+        <Text c="dimmed" mt="sm">
+          Talus Echo — English learning library and management.
+        </Text>
+      </>
+    );
+  }
+
+  return null;
 }
 
-function App() {
-  const [activeItem, setActiveItem] = useState('database');
+function ManagementApp() {
+  const [activeItem, setActiveItem] = useState('vocabulary');
   const [colorScheme, setColorScheme] = useState<ThemeOption>('auto');
 
   const applyTheme = useCallback((theme: ThemeOption) => {
@@ -97,15 +91,6 @@ function App() {
         console.error(err);
       });
   }, [applyTheme]);
-
-  useEffect(() => {
-    return Events.On('frontend:navigate', (event) => {
-      const page = event.data;
-      if (typeof page === 'string' && page) {
-        setActiveItem(page);
-      }
-    });
-  }, []);
 
   return (
     <MantineProvider
@@ -126,4 +111,4 @@ function App() {
   );
 }
 
-export default App;
+export default ManagementApp;
