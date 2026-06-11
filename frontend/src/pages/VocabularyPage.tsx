@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Badge,
   Center,
@@ -16,10 +16,10 @@ import {
 import { AppService } from "../../bindings/github.com/songwei.ma/talus-mofish";
 import { Vocabulary, VocabularyPageResult } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/store/models";
 import { FlipCard } from "../components/FlipCard";
+import { useDynamicScrollHeight } from "../hooks/useDynamicScrollHeight";
 import { notify } from "../services/notifications";
 
 const PAGE_SIZE = 10;
-const TABLE_MAX_HEIGHT = 400;
 
 export function VocabularyPage() {
   const [pageResult, setPageResult] = useState<VocabularyPageResult | null>(null);
@@ -27,6 +27,8 @@ export function VocabularyPage() {
   const [loading, setLoading] = useState(true);
   const [selectedVocab, setSelectedVocab] = useState<Vocabulary | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const scrollAnchorRef = useRef<HTMLDivElement>(null);
+  const scrollFooterRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async (pageNum: number) => {
     setLoading(true);
@@ -63,6 +65,11 @@ export function VocabularyPage() {
 
   const items: Vocabulary[] = pageResult?.items ?? [];
   const totalPages = pageResult ? Math.max(1, Math.ceil(pageResult.total / pageResult.page_size)) : 1;
+  const scrollHeight = useDynamicScrollHeight(scrollAnchorRef, scrollFooterRef, [
+    loading,
+    pageResult?.total,
+    items.length,
+  ]);
 
   if (loading && !pageResult) {
     return <Text c="dimmed" mt="md">Loading vocabulary…</Text>;
@@ -78,8 +85,8 @@ export function VocabularyPage() {
 
   return (
     <Stack mt="md" gap="md">
-      <Paper withBorder>
-        <ScrollArea h={TABLE_MAX_HEIGHT} type="auto">
+      <Paper withBorder ref={scrollAnchorRef}>
+        <ScrollArea h={scrollHeight} type="auto">
           <Table striped highlightOnHover>
             <Table.Thead>
               <Table.Tr>
@@ -131,14 +138,16 @@ export function VocabularyPage() {
         </ScrollArea>
       </Paper>
 
-      {pageResult && pageResult.total > pageResult.page_size && (
-        <Group justify="space-between" align="center">
-          <Text size="sm" c="dimmed">
-            {pageResult.total} words
-          </Text>
-          <Pagination value={page} onChange={setPage} total={totalPages} />
-        </Group>
-      )}
+      <div ref={scrollFooterRef}>
+        {pageResult && pageResult.total > pageResult.page_size && (
+          <Group justify="space-between" align="center">
+            <Text size="sm" c="dimmed">
+              {pageResult.total} words
+            </Text>
+            <Pagination value={page} onChange={setPage} total={totalPages} />
+          </Group>
+        )}
+      </div>
 
       <Modal opened={modalOpen} onClose={handleClose} size="lg" title={null} padding="md">
         {selectedVocab && (

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Badge,
   Center,
@@ -18,10 +18,10 @@ import {
   ArticleSummary,
 } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/store/models";
 import { FlipCard } from "../components/FlipCard";
+import { useDynamicScrollHeight } from "../hooks/useDynamicScrollHeight";
 import { notify } from "../services/notifications";
 
 const PAGE_SIZE = 10;
-const LIST_MAX_HEIGHT = 360;
 
 export function ReadingPage() {
   const [pageResult, setPageResult] = useState<ArticlePageResult | null>(null);
@@ -31,6 +31,8 @@ export function ReadingPage() {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [loadingArticle, setLoadingArticle] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const scrollAnchorRef = useRef<HTMLDivElement>(null);
+  const scrollFooterRef = useRef<HTMLDivElement>(null);
 
   const loadPage = useCallback(async (pageNum: number) => {
     setLoadingList(true);
@@ -84,6 +86,11 @@ export function ReadingPage() {
 
   const totalPages = pageResult ? Math.max(1, Math.ceil(pageResult.total / pageResult.page_size)) : 1;
   const items = pageResult?.items ?? [];
+  const scrollHeight = useDynamicScrollHeight(scrollAnchorRef, scrollFooterRef, [
+    loadingList,
+    pageResult?.total,
+    items.length,
+  ]);
 
   if (loadingList && !pageResult) {
     return <Text c="dimmed" mt="md">Loading articles…</Text>;
@@ -99,8 +106,8 @@ export function ReadingPage() {
 
   return (
     <Stack mt="md" gap="md">
-      <Paper withBorder p="xs">
-        <ScrollArea h={LIST_MAX_HEIGHT} type="auto">
+      <Paper withBorder p="xs" ref={scrollAnchorRef}>
+        <ScrollArea h={scrollHeight} type="auto">
           <Stack gap="xs">
             {loadingList ? (
               <Center py="md">
@@ -132,14 +139,16 @@ export function ReadingPage() {
         </ScrollArea>
       </Paper>
 
-      {pageResult && pageResult.total > pageResult.page_size && (
-        <Group justify="space-between" align="center">
-          <Text size="sm" c="dimmed">
-            {pageResult.total} articles
-          </Text>
-          <Pagination value={page} onChange={setPage} total={totalPages} />
-        </Group>
-      )}
+      <div ref={scrollFooterRef}>
+        {pageResult && pageResult.total > pageResult.page_size && (
+          <Group justify="space-between" align="center">
+            <Text size="sm" c="dimmed">
+              {pageResult.total} articles
+            </Text>
+            <Pagination value={page} onChange={setPage} total={totalPages} />
+          </Group>
+        )}
+      </div>
 
       <Modal opened={modalOpen} onClose={handleClose} size="lg" title={null} padding="md">
         {loadingArticle ? (
