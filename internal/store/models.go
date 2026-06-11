@@ -71,6 +71,21 @@ type CardVocab struct {
 	VocabID string `json:"vocab_id"`
 }
 
+type ChatMessage struct {
+	ID        string `json:"id"`
+	SessionID string `json:"session_id"`
+	Role      string `json:"role"`
+	Content   string `json:"content"`
+	CreatedAt string `json:"created_at"`
+}
+
+type ChatSession struct {
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+}
+
 type Clipping struct {
 	ID          string         `json:"id"`
 	ArticleID   sql.NullString `json:"article_id"`

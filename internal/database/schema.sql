@@ -175,3 +175,21 @@ CREATE TABLE IF NOT EXISTS anki_import_decks (
     app_deck_id TEXT REFERENCES decks (id),
     PRIMARY KEY (import_id, anki_deck_id)
 );
+
+-- === Agent Chat ===
+CREATE TABLE IF NOT EXISTS chat_sessions (
+    id TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL DEFAULT 'New chat',
+    created_at TEXT NOT NULL DEFAULT (datetime ('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime ('now'))
+);
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id TEXT NOT NULL PRIMARY KEY,
+    session_id TEXT NOT NULL REFERENCES chat_sessions (id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+    content TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime ('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages (session_id, created_at);
