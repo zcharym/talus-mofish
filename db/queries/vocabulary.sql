@@ -18,6 +18,16 @@ SELECT id, word, phonetic, pos, definition, definition_en, examples, level, sour
 FROM vocabulary
 ORDER BY word;
 
+-- name: CountVocabulary :one
+SELECT count(*) FROM vocabulary;
+
+-- name: ListVocabularyPage :many
+SELECT id, word, phonetic, pos, definition, definition_en, examples, level, source, anki_note_guid, created_at
+FROM vocabulary
+ORDER BY word
+LIMIT ?
+OFFSET ?;
+
 -- name: SearchVocabulary :many
 SELECT id, word, phonetic, pos, definition, definition_en, examples, level, source, anki_note_guid, created_at
 FROM vocabulary

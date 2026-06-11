@@ -25,6 +25,16 @@ SELECT
 FROM articles
 ORDER BY created_at DESC;
 
+-- name: CountArticles :one
+SELECT count(*) FROM articles;
+
+-- name: ListArticlesPage :many
+SELECT id, title, source, word_count, created_at
+FROM articles
+ORDER BY created_at DESC
+LIMIT ?
+OFFSET ?;
+
 -- name: ListArticlesBySource :many
 SELECT
     id, title, url, content, translation, level, source, word_count,

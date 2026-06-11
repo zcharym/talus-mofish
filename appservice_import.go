@@ -73,30 +73,93 @@ func (a *AppService) ListAnkiImports() ([]store.AnkiImport, error) {
 	return items, nil
 }
 
-// ListVocabulary returns all vocabulary entries.
-func (a *AppService) ListVocabulary() ([]store.Vocabulary, error) {
+// ListVocabularyPage returns a paginated list of vocabulary entries.
+func (a *AppService) ListVocabularyPage(page, pageSize int64) (store.VocabularyPageResult, error) {
 	ctx := context.Background()
-	items, err := a.db.Queries.ListVocabulary(ctx)
+	page, pageSize = normalizePageParams(page, pageSize)
+
+	total, err := a.db.Queries.CountVocabulary(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("list vocabulary: %w", err)
+		return store.VocabularyPageResult{}, fmt.Errorf("count vocabulary: %w", err)
+	}
+
+	items, err := a.db.Queries.ListVocabularyPage(ctx, store.ListVocabularyPageParams{
+		Limit:  pageSize,
+		Offset: (page - 1) * pageSize,
+	})
+	if err != nil {
+		return store.VocabularyPageResult{}, fmt.Errorf("list vocabulary page: %w", err)
 	}
 	if items == nil {
-		return []store.Vocabulary{}, nil
+		items = []store.Vocabulary{}
 	}
-	return items, nil
+
+	return store.VocabularyPageResult{
+		Items:    items,
+		Total:    total,
+		Page:     page,
+		PageSize: pageSize,
+	}, nil
 }
 
-// ListArticles returns all reading articles.
-func (a *AppService) ListArticles() ([]store.Article, error) {
+// ListArticlesPage returns a paginated list of article summaries.
+func (a *AppService) ListArticlesPage(page, pageSize int64) (store.ArticlePageResult, error) {
 	ctx := context.Background()
-	items, err := a.db.Queries.ListArticles(ctx)
+	page, pageSize = normalizePageParams(page, pageSize)
+
+	total, err := a.db.Queries.CountArticles(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("list articles: %w", err)
+		return store.ArticlePageResult{}, fmt.Errorf("count articles: %w", err)
 	}
-	if items == nil {
-		return []store.Article{}, nil
+
+	rows, err := a.db.Queries.ListArticlesPage(ctx, store.ListArticlesPageParams{
+		Limit:  pageSize,
+		Offset: (page - 1) * pageSize,
+	})
+	if err != nil {
+		return store.ArticlePageResult{}, fmt.Errorf("list articles page: %w", err)
 	}
-	return items, nil
+
+	items := make([]store.ArticleSummary, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, store.ArticleSummary{
+			ID:        row.ID,
+			Title:     row.Title,
+			Source:    row.Source,
+			WordCount: row.WordCount,
+			CreatedAt: row.CreatedAt,
+		})
+	}
+
+	return store.ArticlePageResult{
+		Items:    items,
+		Total:    total,
+		Page:     page,
+		PageSize: pageSize,
+	}, nil
+}
+
+// GetArticle returns a single article by ID.
+func (a *AppService) GetArticle(id string) (store.Article, error) {
+	ctx := context.Background()
+	article, err := a.db.Queries.GetArticle(ctx, id)
+	if err != nil {
+		return store.Article{}, fmt.Errorf("get article: %w", err)
+	}
+	return article, nil
+}
+
+func normalizePageParams(page, pageSize int64) (int64, int64) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = store.DefaultPageSize
+	}
+	if pageSize > 100 {
+		pageSize = 100
+	}
+	return page, pageSize
 }
 
 // ListDecks returns all SRS decks.
