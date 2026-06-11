@@ -21,8 +21,21 @@
   flex: 1;
 }
 
+.sectionLabel {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+}
+
 .sessionRow {
   width: 100%;
+
+  &:hover .sessionActions,
+  &:focus-within .sessionActions {
+    opacity: 1;
+  }
 }
 
 .sessionButton {
@@ -40,6 +53,12 @@
     background-color: var(--mantine-color-blue-light);
     color: var(--mantine-color-blue-light-color);
   }
+}
+
+.sessionActions {
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 120ms ease;
 }
 
 .footer {
