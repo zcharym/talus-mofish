@@ -1,0 +1,30 @@
+.flipContainer {
+  perspective: 1000px;
+  min-height: 240px;
+}
+
+.flipInner {
+  position: relative;
+  width: 100%;
+  min-height: 240px;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+.flipInner[data-flipped="true"] {
+  transform: rotateY(180deg);
+}
+
+.flipFace,
+.flipBack {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: auto;
+  padding: var(--mantine-spacing-xs);
+}
+
+.flipBack {
+  transform: rotateY(180deg);
+}

@@ -1,15 +1,32 @@
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Center, Group, Loader, Pagination, Paper, ScrollArea, Stack, Table, Text } from "@mantine/core";
+import {
+  Badge,
+  Center,
+  Group,
+  Loader,
+  Modal,
+  Pagination,
+  Paper,
+  ScrollArea,
+  Stack,
+  Table,
+  Text,
+  Title,
+} from "@mantine/core";
 import { AppService } from "../../bindings/github.com/songwei.ma/talus-mofish";
 import { Vocabulary, VocabularyPageResult } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/store/models";
+import { FlipCard } from "../components/FlipCard";
 import { notify } from "../services/notifications";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
+const TABLE_MAX_HEIGHT = 400;
 
 export function VocabularyPage() {
   const [pageResult, setPageResult] = useState<VocabularyPageResult | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [selectedVocab, setSelectedVocab] = useState<Vocabulary | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const load = useCallback(async (pageNum: number) => {
     setLoading(true);
@@ -29,6 +46,21 @@ export function VocabularyPage() {
     void load(page);
   }, [load, page]);
 
+  useEffect(() => {
+    setModalOpen(false);
+    setSelectedVocab(null);
+  }, [page]);
+
+  const handleClose = () => {
+    setModalOpen(false);
+    setSelectedVocab(null);
+  };
+
+  const handleSelect = (row: Vocabulary) => {
+    setSelectedVocab(row);
+    setModalOpen(true);
+  };
+
   const items: Vocabulary[] = pageResult?.items ?? [];
   const totalPages = pageResult ? Math.max(1, Math.ceil(pageResult.total / pageResult.page_size)) : 1;
 
@@ -47,7 +79,7 @@ export function VocabularyPage() {
   return (
     <Stack mt="md" gap="md">
       <Paper withBorder>
-        <ScrollArea>
+        <ScrollArea h={TABLE_MAX_HEIGHT} type="auto">
           <Table striped highlightOnHover>
             <Table.Thead>
               <Table.Tr>
@@ -68,7 +100,17 @@ export function VocabularyPage() {
                 </Table.Tr>
               ) : (
                 items.map((row) => (
-                  <Table.Tr key={row.id}>
+                  <Table.Tr
+                    key={row.id}
+                    onClick={() => handleSelect(row)}
+                    style={{
+                      cursor: "pointer",
+                      backgroundColor:
+                        selectedVocab?.id === row.id && modalOpen
+                          ? "var(--mantine-color-blue-light)"
+                          : undefined,
+                    }}
+                  >
                     <Table.Td fw={500}>{row.word}</Table.Td>
                     <Table.Td>{row.phonetic}</Table.Td>
                     <Table.Td>
@@ -97,6 +139,52 @@ export function VocabularyPage() {
           <Pagination value={page} onChange={setPage} total={totalPages} />
         </Group>
       )}
+
+      <Modal opened={modalOpen} onClose={handleClose} size="lg" title={null} padding="md">
+        {selectedVocab && (
+          <FlipCard
+            key={selectedVocab.id}
+            title={selectedVocab.word}
+            headerExtra={
+              <Group gap="xs">
+                {selectedVocab.phonetic && (
+                  <Text size="sm" c="dimmed">{selectedVocab.phonetic}</Text>
+                )}
+                {selectedVocab.pos && (
+                  <Badge size="sm" variant="outline">{selectedVocab.pos}</Badge>
+                )}
+                {selectedVocab.source === "import:anki" ? (
+                  <Badge size="sm" variant="light">Anki</Badge>
+                ) : (
+                  <Text size="xs" c="dimmed">{selectedVocab.source}</Text>
+                )}
+              </Group>
+            }
+            front={
+              <Stack gap="xs" align="center" justify="center" h="100%">
+                <Title order={2}>{selectedVocab.word}</Title>
+                {selectedVocab.phonetic && (
+                  <Text c="dimmed">{selectedVocab.phonetic}</Text>
+                )}
+                {selectedVocab.pos && (
+                  <Badge variant="outline">{selectedVocab.pos}</Badge>
+                )}
+              </Stack>
+            }
+            back={
+              <Stack gap="sm">
+                <Text>{selectedVocab.definition}</Text>
+                {selectedVocab.definition_en && (
+                  <Text size="sm" c="dimmed">{selectedVocab.definition_en}</Text>
+                )}
+                {selectedVocab.examples && (
+                  <Text size="sm" c="dimmed">{selectedVocab.examples}</Text>
+                )}
+              </Stack>
+            }
+          />
+        )}
+      </Modal>
     </Stack>
   );
 }
