@@ -8,12 +8,14 @@ import {
   IconHeadphones,
   IconInfoCircle,
   IconLanguage,
+  IconMessageChatbot,
   IconSettings,
   IconTool,
   IconUpload,
   IconVocabulary,
 } from '@tabler/icons-react';
 import { Divider, SegmentedControl, Text } from '@mantine/core';
+import { AppService } from '../../../bindings/github.com/songwei.ma/talus-mofish';
 import classes from './NavbarSegmented.module.css';
 
 type Section = 'tools' | 'english';
@@ -133,6 +135,20 @@ export function NavbarSegmented({ activeItem, onActiveItemChange }: NavbarSegmen
       </div>
 
       <div className={classes.footer}>
+        <a
+          href="#"
+          className={classes.link}
+          onClick={(event) => {
+            event.preventDefault();
+            AppService.ShowAgentWindow().catch((err: unknown) => {
+              console.error(err);
+            });
+          }}
+        >
+          <IconMessageChatbot className={classes.linkIcon} stroke={1.5} />
+          <span>Agent Chat</span>
+        </a>
+
         <a
           href="#"
           className={classes.link}

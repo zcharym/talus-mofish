@@ -4,13 +4,13 @@
 
 - [systray](https://v3.wails.io/features/menus/systray/)
 
-
 ## Design
 
 ```
-
-config # opens the main window and the config tab
+agent   # opens the agent chat window
+editor  # opens the editor window
 ---
 exit
-
 ```
+
+Tray icon click opens the **Agent** window by default.

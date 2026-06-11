@@ -4,5 +4,6 @@ import wails from "@wailsio/runtime/plugins/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  appType: "spa",
   plugins: [react(), wails("./bindings")],
 });

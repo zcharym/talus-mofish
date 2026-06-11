@@ -1,0 +1,22 @@
+.wrapper {
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+  border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  background-color: var(--mantine-color-body);
+}
+
+.inputRow {
+  align-items: flex-end;
+}
+
+.textarea {
+  flex: 1;
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: var(--mantine-spacing-xs);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
