@@ -1,4 +1,6 @@
 .sidebar {
+  --sidebar-titlebar-height: 0px;
+
   width: 260px;
   min-width: 260px;
   height: 100%;
@@ -6,15 +8,32 @@
   flex-direction: column;
   border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
   background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
+  --wails-draggable: no-drag;
+}
+
+.sidebar[data-platform='darwin'] {
+  --sidebar-titlebar-height: 50px;
 }
 
 .header {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+.titlebarSpacer {
+  flex-shrink: 0;
+  height: var(--sidebar-titlebar-height);
+}
+
+.headerRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--mantine-spacing-sm);
   padding: var(--mantine-spacing-md);
-  border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  --wails-draggable: no-drag;
 }
 
 .list {

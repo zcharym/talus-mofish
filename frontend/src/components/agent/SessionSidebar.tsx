@@ -25,6 +25,10 @@ import {
 import { loadPinnedSessionIds, savePinnedSessionIds } from './pinnedSessions';
 import classes from './SessionSidebar.module.css';
 
+const isMacOS =
+  typeof navigator !== 'undefined' &&
+  (navigator.platform?.includes('Mac') || navigator.userAgent.includes('Mac'));
+
 export interface ChatSessionItem {
   id: string;
   title: string;
@@ -211,20 +215,23 @@ export function SessionSidebar({
   const isEmpty = sessions.length === 0;
 
   return (
-    <Box className={classes.sidebar}>
+    <Box className={classes.sidebar} data-platform={isMacOS ? 'darwin' : undefined}>
       <Box className={classes.header}>
-        <Text fw={600} size="sm">
-          Chats
-        </Text>
-        <Button
-          leftSection={<IconMessagePlus size={16} />}
-          size="xs"
-          variant="light"
-          loading={creating}
-          onClick={() => void handleNewChat()}
-        >
-          New chat
-        </Button>
+        <Box className={classes.titlebarSpacer} aria-hidden="true" />
+        <Group className={classes.headerRow} justify="space-between" wrap="nowrap">
+          <Text fw={600} size="sm">
+            Chats
+          </Text>
+          <Button
+            leftSection={<IconMessagePlus size={16} />}
+            size="xs"
+            variant="light"
+            loading={creating}
+            onClick={() => void handleNewChat()}
+          >
+            New chat
+          </Button>
+        </Group>
       </Box>
 
       <ScrollArea className={classes.list} type="auto">
