@@ -77,10 +77,22 @@ tasks:
       - cp build/darwin/Info.plist {{.BIN_DIR}}/{{.APP_NAME}}.app/Contents
       - codesign --force --deep --sign - {{.BIN_DIR}}/{{.APP_NAME}}.app
 
-  create:dmg:
-    summary: Packages a universal `.app` bundle into a `.dmg` disk image
+  package:arm64:
+    summary: Packages darwin arm64 binary
     deps:
-      - task: package:universal
+      - task: build
+        vars:
+          ARCH: arm64
+          PRODUCTION: '{{.PRODUCTION | default "true"}}'
+    cmds:
+      - task: create:app:bundle
+
+  create:dmg:
+    summary: Packages an arm64 `.app` bundle into a `.dmg` disk image
+    deps:
+      - task: package:arm64
+        vars:
+          PRODUCTION: '{{.PRODUCTION | default "true"}}'
     cmds:
       - rm -f {{.BIN_DIR}}/{{.APP_NAME}}.dmg
       - hdiutil create -volname "Talus Mofish" -srcfolder {{.BIN_DIR}}/{{.APP_NAME}}.app -ov -format UDZO {{.BIN_DIR}}/{{.APP_NAME}}.dmg

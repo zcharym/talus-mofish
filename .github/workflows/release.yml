@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - "v*"
 
 permissions:
   contents: write
@@ -16,63 +14,34 @@ env:
   WAILS3_VERSION: v3.0.0-alpha.60
 
 jobs:
-  version-check:
-    name: Check whether to build
+  semantic-release:
+    name: Tag release
     runs-on: ubuntu-latest
     outputs:
-      should_build: ${{ steps.check.outputs.should_build }}
-      should_release: ${{ steps.check.outputs.should_release }}
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
+      new_release_git_tag: ${{ steps.semantic.outputs.new_release_git_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Decide build and release
-        id: check
-        shell: bash
-        run: |
-          if [ "${{ github.ref_type }}" = "branch" ]; then
-            echo "Push to ${GITHUB_REF_NAME}; building without publishing a release."
-            echo "should_build=true" >> "$GITHUB_OUTPUT"
-            echo "should_release=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
 
-          current="${GITHUB_REF_NAME#v}"
-          if ! [[ "$current" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
-            echo "Tag ${GITHUB_REF_NAME} is not semver (x.y.z); skipping build."
-            echo "should_build=false" >> "$GITHUB_OUTPUT"
-            echo "should_release=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          previous_tag="$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | grep -Fxv "${GITHUB_REF_NAME}" | head -1 || true)"
-          if [ -z "$previous_tag" ]; then
-            echo "No previous semver tag found; building release."
-            echo "should_build=true" >> "$GITHUB_OUTPUT"
-            echo "should_release=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          previous="${previous_tag#v}"
-          current_mm="$(echo "$current" | cut -d. -f1-2)"
-          previous_mm="$(echo "$previous" | cut -d. -f1-2)"
-
-          if [ "$current_mm" != "$previous_mm" ]; then
-            echo "Major/minor changed (${previous_mm} -> ${current_mm}); building release."
-            echo "should_build=true" >> "$GITHUB_OUTPUT"
-            echo "should_release=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Patch-only change (${previous} -> ${current}); skipping build."
-            echo "should_build=false" >> "$GITHUB_OUTPUT"
-            echo "should_release=false" >> "$GITHUB_OUTPUT"
-          fi
+      - name: Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build:
     name: Build (${{ matrix.name }})
-    needs: version-check
-    if: needs.version-check.outputs.should_build == 'true'
+    needs: semantic-release
+    if: needs.semantic-release.outputs.new_release_published == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -82,16 +51,18 @@ jobs:
             name: windows-amd64
             build-task: windows:build
             artifact: bin/talus-mofish.exe
-            asset: talus-mofish-${{ github.ref_name }}-windows-amd64.exe
+            asset_suffix: windows-amd64.exe
           - os: macos-latest
-            name: macos-universal
+            name: macos-arm64
             build-task: darwin:create:dmg
             artifact: bin/talus-mofish.dmg
-            asset: talus-mofish-${{ github.ref_name }}-macos-universal.dmg
+            asset_suffix: macos-arm64.dmg
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.semantic-release.outputs.new_release_git_tag }}
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -102,7 +73,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -114,9 +85,11 @@ jobs:
 
       - name: Stage release asset
         shell: bash
+        env:
+          RELEASE_TAG: ${{ needs.semantic-release.outputs.new_release_git_tag }}
         run: |
           mkdir -p release
-          cp "${{ matrix.artifact }}" "release/${{ matrix.asset }}"
+          cp "${{ matrix.artifact }}" "release/talus-mofish-${RELEASE_TAG}-${{ matrix.asset_suffix }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -126,9 +99,9 @@ jobs:
           if-no-files-found: error
 
   release:
-    name: Publish GitHub Release
-    needs: [version-check, build]
-    if: needs.version-check.outputs.should_release == 'true'
+    name: Upload release assets
+    needs: [semantic-release, build]
+    if: needs.semantic-release.outputs.new_release_published == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -138,12 +111,7 @@ jobs:
           path: release
           merge-multiple: true
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          generate_release_notes: true
-          files: release/*
+      - name: Upload assets to GitHub Release
+        run: gh release upload "${{ needs.semantic-release.outputs.new_release_git_tag }}" release/* --clobber
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
