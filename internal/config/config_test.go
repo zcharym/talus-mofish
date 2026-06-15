@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/songwei.ma/talus-mofish/internal/aiclient"
 )
 
 func TestLoadCreatesDefaultConfig(t *testing.T) {
@@ -42,6 +44,7 @@ func TestUpdatePersistsChanges(t *testing.T) {
 		Theme:            "dark",
 		DailyGoalMinutes: 45,
 		WordsPerSession:  15,
+		AI:               aiclient.DefaultConfig(),
 	}
 	if err := store.Update(updated); err != nil {
 		t.Fatalf("Update() error = %v", err)

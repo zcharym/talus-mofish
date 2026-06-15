@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { Box, MantineProvider } from '@mantine/core';
@@ -7,6 +7,7 @@ import { AppService } from '../bindings/github.com/songwei.ma/talus-mofish';
 import { ChatInput } from './components/agent/ChatInput';
 import { ChatMessageItem, ChatThread } from './components/agent/ChatThread';
 import { ChatSessionItem, SessionSidebar } from './components/agent/SessionSidebar';
+import { useAgentStream } from './hooks/useAgentStream';
 import { notify } from './services/notifications';
 import classes from './AgentApp.module.css';
 
@@ -17,7 +18,13 @@ function AgentApp() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [sending, setSending] = useState(false);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [colorScheme, setColorScheme] = useState<ThemeOption>('auto');
+  const activeSessionIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    activeSessionIdRef.current = activeSessionId;
+  }, [activeSessionId]);
 
   const activeSession = useMemo(
     () => sessions.find((session) => session.id === activeSessionId) ?? null,
@@ -41,6 +48,60 @@ function AgentApp() {
       notify.failed('Failed to load messages', String(err));
     }
   }, []);
+
+  const updateAssistantMessage = useCallback((messageId: string, patch: Partial<ChatMessageItem>) => {
+    setMessages((current) =>
+      current.map((message) => (message.id === messageId ? { ...message, ...patch } : message)),
+    );
+  }, []);
+
+  useAgentStream({
+    onChunk: ({ sessionId, messageId, chunk }) => {
+      if (sessionId !== activeSessionIdRef.current || chunk.type !== 'text-delta' || !chunk.text) {
+        return;
+      }
+      setMessages((current) =>
+        current.map((message) =>
+          message.id === messageId
+            ? {
+                ...message,
+                content: message.content + chunk.text,
+                generating: true,
+              }
+            : message,
+        ),
+      );
+    },
+    onDone: ({ sessionId, messageId, content }) => {
+      if (sessionId !== activeSessionIdRef.current) {
+        return;
+      }
+      updateAssistantMessage(messageId, { content, generating: false });
+      setSending(false);
+      setStreamingMessageId(null);
+      void loadSessions();
+    },
+    onError: ({ sessionId, messageId, error }) => {
+      if (sessionId !== activeSessionIdRef.current) {
+        return;
+      }
+      updateAssistantMessage(messageId, {
+        content: error,
+        generating: false,
+      });
+      setSending(false);
+      setStreamingMessageId(null);
+      notify.failed('Agent error', error);
+    },
+    onCancelled: ({ sessionId, messageId, content }) => {
+      if (sessionId !== activeSessionIdRef.current) {
+        return;
+      }
+      updateAssistantMessage(messageId, { content, generating: false });
+      setSending(false);
+      setStreamingMessageId(null);
+    },
+  });
 
   useEffect(() => {
     AppService.GetConfig()
@@ -105,17 +166,30 @@ function AgentApp() {
 
     setSending(true);
     try {
-      const result = await AppService.SendChatMessage(activeSessionId, content);
-      setMessages((current) => [
-        ...current,
-        result.user_message as ChatMessageItem,
-        result.assistant_message as ChatMessageItem,
-      ]);
+      const result = await AppService.StartChatTurn(activeSessionId, content);
+      const userMessage = result.user_message as ChatMessageItem;
+      const assistantMessage = {
+        ...(result.assistant_message as ChatMessageItem),
+        generating: true,
+      };
+      setMessages((current) => [...current, userMessage, assistantMessage]);
+      setStreamingMessageId(assistantMessage.id);
       await loadSessions();
     } catch (err) {
       notify.failed('Failed to send message', String(err));
-    } finally {
       setSending(false);
+      setStreamingMessageId(null);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!activeSessionId || !streamingMessageId) {
+      return;
+    }
+    try {
+      await AppService.CancelChatTurn(activeSessionId, streamingMessageId);
+    } catch (err) {
+      notify.failed('Failed to cancel response', String(err));
     }
   };
 
@@ -152,6 +226,7 @@ function AgentApp() {
             disabled={activeSessionId === null}
             sending={sending}
             onSend={handleSend}
+            onCancel={streamingMessageId ? handleCancel : undefined}
           />
         </Box>
       </Box>

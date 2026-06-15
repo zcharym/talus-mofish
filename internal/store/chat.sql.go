@@ -189,3 +189,19 @@ func (q *Queries) TouchChatSession(ctx context.Context, id string) error {
 	_, err := q.db.ExecContext(ctx, touchChatSession, id)
 	return err
 }
+
+const updateChatMessageContent = `-- name: UpdateChatMessageContent :exec
+UPDATE chat_messages
+SET content = ?
+WHERE id = ?
+`
+
+type UpdateChatMessageContentParams struct {
+	Content string `json:"content"`
+	ID      string `json:"id"`
+}
+
+func (q *Queries) UpdateChatMessageContent(ctx context.Context, arg UpdateChatMessageContentParams) error {
+	_, err := q.db.ExecContext(ctx, updateChatMessageContent, arg.Content, arg.ID)
+	return err
+}

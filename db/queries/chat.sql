@@ -40,3 +40,8 @@ VALUES (?, ?, ?, ?, datetime('now'));
 SELECT id, session_id, role, content, created_at
 FROM chat_messages
 WHERE id = ?;
+
+-- name: UpdateChatMessageContent :exec
+UPDATE chat_messages
+SET content = ?
+WHERE id = ?;

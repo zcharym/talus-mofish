@@ -63,3 +63,10 @@ func (wm *WindowManager) ShowManagementWindow() {
 		wm.managementWindow.Focus()
 	}
 }
+
+// EmitAgentEvent sends an event to the agent chat window only.
+func (wm *WindowManager) EmitAgentEvent(name string, data any) {
+	if wm.agentWindow != nil {
+		wm.agentWindow.EmitEvent(name, data)
+	}
+}

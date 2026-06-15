@@ -1,22 +1,59 @@
 package appservice
 
 import (
+	"context"
+	"fmt"
+
+	"github.com/songwei.ma/talus-mofish/internal/agent"
 	"github.com/songwei.ma/talus-mofish/internal/autostart"
 	"github.com/songwei.ma/talus-mofish/internal/config"
 	"github.com/songwei.ma/talus-mofish/internal/database"
+	"github.com/songwei.ma/talus-mofish/internal/store"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // Service exposes application and persistence APIs to the frontend.
 type Service struct {
-	db        *database.DB
-	config    *config.Store
-	autostart *autostart.Manager
-	wailsApp  *application.App
+	db           *database.DB
+	config       *config.Store
+	autostart    *autostart.Manager
+	wailsApp     *application.App
+	turnRegistry *agent.TurnRegistry
+	orchestrator *agent.Orchestrator
 }
 
 func New(db *database.DB, cfg *config.Store, autostartManager *autostart.Manager) *Service {
-	return &Service{db: db, config: cfg, autostart: autostartManager}
+	registry := agent.NewTurnRegistry()
+	s := &Service{
+		db:           db,
+		config:       cfg,
+		autostart:    autostartManager,
+		turnRegistry: registry,
+	}
+	s.orchestrator = agent.NewOrchestrator(agentEventEmitter{}, registry, chatMessageStore{s})
+	return s
+}
+
+type agentEventEmitter struct{}
+
+func (agentEventEmitter) EmitAgentEvent(name string, data any) {
+	if globalWindowManager != nil {
+		globalWindowManager.EmitAgentEvent(name, data)
+	}
+}
+
+type chatMessageStore struct {
+	s *Service
+}
+
+func (c chatMessageStore) UpdateMessageContent(ctx context.Context, messageID, content string) error {
+	if err := c.s.db.Queries.UpdateChatMessageContent(ctx, store.UpdateChatMessageContentParams{
+		Content: content,
+		ID:      messageID,
+	}); err != nil {
+		return fmt.Errorf("update chat message content: %w", err)
+	}
+	return nil
 }
 
 // SetWailsApp attaches the Wails application for native dialogs.

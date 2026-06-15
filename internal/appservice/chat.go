@@ -6,16 +6,17 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/songwei.ma/talus-mofish/internal/agent"
 	"github.com/songwei.ma/talus-mofish/internal/store"
 )
 
 const (
 	defaultChatSessionTitle = "New chat"
-	maxSessionTitleLength     = 48
+	maxSessionTitleLength   = 48
 )
 
-// SendChatMessageResult contains the user message and echo assistant reply.
-type SendChatMessageResult struct {
+// StartChatTurnResult contains the persisted user message and streaming assistant placeholder.
+type StartChatTurnResult struct {
 	UserMessage      store.ChatMessage `json:"user_message"`
 	AssistantMessage store.ChatMessage `json:"assistant_message"`
 }
@@ -97,17 +98,25 @@ func (s *Service) ListChatMessages(sessionID string) ([]store.ChatMessage, error
 	return messages, nil
 }
 
-// SendChatMessage stores the user message and an echo assistant reply.
-func (s *Service) SendChatMessage(sessionID, content string) (SendChatMessageResult, error) {
+// StartChatTurn persists the user message, creates an assistant placeholder, and begins streaming.
+func (s *Service) StartChatTurn(sessionID, content string) (StartChatTurnResult, error) {
 	ctx := context.Background()
 	content = strings.TrimSpace(content)
 	if content == "" {
-		return SendChatMessageResult{}, fmt.Errorf("message content is required")
+		return StartChatTurnResult{}, fmt.Errorf("message content is required")
 	}
 
 	session, err := s.db.Queries.GetChatSession(ctx, sessionID)
 	if err != nil {
-		return SendChatMessageResult{}, fmt.Errorf("get chat session: %w", err)
+		return StartChatTurnResult{}, fmt.Errorf("get chat session: %w", err)
+	}
+
+	priorMessages, err := s.db.Queries.ListChatMessages(ctx, sessionID)
+	if err != nil {
+		return StartChatTurnResult{}, fmt.Errorf("list chat messages: %w", err)
+	}
+	if priorMessages == nil {
+		priorMessages = []store.ChatMessage{}
 	}
 
 	userMessage := store.ChatMessage{
@@ -122,15 +131,14 @@ func (s *Service) SendChatMessage(sessionID, content string) (SendChatMessageRes
 		Role:      userMessage.Role,
 		Content:   userMessage.Content,
 	}); err != nil {
-		return SendChatMessageResult{}, fmt.Errorf("create user message: %w", err)
+		return StartChatTurnResult{}, fmt.Errorf("create user message: %w", err)
 	}
 
-	assistantContent := "Echo: " + content
 	assistantMessage := store.ChatMessage{
 		ID:        uuid.NewString(),
 		SessionID: sessionID,
 		Role:      "assistant",
-		Content:   assistantContent,
+		Content:   "",
 	}
 	if err := s.db.Queries.CreateChatMessage(ctx, store.CreateChatMessageParams{
 		ID:        assistantMessage.ID,
@@ -138,11 +146,11 @@ func (s *Service) SendChatMessage(sessionID, content string) (SendChatMessageRes
 		Role:      assistantMessage.Role,
 		Content:   assistantMessage.Content,
 	}); err != nil {
-		return SendChatMessageResult{}, fmt.Errorf("create assistant message: %w", err)
+		return StartChatTurnResult{}, fmt.Errorf("create assistant message: %w", err)
 	}
 
 	if err := s.db.Queries.TouchChatSession(ctx, sessionID); err != nil {
-		return SendChatMessageResult{}, fmt.Errorf("touch chat session: %w", err)
+		return StartChatTurnResult{}, fmt.Errorf("touch chat session: %w", err)
 	}
 
 	if session.Title == defaultChatSessionTitle {
@@ -151,23 +159,51 @@ func (s *Service) SendChatMessage(sessionID, content string) (SendChatMessageRes
 			Title: title,
 			ID:    sessionID,
 		}); err != nil {
-			return SendChatMessageResult{}, fmt.Errorf("auto-title chat session: %w", err)
+			return StartChatTurnResult{}, fmt.Errorf("auto-title chat session: %w", err)
 		}
 	}
 
 	userMessage, err = s.db.Queries.GetChatMessage(ctx, userMessage.ID)
 	if err != nil {
-		return SendChatMessageResult{}, fmt.Errorf("reload user message: %w", err)
+		return StartChatTurnResult{}, fmt.Errorf("reload user message: %w", err)
 	}
 	assistantMessage, err = s.db.Queries.GetChatMessage(ctx, assistantMessage.ID)
 	if err != nil {
-		return SendChatMessageResult{}, fmt.Errorf("reload assistant message: %w", err)
+		return StartChatTurnResult{}, fmt.Errorf("reload assistant message: %w", err)
 	}
 
-	return SendChatMessageResult{
+	aiCfg := s.config.Get().AI
+	history := agent.BuildMessages(priorMessages, content)
+	params := agent.RunTurnParams{
+		SessionID: sessionID,
+		MessageID: assistantMessage.ID,
+		History:   history,
+		AI:        aiCfg,
+	}
+
+	parent := context.Background()
+	if s.wailsApp != nil {
+		parent = s.wailsApp.Context()
+	}
+	go s.orchestrator.RunTurn(parent, params)
+
+	return StartChatTurnResult{
 		UserMessage:      userMessage,
 		AssistantMessage: assistantMessage,
 	}, nil
+}
+
+// CancelChatTurn aborts an in-flight assistant response.
+func (s *Service) CancelChatTurn(sessionID, messageID string) error {
+	sessionID = strings.TrimSpace(sessionID)
+	messageID = strings.TrimSpace(messageID)
+	if sessionID == "" || messageID == "" {
+		return fmt.Errorf("session id and message id are required")
+	}
+	if !s.turnRegistry.Cancel(messageID) {
+		return fmt.Errorf("no active turn for message %s", messageID)
+	}
+	return nil
 }
 
 func sessionTitleFromMessage(content string) string {

@@ -10,6 +10,7 @@ export interface ChatMessageItem {
   role: 'user' | 'assistant';
   content: string;
   created_at: string;
+  generating?: boolean;
 }
 
 interface ChatThreadProps {
@@ -59,7 +60,12 @@ export function ChatThread({ messages, sessionTitle, hasActiveSession }: ChatThr
         ) : (
           <Stack gap="xs" className={classes.messageList}>
             {messages.map((message) => (
-              <MessageBubble key={message.id} role={message.role} content={message.content} />
+              <MessageBubble
+                key={message.id}
+                role={message.role}
+                content={message.content}
+                generating={message.generating}
+              />
             ))}
           </Stack>
         )}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { IconArrowUp, IconPencil } from '@tabler/icons-react';
+import { IconArrowUp, IconPencil, IconPlayerStop } from '@tabler/icons-react';
 import { ActionIcon, Box, Group, Textarea } from '@mantine/core';
 import classes from './ChatInput.module.css';
 
@@ -7,9 +7,10 @@ interface ChatInputProps {
   disabled: boolean;
   sending: boolean;
   onSend: (content: string) => Promise<void>;
+  onCancel?: () => Promise<void>;
 }
 
-export function ChatInput({ disabled, sending, onSend }: ChatInputProps) {
+export function ChatInput({ disabled, sending, onSend, onCancel }: ChatInputProps) {
   const [value, setValue] = useState('');
 
   const handleSend = async () => {
@@ -41,16 +42,29 @@ export function ChatInput({ disabled, sending, onSend }: ChatInputProps) {
             }
           }}
         />
-        <ActionIcon
-          size="lg"
-          radius="xl"
-          variant="filled"
-          aria-label="Send message"
-          disabled={disabled || sending || !value.trim()}
-          onClick={() => void handleSend()}
-        >
-          <IconArrowUp size={18} />
-        </ActionIcon>
+        {sending && onCancel ? (
+          <ActionIcon
+            size="lg"
+            radius="xl"
+            variant="light"
+            color="red"
+            aria-label="Stop generating"
+            onClick={() => void onCancel()}
+          >
+            <IconPlayerStop size={18} />
+          </ActionIcon>
+        ) : (
+          <ActionIcon
+            size="lg"
+            radius="xl"
+            variant="filled"
+            aria-label="Send message"
+            disabled={disabled || sending || !value.trim()}
+            onClick={() => void handleSend()}
+          >
+            <IconArrowUp size={18} />
+          </ActionIcon>
+        )}
       </Group>
       <Box className={classes.hint}>
         <IconPencil size={12} />

@@ -4,6 +4,7 @@ package appservice
 type WindowManager interface {
 	ShowAgentWindow()
 	ShowManagementWindow()
+	EmitAgentEvent(name string, data any)
 }
 
 // ConfigureWindows attaches the window manager for native window switching.
