@@ -120,6 +120,8 @@ jobs:
           merge-multiple: true
 
       - name: Upload assets to GitHub Release
-        run: gh release upload "${{ needs.semantic-release.outputs.new_release_git_tag }}" release/* --clobber
+        run: |
+          gh release edit "${{ needs.semantic-release.outputs.new_release_git_tag }}" --draft=false --prerelease=false || true
+          gh release upload "${{ needs.semantic-release.outputs.new_release_git_tag }}" release/* --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
