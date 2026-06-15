@@ -1,45 +1,26 @@
-import { useState } from 'react';
 import {
   IconAdjustments,
   IconBook,
-  IconBrain,
-  IconClipboard,
-  IconDatabase,
-  IconHeadphones,
   IconInfoCircle,
-  IconLanguage,
-  IconSettings,
-  IconTool,
+  IconMessageChatbot,
   IconUpload,
   IconVocabulary,
 } from '@tabler/icons-react';
-import { SegmentedControl, Text } from '@mantine/core';
+import { Text } from '@mantine/core';
+import { AppService } from '../../../bindings/github.com/songwei.ma/talus-mofish';
 import classes from './NavbarSegmented.module.css';
-
-type Section = 'tools' | 'english';
 
 interface NavItem {
   id: string;
   label: string;
-  icon: typeof IconTool;
+  icon: typeof IconUpload;
 }
 
-const tabs: Record<Section, NavItem[]> = {
-  tools: [
-    { id: 'import', label: 'Import', icon: IconUpload },
-    { id: 'database', label: 'Database', icon: IconDatabase },
-    { id: 'clipboard', label: 'Clipboard', icon: IconClipboard },
-    { id: 'notes', label: 'Notes', icon: IconBook },
-    { id: 'settings', label: 'Settings', icon: IconSettings },
-  ],
-  english: [
-    { id: 'reading', label: 'Reading', icon: IconBook },
-    { id: 'recite', label: 'Recite Words', icon: IconBrain },
-    { id: 'vocabulary', label: 'Vocabulary', icon: IconVocabulary },
-    { id: 'listening', label: 'Listening', icon: IconHeadphones },
-    { id: 'grammar', label: 'Grammar', icon: IconLanguage },
-  ],
-};
+const libraryItems: NavItem[] = [
+  { id: 'import', label: 'Import', icon: IconUpload },
+  { id: 'reading', label: 'Reading', icon: IconBook },
+  { id: 'vocabulary', label: 'Vocabulary', icon: IconVocabulary },
+];
 
 interface NavbarSegmentedProps {
   activeItem: string;
@@ -47,9 +28,7 @@ interface NavbarSegmentedProps {
 }
 
 export function NavbarSegmented({ activeItem, onActiveItemChange }: NavbarSegmentedProps) {
-  const [section, setSection] = useState<Section>('tools');
-
-  const links = tabs[section].map((item) => (
+  const renderLink = (item: NavItem) => (
     <a
       className={classes.link}
       data-active={item.id === activeItem || undefined}
@@ -63,35 +42,36 @@ export function NavbarSegmented({ activeItem, onActiveItemChange }: NavbarSegmen
       <item.icon className={classes.linkIcon} stroke={1.5} />
       <span>{item.label}</span>
     </a>
-  ));
+  );
 
   return (
     <nav className={classes.navbar}>
       <div className={classes.navbarMain}>
-        <Text fw={500} size="sm" className={classes.title} c="dimmed">
+        <Text fw={600} size="sm" className={classes.title}>
           Talus Echo
         </Text>
+        <Text size="xs" c="dimmed" mt={4}>
+          Manage
+        </Text>
 
-        <SegmentedControl
-          value={section}
-          onChange={(value) => {
-            const nextSection = value as Section;
-            setSection(nextSection);
-            onActiveItemChange(tabs[nextSection][0].id);
-          }}
-          transitionTimingFunction="ease"
-          fullWidth
-          mt="md"
-          data={[
-            { label: 'Tools', value: 'tools' },
-            { label: 'English Study', value: 'english' },
-          ]}
-        />
-
-        <div style={{ marginTop: 'var(--mantine-spacing-md)' }}>{links}</div>
+        <div className={classes.links}>{libraryItems.map(renderLink)}</div>
       </div>
 
       <div className={classes.footer}>
+        <a
+          href="#"
+          className={classes.link}
+          onClick={(event) => {
+            event.preventDefault();
+            AppService.ShowAgentWindow().catch((err: unknown) => {
+              console.error(err);
+            });
+          }}
+        >
+          <IconMessageChatbot className={classes.linkIcon} stroke={1.5} />
+          <span>Agent Chat</span>
+        </a>
+
         <a
           href="#"
           className={classes.link}

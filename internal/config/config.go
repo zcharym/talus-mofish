@@ -6,14 +6,17 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/songwei.ma/talus-mofish/internal/aiclient"
 )
 
 // App holds user-facing application settings persisted in config.json.
 type App struct {
-	Theme            string `json:"theme"`
-	DailyGoalMinutes int    `json:"dailyGoalMinutes"`
-	WordsPerSession  int    `json:"wordsPerSession"`
-	AutoStart        bool   `json:"autoStart"`
+	Theme            string           `json:"theme"`
+	DailyGoalMinutes int              `json:"dailyGoalMinutes"`
+	WordsPerSession  int              `json:"wordsPerSession"`
+	AutoStart        bool             `json:"autoStart"`
+	AI               aiclient.Config  `json:"ai"`
 }
 
 // Store loads and saves App settings at a fixed file path.
@@ -28,6 +31,7 @@ func DefaultApp() App {
 		Theme:            "auto",
 		DailyGoalMinutes: 30,
 		WordsPerSession:  20,
+		AI:               aiclient.DefaultConfig(),
 	}
 }
 
@@ -99,5 +103,6 @@ func mergeDefaults(app, defaults App) App {
 	if app.WordsPerSession <= 0 {
 		app.WordsPerSession = defaults.WordsPerSession
 	}
+	app.AI = app.AI.Normalize()
 	return app
 }

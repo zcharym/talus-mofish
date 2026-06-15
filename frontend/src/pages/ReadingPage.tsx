@@ -1,14 +1,27 @@
-import { useCallback, useEffect, useState } from "react";
-import { Badge, Center, Group, Loader, Pagination, Paper, Stack, Text, Title } from "@mantine/core";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Badge,
+  Center,
+  Group,
+  Loader,
+  Modal,
+  Pagination,
+  Paper,
+  ScrollArea,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { AppService } from "../../bindings/github.com/songwei.ma/talus-mofish";
 import {
   Article,
   ArticlePageResult,
   ArticleSummary,
 } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/store/models";
+import { FlipCard } from "../components/FlipCard";
+import { useDynamicScrollHeight } from "../hooks/useDynamicScrollHeight";
 import { notify } from "../services/notifications";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export function ReadingPage() {
   const [pageResult, setPageResult] = useState<ArticlePageResult | null>(null);
@@ -17,6 +30,9 @@ export function ReadingPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [loadingArticle, setLoadingArticle] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const scrollAnchorRef = useRef<HTMLDivElement>(null);
+  const scrollFooterRef = useRef<HTMLDivElement>(null);
 
   const loadPage = useCallback(async (pageNum: number) => {
     setLoadingList(true);
@@ -37,6 +53,7 @@ export function ReadingPage() {
     try {
       const article = await AppService.GetArticle(id);
       setSelectedArticle(article);
+      setModalOpen(true);
     } catch (err) {
       console.error(err);
       notify.failed("Reading", "Failed to load article.");
@@ -51,27 +68,29 @@ export function ReadingPage() {
   }, [loadPage, page]);
 
   useEffect(() => {
-    const items = pageResult?.items ?? [];
-    if (items.length === 0) {
-      setSelectedId(null);
-      setSelectedArticle(null);
-      return;
-    }
-    const firstId = items[0].id;
-    setSelectedId(firstId);
-    void loadArticle(firstId);
-  }, [pageResult, loadArticle]);
+    setModalOpen(false);
+    setSelectedId(null);
+    setSelectedArticle(null);
+  }, [page]);
+
+  const handleClose = () => {
+    setModalOpen(false);
+    setSelectedId(null);
+    setSelectedArticle(null);
+  };
 
   const handleSelect = (item: ArticleSummary) => {
-    if (item.id === selectedId) {
-      return;
-    }
     setSelectedId(item.id);
     void loadArticle(item.id);
   };
 
   const totalPages = pageResult ? Math.max(1, Math.ceil(pageResult.total / pageResult.page_size)) : 1;
   const items = pageResult?.items ?? [];
+  const scrollHeight = useDynamicScrollHeight(scrollAnchorRef, scrollFooterRef, [
+    loadingList,
+    pageResult?.total,
+    items.length,
+  ]);
 
   if (loadingList && !pageResult) {
     return <Text c="dimmed" mt="md">Loading articles…</Text>;
@@ -87,63 +106,81 @@ export function ReadingPage() {
 
   return (
     <Stack mt="md" gap="md">
-      <Stack gap="xs">
-        {loadingList ? (
-          <Center py="md">
+      <Paper withBorder p="xs" ref={scrollAnchorRef}>
+        <ScrollArea h={scrollHeight} type="auto">
+          <Stack gap="xs">
+            {loadingList ? (
+              <Center py="md">
+                <Loader size="sm" />
+              </Center>
+            ) : (
+              items.map((article) => (
+                <Paper
+                  key={article.id}
+                  withBorder
+                  p="sm"
+                  style={{
+                    cursor: "pointer",
+                    borderColor: article.id === selectedId ? "var(--mantine-color-blue-5)" : undefined,
+                  }}
+                  onClick={() => handleSelect(article)}
+                >
+                  <Group gap="xs">
+                    <Text fw={600}>{article.title}</Text>
+                    {article.source === "import:anki" && (
+                      <Badge size="sm" variant="light">Anki</Badge>
+                    )}
+                    <Text size="xs" c="dimmed">{article.word_count} words</Text>
+                  </Group>
+                </Paper>
+              ))
+            )}
+          </Stack>
+        </ScrollArea>
+      </Paper>
+
+      <div ref={scrollFooterRef}>
+        {pageResult && pageResult.total > pageResult.page_size && (
+          <Group justify="space-between" align="center">
+            <Text size="sm" c="dimmed">
+              {pageResult.total} articles
+            </Text>
+            <Pagination value={page} onChange={setPage} total={totalPages} />
+          </Group>
+        )}
+      </div>
+
+      <Modal opened={modalOpen} onClose={handleClose} size="lg" title={null} padding="md">
+        {loadingArticle ? (
+          <Center py="xl">
             <Loader size="sm" />
           </Center>
-        ) : (
-          items.map((article) => (
-            <Paper
-              key={article.id}
-              withBorder
-              p="sm"
-              style={{
-                cursor: "pointer",
-                borderColor: article.id === selectedId ? "var(--mantine-color-blue-5)" : undefined,
-              }}
-              onClick={() => handleSelect(article)}
-            >
+        ) : selectedArticle ? (
+          <FlipCard
+            key={selectedArticle.id}
+            title={selectedArticle.title}
+            modelCss={selectedArticle.model_css}
+            headerExtra={
               <Group gap="xs">
-                <Text fw={600}>{article.title}</Text>
-                {article.source === "import:anki" && (
+                {selectedArticle.source === "import:anki" && (
                   <Badge size="sm" variant="light">Anki</Badge>
                 )}
-                <Text size="xs" c="dimmed">{article.word_count} words</Text>
+                <Text size="xs" c="dimmed">{selectedArticle.word_count} words</Text>
               </Group>
-            </Paper>
-          ))
-        )}
-      </Stack>
-
-      {pageResult && pageResult.total > pageResult.page_size && (
-        <Group justify="space-between" align="center">
-          <Text size="sm" c="dimmed">
-            {pageResult.total} articles
-          </Text>
-          <Pagination value={page} onChange={setPage} total={totalPages} />
-        </Group>
-      )}
-
-      {loadingArticle ? (
-        <Center py="xl">
-          <Loader size="sm" />
-        </Center>
-      ) : selectedArticle ? (
-        <Paper withBorder p="md">
-          <Title order={4}>{selectedArticle.title}</Title>
-          {selectedArticle.model_css && (
-            <style>{selectedArticle.model_css}</style>
-          )}
-          <div className="card" dangerouslySetInnerHTML={{ __html: selectedArticle.content }} />
-          {selectedArticle.translation && (
-            <>
-              <Title order={5} mt="lg">Translation</Title>
-              <div dangerouslySetInnerHTML={{ __html: selectedArticle.translation }} />
-            </>
-          )}
-        </Paper>
-      ) : null}
+            }
+            front={
+              <div className="card" dangerouslySetInnerHTML={{ __html: selectedArticle.content }} />
+            }
+            back={
+              selectedArticle.translation ? (
+                <div dangerouslySetInnerHTML={{ __html: selectedArticle.translation }} />
+              ) : (
+                <Text c="dimmed" size="sm">No translation available.</Text>
+              )
+            }
+          />
+        ) : null}
+      </Modal>
     </Stack>
   );
 }
