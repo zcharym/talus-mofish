@@ -120,6 +120,8 @@ export function SessionSidebar({
 }: SessionSidebarProps) {
   const [renameSessionId, setRenameSessionId] = useState<string | null>(null);
   const [renameTitle, setRenameTitle] = useState('');
+  const [deleteSession, setDeleteSession] = useState<ChatSessionItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [creating, setCreating] = useState(false);
   const [pinnedIds, setPinnedIds] = useState<string[]>(() => loadPinnedSessionIds());
 
@@ -186,14 +188,32 @@ export function SessionSidebar({
     });
   };
 
-  const handleDelete = (session: ChatSessionItem) => {
-    if (window.confirm(`Delete "${session.title}"?`)) {
+  const openDelete = (session: ChatSessionItem) => {
+    setDeleteSession(session);
+  };
+
+  const closeDelete = () => {
+    if (deleting) {
+      return;
+    }
+    setDeleteSession(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteSession) {
+      return;
+    }
+    setDeleting(true);
+    try {
       setPinnedIds((current) => {
-        const next = current.filter((id) => id !== session.id);
+        const next = current.filter((id) => id !== deleteSession.id);
         savePinnedSessionIds(next);
         return next;
       });
-      void onDeleteSession(session.id);
+      await onDeleteSession(deleteSession.id);
+      setDeleteSession(null);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -206,7 +226,7 @@ export function SessionSidebar({
       onSelectSession={onSelectSession}
       onTogglePin={handleTogglePin}
       onRename={openRename}
-      onDelete={handleDelete}
+      onDelete={openDelete}
     />
   );
 
@@ -296,6 +316,28 @@ export function SessionSidebar({
             </Button>
             <Button onClick={() => void handleRename()} disabled={!renameTitle.trim()}>
               Save
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      <Modal
+        opened={deleteSession !== null}
+        onClose={closeDelete}
+        title="Delete chat?"
+        centered
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            Delete &quot;{deleteSession?.title}&quot;? This removes the conversation and all
+            messages.
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={closeDelete} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button color="red" loading={deleting} onClick={() => void handleConfirmDelete()}>
+              Delete
             </Button>
           </Group>
         </Stack>
