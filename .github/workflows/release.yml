@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload assets to GitHub Release
         run: |
-          gh release edit "${{ needs.semantic-release.outputs.new_release_git_tag }}" --draft=false --prerelease=false || true
           gh release upload "${{ needs.semantic-release.outputs.new_release_git_tag }}" release/* --clobber
+          gh release edit "${{ needs.semantic-release.outputs.new_release_git_tag }}" --draft=false --prerelease=false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
