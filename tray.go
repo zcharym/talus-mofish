@@ -22,8 +22,6 @@ func setupSystemTray(app *application.App, wm *WindowManager) *application.Syste
 	default:
 		systemTray.SetIcon(appIconJPG)
 	}
-	systemTray.SetLabel("Talus Echo")
-
 	systemTray.OnClick(wm.ShowAgentWindow)
 
 	menu := app.NewMenu()
