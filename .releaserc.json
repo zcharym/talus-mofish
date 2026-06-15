@@ -5,7 +5,12 @@
     [
       "@semantic-release/commit-analyzer",
       {
-        "preset": "conventionalcommits"
+        "preset": "conventionalcommits",
+        "releaseRules": [
+          { "type": "feat", "release": "minor" },
+          { "breaking": true, "release": "major" },
+          { "release": "patch" }
+        ]
       }
     ],
     [
