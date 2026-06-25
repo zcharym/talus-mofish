@@ -13,16 +13,16 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { AppService } from "../../../bindings/github.com/songwei.ma/talus-mofish";
+import { AppService } from "../../../../bindings/github.com/songwei.ma/talus-mofish";
 import {
   Card,
   Deck,
   UpdateCardContentParams,
   UpdateVocabularyParams,
   Vocabulary,
-} from "../../../bindings/github.com/songwei.ma/talus-mofish/internal/store/models";
+} from "../../../../bindings/github.com/songwei.ma/talus-mofish/internal/store/models";
 import { FlipCard } from "../FlipCard";
-import { notify } from "../../services/notifications";
+import { notify } from "../../../services/notifications";
 
 const LEVEL_OPTIONS = [
   { value: "custom", label: "Custom" },

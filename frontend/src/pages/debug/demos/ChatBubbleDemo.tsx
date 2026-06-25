@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Group, Stack, Text } from "@mantine/core";
-import { ChatBubble } from "../../../components/ChatBubble";
+import { ChatBubble } from "../../../components/agent/ChatBubble";
 
 const SAMPLE_REPLY = `Streaming lets the assistant reply **word by word**, so you see progress instead of waiting for the full message.
 

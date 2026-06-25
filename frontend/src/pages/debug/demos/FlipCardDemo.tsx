@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Badge, Group, Stack, Text, Title } from "@mantine/core";
-import { FlipCard } from "../../../components/FlipCard";
+import { FlipCard } from "../../../components/management/FlipCard";
 import { notify } from "../../../services/notifications";
 
 const sampleModelCss = `

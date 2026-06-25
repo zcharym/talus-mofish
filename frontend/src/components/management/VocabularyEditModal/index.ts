@@ -1,0 +1,1 @@
+export { VocabularyEditModal } from './VocabularyEditModal';

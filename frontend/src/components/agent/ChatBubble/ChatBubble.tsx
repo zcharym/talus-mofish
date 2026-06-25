@@ -2,7 +2,7 @@ import { useMemo, useRef } from "react";
 import { Box, Loader, Paper } from "@mantine/core";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useSmoothStreamText } from "../../hooks/useSmoothStreamText";
+import { useSmoothStreamText } from "../../../hooks/useSmoothStreamText";
 import classes from "./ChatBubble.module.css";
 
 export interface ChatBubbleProps {

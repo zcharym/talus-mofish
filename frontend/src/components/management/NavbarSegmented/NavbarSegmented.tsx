@@ -8,7 +8,7 @@ import {
   IconVocabulary,
 } from '@tabler/icons-react';
 import { Text } from '@mantine/core';
-import { AppService } from '../../../bindings/github.com/songwei.ma/talus-mofish';
+import { AppService } from '../../../../bindings/github.com/songwei.ma/talus-mofish';
 import classes from './NavbarSegmented.module.css';
 
 interface NavItem {

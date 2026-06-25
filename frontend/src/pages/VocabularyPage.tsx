@@ -15,7 +15,7 @@ import {
 import { IconSearch } from "@tabler/icons-react";
 import { AppService } from "../../bindings/github.com/songwei.ma/talus-mofish";
 import { Vocabulary, VocabularyPageResult } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/store/models";
-import { VocabularyEditModal } from "../components/vocabulary/VocabularyEditModal";
+import { VocabularyEditModal } from "../components/management/VocabularyEditModal";
 import { useDynamicScrollHeight } from "../hooks/useDynamicScrollHeight";
 import { notify } from "../services/notifications";
 

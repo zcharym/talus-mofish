@@ -17,7 +17,7 @@ import {
   ArticlePageResult,
   ArticleSummary,
 } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/store/models";
-import { FlipCard } from "../components/FlipCard";
+import { FlipCard } from "../components/management/FlipCard";
 import { useDynamicScrollHeight } from "../hooks/useDynamicScrollHeight";
 import { notify } from "../services/notifications";
 
