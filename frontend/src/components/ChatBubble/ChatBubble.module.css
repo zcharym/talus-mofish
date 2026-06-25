@@ -1,0 +1,129 @@
+.row {
+  display: flex;
+  width: 100%;
+  padding: 0.25rem 0;
+}
+
+.rowUser {
+  justify-content: flex-end;
+}
+
+.rowAssistant {
+  justify-content: flex-start;
+}
+
+.bubble {
+  max-width: min(720px, 85%);
+}
+
+.bubbleUser {
+  background-color: var(--mantine-color-blue-filled);
+  color: var(--mantine-color-white);
+}
+
+.bubbleAssistant {
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+}
+
+.content {
+  font-size: var(--mantine-font-size-sm);
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.content :first-child {
+  margin-top: 0;
+}
+
+.content :last-child {
+  margin-bottom: 0;
+}
+
+.content p,
+.content ul,
+.content ol,
+.content pre,
+.content blockquote {
+  margin: 0.5em 0;
+}
+
+.content ul,
+.content ol {
+  padding-left: 1.25em;
+}
+
+.content li + li {
+  margin-top: 0.25em;
+}
+
+.content code {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.9em;
+  padding: 0.1em 0.35em;
+  border-radius: var(--mantine-radius-xs);
+  background-color: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.1));
+}
+
+.content pre {
+  overflow-x: auto;
+  padding: 0.6em 0.75em;
+  border-radius: var(--mantine-radius-sm);
+  background-color: light-dark(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.25));
+}
+
+.content pre code {
+  padding: 0;
+  background: none;
+}
+
+.content blockquote {
+  padding-left: 0.75em;
+  border-left: 3px solid light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  opacity: 0.9;
+}
+
+.content a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.content table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9em;
+}
+
+.content th,
+.content td {
+  border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  padding: 0.35em 0.5em;
+}
+
+.bubbleUser .content code {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.bubbleUser .content pre {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.bubbleUser .content blockquote {
+  border-left-color: rgba(255, 255, 255, 0.45);
+}
+
+.bubbleUser .content th,
+.bubbleUser .content td {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.cursor {
+  display: inline-block;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}

@@ -21,13 +21,15 @@ type ThemeOption = "auto" | "light" | "dark";
 
 interface ConfigPageProps {
   onThemeChange: (theme: ThemeOption) => void;
+  onDebugModeChange?: (enabled: boolean) => void;
 }
 
-export function ConfigPage({ onThemeChange }: ConfigPageProps) {
+export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps) {
   const [theme, setTheme] = useState<ThemeOption>("auto");
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState(30);
   const [wordsPerSession, setWordsPerSession] = useState(20);
   const [autoStart, setAutoStart] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
   const [aiProvider, setAIProvider] = useState<string>(Provider.ProviderOpenAI);
   const [aiModel, setAIModel] = useState("gpt-4o-mini");
   const [aiAPIKey, setAIAPIKey] = useState("");
@@ -50,6 +52,8 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
       setDailyGoalMinutes(cfg.dailyGoalMinutes);
       setWordsPerSession(cfg.wordsPerSession);
       setAutoStart(cfg.autoStart);
+      setDebugMode(cfg.debugMode ?? false);
+      onDebugModeChange?.(cfg.debugMode ?? false);
       setAIProvider(cfg.ai?.provider || Provider.ProviderOpenAI);
       setAIModel(cfg.ai?.model || "gpt-4o-mini");
       setAIAPIKey(cfg.ai?.apiKey || "");
@@ -62,7 +66,7 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
     } finally {
       setLoading(false);
     }
-  }, [onThemeChange]);
+  }, [onThemeChange, onDebugModeChange]);
 
   useEffect(() => {
     void loadConfig();
@@ -76,6 +80,7 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
       dailyGoalMinutes,
       wordsPerSession,
       autoStart,
+      debugMode,
       ai: new AIConfig({
         provider: aiProvider as Provider,
         model: aiModel,
@@ -87,6 +92,7 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
     try {
       await AppService.SaveConfig(payload);
       onThemeChange(theme);
+      onDebugModeChange?.(debugMode);
       notify.success("Saved", "Configuration saved to config.json.");
     } catch (err) {
       console.error(err);
@@ -138,6 +144,13 @@ export function ConfigPage({ onThemeChange }: ConfigPageProps) {
         description="Launch Talus Echo automatically when you sign in"
         checked={autoStart}
         onChange={(event) => setAutoStart(event.currentTarget.checked)}
+      />
+
+      <Switch
+        label="Debug mode"
+        description="Show a Debug tab in the management sidebar for component previews"
+        checked={debugMode}
+        onChange={(event) => setDebugMode(event.currentTarget.checked)}
       />
 
       <Text fw={600} mt="md">

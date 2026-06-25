@@ -6,6 +6,7 @@ import { Notifications } from '@mantine/notifications';
 import { AppService } from '../bindings/github.com/songwei.ma/talus-mofish';
 import { NavbarSegmented } from './components/NavbarSegmented';
 import { ConfigPage } from './pages/ConfigPage';
+import { DebugPage } from './pages/DebugPage';
 import { ImportPage } from './pages/ImportPage';
 import { ReadingPage } from './pages/ReadingPage';
 import { VocabularyPage } from './pages/VocabularyPage';
@@ -17,17 +18,35 @@ const pageTitles: Record<string, string> = {
   reading: 'Reading',
   vocabulary: 'Vocabulary',
   config: 'Configuration',
+  debug: 'Debug',
   about: 'About',
 };
 
-function MainContent({ activeItem, onThemeChange }: { activeItem: string; onThemeChange: (theme: ThemeOption) => void }) {
+function MainContent({
+  activeItem,
+  onThemeChange,
+  onDebugModeChange,
+}: {
+  activeItem: string;
+  onThemeChange: (theme: ThemeOption) => void;
+  onDebugModeChange: (enabled: boolean) => void;
+}) {
   const title = pageTitles[activeItem] ?? 'Talus Echo';
 
   if (activeItem === 'config') {
     return (
       <>
         <Title order={2}>{title}</Title>
-        <ConfigPage onThemeChange={onThemeChange} />
+        <ConfigPage onThemeChange={onThemeChange} onDebugModeChange={onDebugModeChange} />
+      </>
+    );
+  }
+
+  if (activeItem === 'debug') {
+    return (
+      <>
+        <Title order={2}>{title}</Title>
+        <DebugPage />
       </>
     );
   }
@@ -76,9 +95,15 @@ function MainContent({ activeItem, onThemeChange }: { activeItem: string; onThem
 function ManagementApp() {
   const [activeItem, setActiveItem] = useState('vocabulary');
   const [colorScheme, setColorScheme] = useState<ThemeOption>('auto');
+  const [debugMode, setDebugMode] = useState(false);
 
   const applyTheme = useCallback((theme: ThemeOption) => {
     setColorScheme(theme);
+  }, []);
+
+  const applyDebugMode = useCallback((enabled: boolean) => {
+    setDebugMode(enabled);
+    setActiveItem((current) => (current === 'debug' && !enabled ? 'vocabulary' : current));
   }, []);
 
   useEffect(() => {
@@ -86,11 +111,12 @@ function ManagementApp() {
       .then((cfg) => {
         const theme = (cfg.theme as ThemeOption) || 'auto';
         applyTheme(theme);
+        applyDebugMode(cfg.debugMode ?? false);
       })
       .catch((err: unknown) => {
         console.error(err);
       });
-  }, [applyTheme]);
+  }, [applyTheme, applyDebugMode]);
 
   return (
     <MantineProvider
@@ -100,11 +126,19 @@ function ManagementApp() {
       <Notifications position="top-right" limit={5} />
       <AppShell navbar={{ width: 300, breakpoint: 'sm' }} padding="md">
         <AppShell.Navbar p={0}>
-          <NavbarSegmented activeItem={activeItem} onActiveItemChange={setActiveItem} />
+          <NavbarSegmented
+            activeItem={activeItem}
+            debugMode={debugMode}
+            onActiveItemChange={setActiveItem}
+          />
         </AppShell.Navbar>
 
         <AppShell.Main>
-          <MainContent activeItem={activeItem} onThemeChange={applyTheme} />
+          <MainContent
+            activeItem={activeItem}
+            onThemeChange={applyTheme}
+            onDebugModeChange={applyDebugMode}
+          />
         </AppShell.Main>
       </AppShell>
     </MantineProvider>

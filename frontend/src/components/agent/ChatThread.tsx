@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { IconMessageChatbot } from '@tabler/icons-react';
 import { Box, ScrollArea, Stack, Text, Title } from '@mantine/core';
-import { MessageBubble } from './MessageBubble';
+import { ChatBubble } from '../ChatBubble';
 import classes from './ChatThread.module.css';
 
 export interface ChatMessageItem {
@@ -60,11 +60,11 @@ export function ChatThread({ messages, sessionTitle, hasActiveSession }: ChatThr
         ) : (
           <Stack gap="xs" className={classes.messageList}>
             {messages.map((message) => (
-              <MessageBubble
+              <ChatBubble
                 key={message.id}
                 role={message.role}
                 content={message.content}
-                generating={message.generating}
+                streaming={message.generating}
               />
             ))}
           </Stack>

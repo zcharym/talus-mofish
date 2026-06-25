@@ -16,6 +16,7 @@ type App struct {
 	DailyGoalMinutes int              `json:"dailyGoalMinutes"`
 	WordsPerSession  int              `json:"wordsPerSession"`
 	AutoStart        bool             `json:"autoStart"`
+	DebugMode        bool             `json:"debugMode"`
 	AI               aiclient.Config  `json:"ai"`
 }
 

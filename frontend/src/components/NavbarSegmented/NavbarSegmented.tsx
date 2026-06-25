@@ -1,6 +1,7 @@
 import {
   IconAdjustments,
   IconBook,
+  IconBug,
   IconInfoCircle,
   IconMessageChatbot,
   IconUpload,
@@ -20,14 +21,20 @@ const libraryItems: NavItem[] = [
   { id: 'import', label: 'Import', icon: IconUpload },
   { id: 'reading', label: 'Reading', icon: IconBook },
   { id: 'vocabulary', label: 'Vocabulary', icon: IconVocabulary },
+  { id: 'debug', label: 'Debug', icon: IconBug },
 ];
 
 interface NavbarSegmentedProps {
   activeItem: string;
+  debugMode: boolean;
   onActiveItemChange: (itemId: string) => void;
 }
 
-export function NavbarSegmented({ activeItem, onActiveItemChange }: NavbarSegmentedProps) {
+export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: NavbarSegmentedProps) {
+  const visibleItems = debugMode
+    ? libraryItems
+    : libraryItems.filter((item) => item.id !== 'debug');
+
   const renderLink = (item: NavItem) => (
     <a
       className={classes.link}
@@ -54,7 +61,7 @@ export function NavbarSegmented({ activeItem, onActiveItemChange }: NavbarSegmen
           Manage
         </Text>
 
-        <div className={classes.links}>{libraryItems.map(renderLink)}</div>
+        <div className={classes.links}>{visibleItems.map(renderLink)}</div>
       </div>
 
       <div className={classes.footer}>
