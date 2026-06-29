@@ -76,6 +76,14 @@ task sqlc
 
 ## Wails services
 
-- `AppService` — settings CRUD, config, autostart, and `DatabasePath()`
+- `AppService` — settings CRUD, config, autostart, chat sessions, vocabulary, articles, Anki import, and `DatabasePath()`
 
 Bindings are generated under `frontend/bindings/` when running `wails3 dev` or `wails3 build`.
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [docs/design-and-plan.md](docs/design-and-plan.md) | Product vision, architecture, data model, implementation phases |
+| [docs/chat-learning-flows-plan.md](docs/chat-learning-flows-plan.md) | Chat-native English learning flows (IELTS, Anki recite, article reading, agent tools, UI) |
+| [docs/system-tray-menu.md](docs/system-tray-menu.md) | System tray behavior |

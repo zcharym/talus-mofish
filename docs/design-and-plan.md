@@ -2,7 +2,8 @@
 
 > **Project:** Talus Echo (aka Talus MoFish)  
 > **Stack:** Wails v3 (Go 1.24+ / React 18 + TypeScript + Mantine) / SQLite (modernc.org/sqlite)  
-> **Date:** 2026-06-05  
+> **Date:** 2026-06-05 (updated 2026-06-29)  
+> **Related:** [Chat Learning Flows Plan](chat-learning-flows-plan.md) — chat-native agent learning (IELTS, Anki, article reading)
 
 ---
 
@@ -19,6 +20,7 @@
 9. [Implementation Phases](#9-implementation-phases)
 10. [Technical Decisions](#10-technical-decisions)
 11. [Open Questions](#11-open-questions)
+12. [Agent & Chat Learning Flows](#12-agent--chat-learning-flows)
 
 ---
 
@@ -33,7 +35,7 @@ Talus Echo is a cross-platform desktop English learning application targeting in
 | **A Programmer's Guide to English** | First-principles methodology, "build a parser" mental model, corpus-first approach |
 | **Read Frog** | Immersive reading, AI-powered contextual explanations, real-content learning |
 
-The application is already scaffolded with Wails v3 + React (Mantine) + SQLite. The navbar defines the major feature areas: **Reading**, **Recite Words**, **Vocabulary**, **Listening**, **Grammar** — each currently a placeholder. This document turns those placeholders into a buildable roadmap.
+The application is already scaffolded with Wails v3 + React (Mantine) + SQLite. It uses a **dual-window layout**: the **Management** window hosts library tools (import, reading, vocabulary, config); the **Agent** window provides a chat-first English tutor with streaming LLM responses. The Management navbar defines major feature areas: **Reading**, **Recite Words**, **Vocabulary**, **Listening**, **Grammar**. The Agent window is the planned primary surface for **Learning Flows** — written, chat-oriented study sessions (vocab recite, article reading, IELTS drills) driven by agent tools. See [Chat Learning Flows Plan](chat-learning-flows-plan.md) for the full design. This document turns the Management placeholders into a buildable roadmap and cross-references the agent learning direction.
 
 ---
 
@@ -147,39 +149,41 @@ Read Frog (陪读蛙) is an open-source AI browser extension (5,500+ stars, 20K 
 ## 4. Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                   React + Mantine UI                        │
-│  ┌──────┐ ┌──────┐ ┌──────┐ ┌────────┐ ┌────────┐ ┌──────┐ │
-│  │Reading│ │Recite│ │Vocab │ │Listening│ │Grammar │ │Config│ │
-│  └──┬───┘ └──┬───┘ └──┬───┘ └───┬────┘ └───┬────┘ └──┬───┘ │
-│     └────────┴────────┴─────────┴──────────┴─────────┘      │
-│                         │  Wails Bindings                    │
-├─────────────────────────┼───────────────────────────────────┤
-│              Go Backend (Wails v3 Services)                  │
-│  ┌───────────────────────────────────────────────────────┐   │
-│  │                    AppService                         │   │
-│  │  ┌──────────┐ ┌────────────┐ ┌──────────────────┐    │   │
-│  │  │ SRS Engine│ │ AI Service │ │ Content Manager  │    │   │
-│  │  │ (SM-2)   │ │ (OpenAI/   │ │ (Course/Lesson   │    │   │
-│  │  │          │ │  Claude/   │ │  Loader)         │    │   │
-│  │  │          │ │  Ollama)   │ │                  │    │   │
-│  │  └──────────┘ └────────────┘ └──────────────────┘    │   │
-│  │  ┌──────────┐ ┌────────────┐ ┌──────────────────┐    │   │
-│  │  │ Config   │ │ Stats/Track│ │ Import/Export    │    │   │
-│  │  │ Service  │ │ Service    │ │ Service          │    │   │
-│  │  └──────────┘ └────────────┘ └──────────────────┘    │   │
-│  └───────────────────────────────────────────────────────┘   │
-│                         │                                     │
-│              sqlc-generated store layer                       │
-├───────────────────────────────────────────────────────────────┤
-│                      SQLite (modernc.org/sqlite)              │
-│  ┌────────┐ ┌──────────┐ ┌────────┐ ┌────────┐ ┌─────────┐  │
-│  │settings│ │cards     │ │reviews │ │courses │ │vocabulary│  │
-│  └────────┘ └──────────┘ └────────┘ └────────┘ └─────────┘  │
-│  ┌────────┐ ┌──────────┐ ┌────────┐ ┌─────────────────────┐  │
-│  │stats   │ │articles  │ │streaks │ │...                  │  │
-│  └────────┘ └──────────┘ └────────┘ └─────────────────────┘  │
-└───────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│                        React + Mantine UI (dual windows)                 │
+│  ┌─────────────────────────────┐  ┌──────────────────────────────────┐  │
+│  │ Management window (/)       │  │ Agent window (/agent)            │  │
+│  │ Reading · Recite · Vocab ·  │  │ Chat thread + Study Panel        │  │
+│  │ Listening · Grammar · Config│  │ Learning Flows (vocab, articles) │  │
+│  └──────────────┬──────────────┘  └────────────────┬─────────────────┘  │
+│                 └──────────────────┬─────────────────┘                     │
+│                                    │  Wails Bindings + Events            │
+├────────────────────────────────────┼─────────────────────────────────────┤
+│              Go Backend (Wails v3 Services)                              │
+│  ┌───────────────────────────────────────────────────────────────────┐   │
+│  │                         AppService                                │   │
+│  │  ┌──────────┐ ┌────────────┐ ┌──────────────────┐ ┌────────────┐ │   │
+│  │  │ SRS Engine│ │ AI Service │ │ Content Manager  │ │ Agent /    │ │   │
+│  │  │ (SM-2)   │ │ (OpenAI/   │ │ (Import, Course, │ │ Learning   │ │   │
+│  │  │          │ │  Claude/   │ │  Article Fetch)  │ │ Flows      │ │   │
+│  │  │          │ │  Ollama)   │ │                  │ │            │ │   │
+│  │  └──────────┘ └────────────┘ └──────────────────┘ └────────────┘ │   │
+│  │  ┌──────────┐ ┌────────────┐ ┌──────────────────┐                │   │
+│  │  │ Config   │ │ Stats/Track│ │ Import/Export    │                │   │
+│  │  │ Service  │ │ Service    │ │ Service          │                │   │
+│  │  └──────────┘ └────────────┘ └──────────────────┘                │   │
+│  └───────────────────────────────────────────────────────────────────┘   │
+│                                    │                                     │
+│              sqlc-generated store layer                                  │
+├────────────────────────────────────┼─────────────────────────────────────┤
+│                      SQLite (modernc.org/sqlite)                         │
+│  ┌────────┐ ┌──────────┐ ┌────────┐ ┌────────┐ ┌─────────┐ ┌─────────┐  │
+│  │settings│ │cards     │ │reviews │ │courses │ │vocabulary│ │chat_*   │  │
+│  └────────┘ └──────────┘ └────────┘ └────────┘ └─────────┘ └─────────┘  │
+│  ┌────────┐ ┌──────────┐ ┌────────┐ ┌──────────────────────────────┐  │
+│  │stats   │ │articles  │ │streaks │ │learning_flow_templates (plan)│  │
+│  └────────┘ └──────────┘ └────────┘ └──────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 4.1 Key Technology Decisions
@@ -240,6 +244,22 @@ Tracks learning activity, streaks, and progress.
 ### 5.5 Config Service (`internal/config/`)
 
 **Already implemented** — persists theme, daily goal, words per session. Will be extended with AI provider settings, audio preferences, and course selection.
+
+### 5.6 Agent & Learning Flow Engine (`internal/agent/`, `internal/learning/`)
+
+**Partially implemented** — streaming chat in the Agent window; Learning Flows are planned.
+
+The Agent window (`frontend/src/AgentApp.tsx`) provides session-based chat with Wails event streaming (`agent:stream-chunk`, `agent:turn-done`). The orchestrator lives in Go (`internal/agent/orchestrator.go`) with a fixed tutor system prompt.
+
+**Planned Learning Flow layer** (see [chat-learning-flows-plan.md](chat-learning-flows-plan.md)):
+
+- **Flow templates** — user-created or built-in "skills" (e.g. IELTS vocab recite, article reading) stored in `learning_flow_templates`
+- **Flow state** — per-session JSON on `chat_sessions` (card queue, active article, progress)
+- **Agent tools** — `import_anki_apkg`, `create_recite_session`, `fetch_article`, `grade_response`, etc.
+- **Structured UI** — content parts (flashcard, article, quiz-result) + optional Study Panel beside the chat thread
+- **Written-first** — text input only; oral/listening deferred to the Listening module
+
+Management window pages remain the **library admin** surface; Learning Flows consume the same SQLite data (decks, cards, articles, vocabulary) through agent tools.
 
 ---
 
@@ -789,6 +809,25 @@ Already using Mantine with auto/light/dark theme support. Additional considerati
 - **Animations**: Card flip animation (CSS transform), subtle confetti on session complete
 - **Responsive**: While primarily desktop, window should resize gracefully
 
+### 8.4 Agent Window & Learning Flows
+
+The Agent window is the **chat-native learning surface**. It complements Management pages rather than replacing them.
+
+| Component | Status | Description |
+|-----------|--------|-------------|
+| Session sidebar | Implemented | Create, pin, rename, delete chat sessions |
+| Chat thread + text input | Implemented | Plain-text messages; streaming assistant replies |
+| Study Panel | Planned | Split pane for flashcards and article reading during active flows |
+| Flow picker | Planned | Start from template: General tutor, Vocab recite, Read article |
+| Content parts UI | Planned | Tool calls, flashcards, progress, quiz results in message bubbles |
+
+**Example flows** (full design in [chat-learning-flows-plan.md](chat-learning-flows-plan.md)):
+
+1. **Anki → vocab recite** — user asks agent to import a deck and run a typed recall test; agent presents cards one at a time and grades written answers
+2. **URL → article read** — user sends a link; agent fetches and stores content locally, opens Study Panel for reading, queues async analysis for well-written sentences and unfamiliar vocabulary
+
+Recite Words (`RecitePage`) and Reading (`ReadingPage`) in the Management window remain standalone library/study views; chat flows reuse the same SRS and article data.
+
 ---
 
 ## 9. Implementation Phases
@@ -864,6 +903,22 @@ Already using Mantine with auto/light/dark theme support. Additional considerati
 | 5.5 Onboarding | `frontend/src/pages/Onboarding.tsx` | First-run wizard |
 
 **Deliverable**: Feature-complete v1.0.
+
+### Phase 6: Chat Learning Flows — P0 (parallel with Phases 1–2)
+
+**Goal**: Chat-native written learning via agent tools and structured UI.
+
+Full specification: [chat-learning-flows-plan.md](chat-learning-flows-plan.md).
+
+| Task | Files | Description |
+|------|-------|-------------|
+| 6.1 Tool loop + content parts | `internal/agent/orchestrator.go`, `stream_processor.go` | Tool-call loop, `content_parts_json` on messages |
+| 6.2 Flow engine | `internal/learning/` | Session flow state, vocab recite, article read |
+| 6.3 Agent tools | `internal/agent/tools/` | Deck import, recite, article fetch, grading |
+| 6.4 Study Panel UI | `frontend/src/components/agent/StudyPanel.tsx` | Flashcard and article panel beside chat |
+| 6.5 Flow templates | `learning_flow_templates` table, Flow Picker | User-created and built-in IELTS starters |
+
+**Deliverable**: User can run vocab recite and article reading flows entirely in the Agent window; artifacts persist to SQLite and appear in Management library views.
 
 ---
 
@@ -952,6 +1007,40 @@ These need further discussion and prototyping before locking in:
 | **Cloud sync: needed for v1?** | "No" for v1. Add optional sync layer post-v1 using SQLite WAL replication or manual file export. | Post-v1 |
 | **Mobile companion app?** | Separate Flutter/Swift app or PWA? Not in scope for v1. | Post-v1 |
 | **Pronunciation: IPA or Pinyin-based?** | IPA for accuracy (programmers can learn IPA). Show both? | Phase 1 |
+| **Chat vs Management for study?** | Agent window primary for flows; Management for library admin (recommended) | Phase 6 start |
+| **Flow template format?** | JSON in SQLite with optional YAML export | Phase 6 |
+
+---
+
+## 12. Agent & Chat Learning Flows
+
+Chat-oriented learning is documented in depth in **[chat-learning-flows-plan.md](chat-learning-flows-plan.md)**. This section summarizes how it fits the overall product.
+
+### 12.1 Product direction
+
+- **Written-first**: Agent chat accepts text only; vocab recite uses typed answers, article reading uses a Study Panel, IELTS speaking is deferred in favor of writing feedback.
+- **Chat-native flows**: Users describe goals in natural language or pick a saved flow template; the agent runs a tool loop (import Anki, present cards, fetch articles, grade answers).
+- **Local persistence**: All content (articles, cards, analysis) stays in SQLite; Management window is the browse/edit library.
+
+### 12.2 Relationship to Management modules
+
+| Management module | Chat Learning Flow usage |
+|-------------------|--------------------------|
+| Import (Anki) | Agent invokes same importer; complex mapping may open Management |
+| Vocabulary | `lookup_vocabulary`, `explain_word` tools; graded words update SRS |
+| Reading | `fetch_article` stores articles; Study Panel for in-flow reading |
+| Recite Words | Chat `vocab_recite` flow is an alternative study mode in Agent window |
+
+### 12.3 Implementation status
+
+| Layer | Status |
+|-------|--------|
+| Agent window + streaming chat | Implemented |
+| Tool loop + content parts | Planned (Phase 6) |
+| Learning Flow engine + Study Panel | Planned |
+| Flow templates + IELTS starters | Planned |
+
+See [chat-learning-flows-plan.md](chat-learning-flows-plan.md) for schema, tools, streaming events, and phased rollout.
 
 ---
 
@@ -967,6 +1056,9 @@ These need further discussion and prototyping before locking in:
 | i+1 | Input that is just slightly above the learner's current level (Krashen's hypothesis) |
 | Cloze deletion | A fill-in-the-blank style card where part of the sentence is hidden |
 | Chips | Drag-and-drop sentence construction challenge (LibreLingo term) |
+| Learning Flow | Chat-native study session type (vocab recite, article read, etc.) configured by agent tools |
+| Flow Template | Saved, reusable Learning Flow definition (user-created "skill") |
+| Content Part | Structured segment in a chat message (text, flashcard, tool call, quiz result) |
 
 ## Appendix B: Reference Repository Links
 
