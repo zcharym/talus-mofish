@@ -16,6 +16,27 @@
   max-width: min(720px, 85%);
 }
 
+.bubbleActions {
+  margin-top: 0.25rem;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.bubble:hover .bubbleActions,
+.bubble:focus-within .bubbleActions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .bubbleActions {
+    opacity: 1;
+  }
+}
+
+.actionButton {
+  --wails-draggable: no-drag;
+}
+
 .bubbleUser {
   background-color: var(--mantine-color-blue-filled);
   color: var(--mantine-color-white);
