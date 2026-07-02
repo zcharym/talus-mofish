@@ -1,9 +1,9 @@
-# Talus Echo — English Learning App: Design & Plan
+# Talus Echo — Agent Platform: Design & Plan
 
 > **Project:** Talus Echo (aka Talus MoFish)  
 > **Stack:** Wails v3 (Go 1.24+ / React 18 + TypeScript + Mantine) / SQLite (modernc.org/sqlite)  
-> **Date:** 2026-06-05 (updated 2026-06-29)  
-> **Related:** [Chat Learning Flows Plan](chat-learning-flows-plan.md) — chat-native agent learning (IELTS, Anki, article reading)
+> **Date:** 2026-06-05 (updated 2026-07-02)  
+> **Related:** [English Learning Flows Plan](chat-learning-flows-plan.md) — agent flows for the English Learning domain (IELTS, Anki, article reading)
 
 ---
 
@@ -26,7 +26,9 @@
 
 ## 1. Executive Summary
 
-Talus Echo is a cross-platform desktop English learning application targeting intermediate Chinese-speaking programmers. It combines four proven approaches into one cohesive product:
+Talus Echo is a **chat-oriented desktop agent** for multiple domains. The **Agent window** is the primary interactive surface; the **Management window** hosts domain-specific libraries and tools.
+
+**English Learning** is the first domain, targeting intermediate Chinese-speaking programmers. It combines four proven approaches:
 
 | Source | Idea Absorbed |
 |--------|---------------|
@@ -35,7 +37,7 @@ Talus Echo is a cross-platform desktop English learning application targeting in
 | **A Programmer's Guide to English** | First-principles methodology, "build a parser" mental model, corpus-first approach |
 | **Read Frog** | Immersive reading, AI-powered contextual explanations, real-content learning |
 
-The application is already scaffolded with Wails v3 + React (Mantine) + SQLite. It uses a **dual-window layout**: the **Management** window hosts library tools (import, reading, vocabulary, config); the **Agent** window provides a chat-first English tutor with streaming LLM responses. The Management navbar defines major feature areas: **Reading**, **Recite Words**, **Vocabulary**, **Listening**, **Grammar**. The Agent window is the planned primary surface for **Learning Flows** — written, chat-oriented study sessions (vocab recite, article reading, IELTS drills) driven by agent tools. See [Chat Learning Flows Plan](chat-learning-flows-plan.md) for the full design. This document turns the Management placeholders into a buildable roadmap and cross-references the agent learning direction.
+The application is scaffolded with Wails v3 + React (Mantine) + SQLite. It uses a **dual-window layout**: Management hosts domain tools grouped by section (e.g. **English Learning** → Import, Reading, Vocabulary); Agent provides streaming LLM chat with domain-specific quick actions and planned **Agent Flows** (written, chat-oriented sessions driven by tools). See [English Learning Flows Plan](chat-learning-flows-plan.md). Future domains will follow the same `{domain}.{page}` route pattern and appservice module grouping.
 
 ---
 
@@ -124,7 +126,7 @@ Read Frog (陪读蛙) is an open-source AI browser extension (5,500+ stars, 20K 
 
 ### 3.1 Vision Statement
 
-> *"Talus Echo is a programmer's English learning workbench — combining the rigor of spaced repetition with the richness of real-world content, powered by AI that adapts to your level."*
+> *"Talus Echo is a programmer's chat-oriented workbench — an agent you talk to for many goals, with domain plugins that bring rigor, local data, and structured workflows. English Learning is the first plugin."*
 
 ### 3.2 Design Principles
 
@@ -634,15 +636,22 @@ articles 1──N clippings
 
 ### 8.1 Navigation Structure (Existing + Proposed)
 
-The navbar already has two sections: **Tools** and **English Study**. English Study gets the following sub-pages:
+Management sidebar is organized by **domain**. Each domain is a collapsible section with sub-pages. Route IDs use `{domain}.{page}` (e.g. `english.vocabulary`).
 
-| Tab | Page | Priority | Description |
-|-----|------|----------|-------------|
-| 📖 Reading | `ReadingPage` | P0 | Immersive reading with AI contextual lookup |
-| 🧠 Recite Words | `RecitePage` | P0 | SRS flashcard review |
-| 📚 Vocabulary | `VocabPage` | P1 | Browsable word bank with search/filter |
-| 🎧 Listening | `ListeningPage` | P1 | Audio content + SRS for listening cards |
-| ✏️ Grammar | `GrammarPage` | P2 | Grammar challenges from course content |
+#### English Learning (implemented + planned)
+
+| Tab | Route ID | Page | Priority | Description |
+|-----|----------|------|----------|-------------|
+| Import | `english.import` | `ImportPage` | P0 | Anki APKG import into local library |
+| 📖 Reading | `english.reading` | `ReadingPage` | P0 | Immersive reading with AI contextual lookup |
+| 📚 Vocabulary | `english.vocabulary` | `VocabularyPage` | P0 | Browsable word bank with search/filter |
+| 🧠 Recite Words | `english.recite` | `RecitePage` | P0 | SRS flashcard review (planned) |
+| 🎧 Listening | `english.listening` | `ListeningPage` | P1 | Audio content + SRS for listening cards (planned) |
+| ✏️ Grammar | `english.grammar` | `GrammarPage` | P2 | Grammar challenges from course content (planned) |
+
+#### Future domains
+
+Additional top-level sections (e.g. coding, notes) will follow the same pattern: collapsible parent, `{domain}.*` routes, dedicated appservice modules, and Agent quick-action groups.
 
 ### 8.2 Page Designs
 
@@ -809,9 +818,9 @@ Already using Mantine with auto/light/dark theme support. Additional considerati
 - **Animations**: Card flip animation (CSS transform), subtle confetti on session complete
 - **Responsive**: While primarily desktop, window should resize gracefully
 
-### 8.4 Agent Window & Learning Flows
+### 8.4 Agent Window & Flows
 
-The Agent window is the **chat-native learning surface**. It complements Management pages rather than replacing them.
+The Agent window is the **primary chat surface** for all domains. It complements Management pages rather than replacing them.
 
 | Component | Status | Description |
 |-----------|--------|-------------|

@@ -18,7 +18,7 @@
         PublisherName="CN=Talus"
         PublisherDisplayName="Talus"
         Version="0.1.0.0"
-        PackageDescription="English learning companion">
+        PackageDescription="Chat-oriented desktop agent">
         <Capabilities>
             <Capability Name="runFullTrust" />
             
@@ -26,7 +26,7 @@
         <Applications>
             <Application
                 Id="com.talus.echoloop"
-                Description="English learning companion"
+                Description="Chat-oriented desktop agent"
                 DisplayName="Talus Echo"
                 ExecutableName="talus-mofish.exe"
                 EntryPoint="Windows.FullTrustApplication">
@@ -43,7 +43,7 @@
             <Framework>false</Framework>
             <DisplayName>Talus Echo</DisplayName>
             <PublisherDisplayName>Talus</PublisherDisplayName>
-            <Description>English learning companion</Description>
+            <Description>Chat-oriented desktop agent</Description>
             <Logo>Assets\AppIcon.png</Logo>
         </Properties>
     </PackageInformation>

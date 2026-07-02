@@ -50,7 +50,7 @@ export function AgentHomeInput({
     <Box className={classes.card}>
       <Textarea
         className={classes.textarea}
-        placeholder="Ask anything or describe a learning goal…"
+        placeholder="Ask Talus Agent anything…"
         value={currentValue}
         onChange={(event) => setValue(event.currentTarget.value)}
         disabled={disabled || sending}

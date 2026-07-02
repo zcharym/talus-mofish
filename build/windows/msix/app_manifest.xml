@@ -14,7 +14,7 @@
   <Properties>
     <DisplayName>Talus Echo</DisplayName>
     <PublisherDisplayName>Talus</PublisherDisplayName>
-    <Description>English learning companion</Description>
+    <Description>Chat-oriented desktop agent</Description>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
   
@@ -30,7 +30,7 @@
     <Application Id="com.talus.echoloop" Executable="talus-mofish.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="Talus Echo"
-        Description="English learning companion"
+        Description="Chat-oriented desktop agent"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">

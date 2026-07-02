@@ -1,6 +1,8 @@
 # Talus Mofish
 
-Cross-platform desktop app (Windows / macOS) for English learning, built with [Wails v3](https://v3.wails.io/) and [sqlc](https://sqlc.dev/) over SQLite.
+Cross-platform desktop agent app (Windows / macOS), built with [Wails v3](https://v3.wails.io/) and [sqlc](https://sqlc.dev/) over SQLite.
+
+Talus Echo is **chat-oriented**: the Agent window is the primary surface for interactive sessions. **English Learning** is the first domain (vocabulary, reading, Anki import, SRS); additional domains will plug into the same Management and Agent architecture.
 
 ## Prerequisites
 
@@ -85,5 +87,5 @@ Bindings are generated under `frontend/bindings/` when running `wails3 dev` or `
 | Document | Description |
 |----------|-------------|
 | [docs/design-and-plan.md](docs/design-and-plan.md) | Product vision, architecture, data model, implementation phases |
-| [docs/chat-learning-flows-plan.md](docs/chat-learning-flows-plan.md) | Chat-native English learning flows (IELTS, Anki recite, article reading, agent tools, UI) |
+| [docs/chat-learning-flows-plan.md](docs/chat-learning-flows-plan.md) | English Learning agent flows (IELTS, Anki recite, article reading, tools, UI) |
 | [docs/system-tray-menu.md](docs/system-tray-menu.md) | System tray behavior |

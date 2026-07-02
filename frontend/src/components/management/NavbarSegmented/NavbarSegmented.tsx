@@ -1,43 +1,51 @@
+import { useState } from 'react';
 import {
   IconAdjustments,
   IconBook,
   IconBug,
+  IconChevronDown,
+  IconChevronRight,
   IconInfoCircle,
+  IconLanguage,
   IconMessageChatbot,
   IconUpload,
   IconVocabulary,
 } from '@tabler/icons-react';
-import { Text } from '@mantine/core';
+import { Collapse, Text, UnstyledButton } from '@mantine/core';
 import { AppService } from '../../../../bindings/github.com/songwei.ma/talus-mofish';
+import {
+  isEnglishLearningRoute,
+  ManagementRoute,
+  type ManagementRouteId,
+} from '../../../navigation/routes';
 import classes from './NavbarSegmented.module.css';
 
 interface NavItem {
-  id: string;
+  id: ManagementRouteId;
   label: string;
   icon: typeof IconUpload;
 }
 
-const libraryItems: NavItem[] = [
-  { id: 'import', label: 'Import', icon: IconUpload },
-  { id: 'reading', label: 'Reading', icon: IconBook },
-  { id: 'vocabulary', label: 'Vocabulary', icon: IconVocabulary },
-  { id: 'debug', label: 'Debug', icon: IconBug },
+const englishLearningItems: NavItem[] = [
+  { id: ManagementRoute.EnglishImport, label: 'Import', icon: IconUpload },
+  { id: ManagementRoute.EnglishReading, label: 'Reading', icon: IconBook },
+  { id: ManagementRoute.EnglishVocabulary, label: 'Vocabulary', icon: IconVocabulary },
 ];
 
 interface NavbarSegmentedProps {
   activeItem: string;
   debugMode: boolean;
-  onActiveItemChange: (itemId: string) => void;
+  onActiveItemChange: (itemId: ManagementRouteId) => void;
 }
 
 export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: NavbarSegmentedProps) {
-  const visibleItems = debugMode
-    ? libraryItems
-    : libraryItems.filter((item) => item.id !== 'debug');
+  const [englishExpanded, setEnglishExpanded] = useState(
+    () => isEnglishLearningRoute(activeItem) || activeItem === '',
+  );
 
-  const renderLink = (item: NavItem) => (
+  const renderLink = (item: NavItem, nested = false) => (
     <a
-      className={classes.link}
+      className={nested ? classes.nestedLink : classes.link}
       data-active={item.id === activeItem || undefined}
       href="#"
       key={item.id}
@@ -61,7 +69,28 @@ export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: N
           Manage
         </Text>
 
-        <div className={classes.links}>{visibleItems.map(renderLink)}</div>
+        <div className={classes.links}>
+          <UnstyledButton
+            className={classes.sectionHeader}
+            onClick={() => setEnglishExpanded((expanded) => !expanded)}
+          >
+            <IconLanguage className={classes.linkIcon} stroke={1.5} />
+            <span className={classes.sectionLabel}>English Learning</span>
+            {englishExpanded ? (
+              <IconChevronDown className={classes.chevron} size={16} />
+            ) : (
+              <IconChevronRight className={classes.chevron} size={16} />
+            )}
+          </UnstyledButton>
+
+          <Collapse in={englishExpanded}>
+            <div className={classes.nestedLinks}>
+              {englishLearningItems.map((item) => renderLink(item, true))}
+            </div>
+          </Collapse>
+
+          {debugMode && renderLink({ id: ManagementRoute.Debug, label: 'Debug', icon: IconBug })}
+        </div>
       </div>
 
       <div className={classes.footer}>
@@ -82,10 +111,10 @@ export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: N
         <a
           href="#"
           className={classes.link}
-          data-active={activeItem === 'config' || undefined}
+          data-active={activeItem === ManagementRoute.Config || undefined}
           onClick={(event) => {
             event.preventDefault();
-            onActiveItemChange('config');
+            onActiveItemChange(ManagementRoute.Config);
           }}
         >
           <IconAdjustments className={classes.linkIcon} stroke={1.5} />
@@ -95,10 +124,10 @@ export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: N
         <a
           href="#"
           className={classes.link}
-          data-active={activeItem === 'about' || undefined}
+          data-active={activeItem === ManagementRoute.About || undefined}
           onClick={(event) => {
             event.preventDefault();
-            onActiveItemChange('about');
+            onActiveItemChange(ManagementRoute.About);
           }}
         >
           <IconInfoCircle className={classes.linkIcon} stroke={1.5} />

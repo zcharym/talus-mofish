@@ -43,7 +43,7 @@ func main() {
 
 	app := application.New(application.Options{
 		Name:        "talus-mofish",
-		Description: "English learning companion",
+		Description: "Chat-oriented desktop agent",
 		Services: []application.Service{
 			application.NewService(appService),
 		},

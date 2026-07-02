@@ -29,7 +29,7 @@ Fill in these values after the first Linear MCP discovery call. The agent reads 
 | Field | Value |
 |-------|-------|
 | Repository | `talus-mofish` |
-| Product | Talus Mofish — English learning desktop app |
+| Product | Talus Mofish — chat-oriented desktop agent (English Learning is the first domain) |
 | Stack | Wails v3, Go, React/TypeScript, SQLite/sqlc |
 | Default branch | `main` |
 

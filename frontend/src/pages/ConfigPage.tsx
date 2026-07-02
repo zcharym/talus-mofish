@@ -137,9 +137,16 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
         ]}
       />
 
+      <Text fw={600} mt="md">
+        English Learning
+      </Text>
+      <Text size="sm" c="dimmed">
+        Settings for the English Learning domain in Management and Agent quick actions.
+      </Text>
+
       <NumberInput
         label="Daily study goal"
-        description="Target minutes per day for English study"
+        description="Target minutes per day for English Learning sessions"
         value={dailyGoalMinutes}
         onChange={(value) => setDailyGoalMinutes(Number(value) || 30)}
         min={1}

@@ -14,6 +14,11 @@ import (
 )
 
 // Service exposes application and persistence APIs to the frontend.
+//
+// Domain-specific APIs are grouped by file:
+//   - English Learning (domain.English): import.go, articles.go, vocabulary.go, srs.go
+//   - Agent (core): chat.go
+//   - App shell: config.go, settings.go, auth.go, windows.go, dialogs.go, media.go
 type Service struct {
 	db           *database.DB
 	config       *config.Store

@@ -5,6 +5,12 @@ import { AppShell, MantineProvider, Text, Title } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { AppService } from '../bindings/github.com/songwei.ma/talus-mofish';
 import { NavbarSegmented } from './components/management/NavbarSegmented';
+import {
+  DEFAULT_MANAGEMENT_ROUTE,
+  ManagementRoute,
+  PAGE_TITLES,
+  type ManagementRouteId,
+} from './navigation/routes';
 import { ConfigPage } from './pages/ConfigPage';
 import { DebugPage } from './pages/DebugPage';
 import { ImportPage } from './pages/ImportPage';
@@ -13,27 +19,18 @@ import { VocabularyPage } from './pages/VocabularyPage';
 
 type ThemeOption = 'auto' | 'light' | 'dark';
 
-const pageTitles: Record<string, string> = {
-  import: 'Import',
-  reading: 'Reading',
-  vocabulary: 'Vocabulary',
-  config: 'Configuration',
-  debug: 'Debug',
-  about: 'About',
-};
-
 function MainContent({
   activeItem,
   onThemeChange,
   onDebugModeChange,
 }: {
-  activeItem: string;
+  activeItem: ManagementRouteId;
   onThemeChange: (theme: ThemeOption) => void;
   onDebugModeChange: (enabled: boolean) => void;
 }) {
-  const title = pageTitles[activeItem] ?? 'Talus Echo';
+  const title = PAGE_TITLES[activeItem] ?? 'Talus Echo';
 
-  if (activeItem === 'config') {
+  if (activeItem === ManagementRoute.Config) {
     return (
       <>
         <Title order={2}>{title}</Title>
@@ -42,7 +39,7 @@ function MainContent({
     );
   }
 
-  if (activeItem === 'debug') {
+  if (activeItem === ManagementRoute.Debug) {
     return (
       <>
         <Title order={2}>{title}</Title>
@@ -51,7 +48,7 @@ function MainContent({
     );
   }
 
-  if (activeItem === 'import') {
+  if (activeItem === ManagementRoute.EnglishImport) {
     return (
       <>
         <Title order={2}>{title}</Title>
@@ -60,7 +57,7 @@ function MainContent({
     );
   }
 
-  if (activeItem === 'reading') {
+  if (activeItem === ManagementRoute.EnglishReading) {
     return (
       <>
         <Title order={2}>{title}</Title>
@@ -69,7 +66,7 @@ function MainContent({
     );
   }
 
-  if (activeItem === 'vocabulary') {
+  if (activeItem === ManagementRoute.EnglishVocabulary) {
     return (
       <>
         <Title order={2}>{title}</Title>
@@ -78,12 +75,14 @@ function MainContent({
     );
   }
 
-  if (activeItem === 'about') {
+  if (activeItem === ManagementRoute.About) {
     return (
       <>
         <Title order={2}>{title}</Title>
         <Text c="dimmed" mt="sm">
-          Talus Echo — English learning library and management.
+          Talus Echo — a chat-oriented desktop agent for multiple domains. English Learning is the
+          first domain: manage vocabulary, reading, and Anki imports here; use Agent Chat for
+          interactive sessions.
         </Text>
       </>
     );
@@ -93,7 +92,7 @@ function MainContent({
 }
 
 function ManagementApp() {
-  const [activeItem, setActiveItem] = useState('vocabulary');
+  const [activeItem, setActiveItem] = useState<ManagementRouteId>(DEFAULT_MANAGEMENT_ROUTE);
   const [colorScheme, setColorScheme] = useState<ThemeOption>('auto');
   const [debugMode, setDebugMode] = useState(false);
 
@@ -103,7 +102,9 @@ function ManagementApp() {
 
   const applyDebugMode = useCallback((enabled: boolean) => {
     setDebugMode(enabled);
-    setActiveItem((current) => (current === 'debug' && !enabled ? 'vocabulary' : current));
+    setActiveItem((current) =>
+      current === ManagementRoute.Debug && !enabled ? DEFAULT_MANAGEMENT_ROUTE : current,
+    );
   }, []);
 
   useEffect(() => {

@@ -10,7 +10,7 @@ version: "0.1.0"
 section: "default"
 priority: "extra"
 maintainer: ${GIT_COMMITTER_NAME} <${GIT_COMMITTER_EMAIL}>
-description: "English learning companion"
+description: "Chat-oriented desktop agent"
 vendor: "Talus"
 homepage: "https://wails.io"
 license: "MIT"

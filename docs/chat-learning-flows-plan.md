@@ -1,9 +1,12 @@
-# Chat-Oriented English Learning Flows
+# English Learning — Agent Flows
 
 > **Project:** Talus Echo (Talus Mofish)  
+> **Domain:** English Learning (`english.*`)  
 > **Stack:** Wails v3 / Go / React + Mantine / SQLite  
-> **Date:** 2026-06-29  
+> **Date:** 2026-06-29 (updated 2026-07-02)  
 > **Related:** [Design & Plan](design-and-plan.md) · [Chatbox Agent Flow Plan](../.cursor/plans/chatbox_agent_flow_plan_a7ec3a59.plan.md)
+
+This document covers **English Learning** agent flows within the broader Talus Echo agent platform. General agent behavior (sessions, streaming, config) lives in the main design doc; this plan focuses on vocab recite, article reading, IELTS drills, and related tools.
 
 ---
 
@@ -24,7 +27,9 @@
 
 ## 1. Vision
 
-Talus Echo becomes a **written-first, chat-native English workbench**: the Agent window is the primary learning surface. Users start flows by natural language ("import my Anki deck and quiz me on 20 words") or by picking a saved **Learning Flow** template. The agent orchestrates tools, emits structured UI widgets inside the chat thread, and persists all learning artifacts locally in SQLite.
+Within Talus Echo's **chat-first Agent window**, the **English Learning domain** provides written-first study flows. Users start flows by natural language ("import my Anki deck and quiz me on 20 words") or by picking a saved **Flow Template**. The agent orchestrates domain tools, emits structured UI widgets inside the chat thread, and persists learning artifacts locally in SQLite.
+
+Other domains will add their own flow templates and tools using the same orchestration layer; English Learning is the reference implementation.
 
 **Constraints inherited from the current app:**
 

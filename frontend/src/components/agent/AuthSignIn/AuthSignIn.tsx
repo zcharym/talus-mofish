@@ -18,7 +18,7 @@ export function AuthSignIn({ signingIn, onSignIn }: AuthSignInProps) {
             Sign in to Talus Agent
           </Text>
           <Text c="dimmed" size="sm" ta="center">
-            Connect with GitHub or Google to personalize your workspace and start learning.
+            Connect with GitHub or Google to personalize your workspace and sync your data.
           </Text>
         </Stack>
 

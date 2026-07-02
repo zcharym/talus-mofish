@@ -8,9 +8,10 @@ import (
 )
 
 const (
-	defaultSystemPrompt = `You are Talus Agent, an English tutor for Chinese-speaking software developers.
-Explain clearly and concisely. Use examples when helpful. Match the user's level when possible.
-If the user writes in Chinese, you may reply in Chinese for explanations but include English examples.`
+	defaultSystemPrompt = `You are Talus Agent, a helpful desktop assistant.
+Answer clearly and concisely. Use examples when helpful.
+You can help with many topics; when the user asks about English learning, vocabulary, reading, or IELTS practice, draw on their local library (decks, articles, vocabulary) when relevant.
+If the user writes in Chinese, you may reply in Chinese for explanations but include English examples when discussing English.`
 	maxContextMessages = 40
 )
 

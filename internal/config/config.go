@@ -13,8 +13,8 @@ import (
 // App holds user-facing application settings persisted in config.json.
 type App struct {
 	Theme            string           `json:"theme"`
-	DailyGoalMinutes int              `json:"dailyGoalMinutes"`
-	WordsPerSession  int              `json:"wordsPerSession"`
+	DailyGoalMinutes int              `json:"dailyGoalMinutes"` // English Learning domain
+	WordsPerSession  int              `json:"wordsPerSession"`  // English Learning domain
 	AutoStart        bool             `json:"autoStart"`
 	DebugMode        bool             `json:"debugMode"`
 	AI               aiclient.Config  `json:"ai"`
