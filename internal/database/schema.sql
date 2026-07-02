@@ -176,6 +176,19 @@ CREATE TABLE IF NOT EXISTS anki_import_decks (
     PRIMARY KEY (import_id, anki_deck_id)
 );
 
+-- === User Account ===
+CREATE TABLE IF NOT EXISTS user_account (
+    id TEXT NOT NULL PRIMARY KEY,
+    provider TEXT NOT NULL CHECK (provider IN ('github', 'google')),
+    provider_user_id TEXT NOT NULL,
+    display_name TEXT NOT NULL,
+    email TEXT NOT NULL DEFAULT '',
+    avatar_url TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime ('now')),
+    last_login_at TEXT NOT NULL DEFAULT (datetime ('now')),
+    UNIQUE (provider, provider_user_id)
+);
+
 -- === Agent Chat ===
 CREATE TABLE IF NOT EXISTS chat_sessions (
     id TEXT NOT NULL PRIMARY KEY,

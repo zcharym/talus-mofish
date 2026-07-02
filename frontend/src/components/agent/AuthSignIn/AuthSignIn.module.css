@@ -1,0 +1,26 @@
+.wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  min-height: 280px;
+}
+
+.card {
+  width: 100%;
+  padding: var(--mantine-spacing-xl);
+  border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-lg);
+  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
+}
+
+.button {
+  width: 100%;
+}
+
+.overlay {
+  border-radius: var(--mantine-radius-lg);
+}
+
+.overlayContent {
+  padding: var(--mantine-spacing-md);
+}

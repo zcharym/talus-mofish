@@ -1,0 +1,27 @@
+.page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--mantine-spacing-xl);
+  overflow-y: auto;
+}
+
+.content {
+  width: 100%;
+  max-width: 720px;
+}
+
+.greeting {
+  font-weight: 600;
+}
+
+.icon {
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+}
+
+.feedbackLink {
+  flex-shrink: 0;
+  pointer-events: none;
+}

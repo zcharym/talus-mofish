@@ -1,10 +1,9 @@
-import { useCallback, useMemo, useRef, type ReactNode } from "react";
-import { IconCopy, IconDots } from "@tabler/icons-react";
-import { ActionIcon, Box, Group, Loader, Menu, Paper } from "@mantine/core";
+import { useMemo, useRef, type ReactNode } from "react";
+import { IconCheck, IconCopy, IconDots } from "@tabler/icons-react";
+import { ActionIcon, Box, CopyButton, Group, Loader, Menu, Paper, Tooltip } from "@mantine/core";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useSmoothStreamText } from "../../../hooks/useSmoothStreamText";
-import { notify } from "../../../services/notifications";
 import classes from "./ChatBubble.module.css";
 
 export interface ChatBubbleMenuItem {
@@ -55,20 +54,6 @@ export function ChatBubble({ role, content, streaming = false, menuItems = [] }:
   const showAssistantActions = !isUser && !showLoader && hasCopyableContent;
   const hasMenuItems = menuItems.length > 0;
 
-  const handleCopy = useCallback(async () => {
-    const textToCopy = content.trim();
-    if (!textToCopy) {
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(textToCopy);
-      notify.success("Copied", "Message copied to clipboard");
-    } catch {
-      notify.failed("Copy failed", "Could not copy to clipboard");
-    }
-  }, [content]);
-
   return (
     <Box className={`${classes.row} ${isUser ? classes.rowUser : classes.rowAssistant}`}>
       <Paper
@@ -116,16 +101,22 @@ export function ChatBubble({ role, content, streaming = false, menuItems = [] }:
                 </Menu.Dropdown>
               </Menu>
             ) : null}
-            <ActionIcon
-              variant="subtle"
-              size="sm"
-              className={classes.actionButton}
-              color="gray"
-              aria-label="Copy message"
-              onClick={handleCopy}
-            >
-              <IconCopy size={14} />
-            </ActionIcon>
+            <CopyButton value={content.trim()} timeout={2000}>
+              {({ copied, copy }) => (
+                <Tooltip label={copied ? "Copied" : "Copy"} withArrow position="top">
+                  <ActionIcon
+                    variant="subtle"
+                    size="sm"
+                    className={classes.actionButton}
+                    color={copied ? "teal" : "gray"}
+                    aria-label={copied ? "Copied" : "Copy message"}
+                    onClick={copy}
+                  >
+                    {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                  </ActionIcon>
+                </Tooltip>
+              )}
+            </CopyButton>
           </Group>
         ) : null}
       </Paper>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   IconDots,
   IconLayoutSidebar,
+  IconLogout,
   IconMessagePlus,
   IconPin,
   IconPinned,
@@ -10,6 +11,7 @@ import {
 } from '@tabler/icons-react';
 import {
   ActionIcon,
+  Avatar,
   Box,
   Button,
   Divider,
@@ -22,6 +24,7 @@ import {
   TextInput,
   UnstyledButton,
 } from '@mantine/core';
+import { UserProfile } from '../../../utils/userProfile';
 import { loadPinnedSessionIds, savePinnedSessionIds } from './pinnedSessions';
 import classes from './SessionSidebar.module.css';
 
@@ -39,11 +42,13 @@ export interface ChatSessionItem {
 interface SessionSidebarProps {
   sessions: ChatSessionItem[];
   activeSessionId: string | null;
+  user: UserProfile | null;
   onSelectSession: (sessionId: string) => void;
-  onNewChat: () => Promise<void>;
+  onNewChat: () => void;
   onRenameSession: (sessionId: string, title: string) => Promise<void>;
   onDeleteSession: (sessionId: string) => Promise<void>;
   onOpenManagement: () => void;
+  onSignOut: () => Promise<void>;
 }
 
 interface SessionRowProps {
@@ -112,17 +117,19 @@ function SessionRow({
 export function SessionSidebar({
   sessions,
   activeSessionId,
+  user,
   onSelectSession,
   onNewChat,
   onRenameSession,
   onDeleteSession,
   onOpenManagement,
+  onSignOut,
 }: SessionSidebarProps) {
   const [renameSessionId, setRenameSessionId] = useState<string | null>(null);
   const [renameTitle, setRenameTitle] = useState('');
   const [deleteSession, setDeleteSession] = useState<ChatSessionItem | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [pinnedIds, setPinnedIds] = useState<string[]>(() => loadPinnedSessionIds());
 
   useEffect(() => {
@@ -168,13 +175,8 @@ export function SessionSidebar({
     closeRename();
   };
 
-  const handleNewChat = async () => {
-    setCreating(true);
-    try {
-      await onNewChat();
-    } finally {
-      setCreating(false);
-    }
+  const handleNewChat = () => {
+    onNewChat();
   };
 
   const handleTogglePin = (sessionId: string) => {
@@ -238,6 +240,34 @@ export function SessionSidebar({
     <Box className={classes.sidebar} data-platform={isMacOS ? 'darwin' : undefined}>
       <Box className={classes.header}>
         <Box className={classes.titlebarSpacer} aria-hidden="true" />
+        {user ? (
+          <Menu withinPortal position="bottom-start" shadow="sm">
+            <Menu.Target>
+              <UnstyledButton className={classes.userButton}>
+                <Group gap="sm" wrap="nowrap">
+                  <Avatar src={user.avatar_url} alt={user.display_name} radius="xl" size={28}>
+                    {user.display_name.slice(0, 1).toUpperCase()}
+                  </Avatar>
+                  <Text size="sm" fw={600} lineClamp={1}>
+                    {user.display_name}
+                  </Text>
+                </Group>
+              </UnstyledButton>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                leftSection={<IconLogout size={14} />}
+                disabled={signingOut}
+                onClick={() => {
+                  setSigningOut(true);
+                  void onSignOut().finally(() => setSigningOut(false));
+                }}
+              >
+                Sign out
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        ) : null}
         <Group className={classes.headerRow} justify="space-between" wrap="nowrap">
           <Text fw={600} size="sm">
             Chats
@@ -246,8 +276,7 @@ export function SessionSidebar({
             leftSection={<IconMessagePlus size={16} />}
             size="xs"
             variant="light"
-            loading={creating}
-            onClick={() => void handleNewChat()}
+            onClick={handleNewChat}
           >
             New chat
           </Button>

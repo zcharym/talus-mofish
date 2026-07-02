@@ -18,6 +18,16 @@ type App struct {
 	AutoStart        bool             `json:"autoStart"`
 	DebugMode        bool             `json:"debugMode"`
 	AI               aiclient.Config  `json:"ai"`
+	OAuth            OAuth            `json:"oauth"`
+}
+
+// OAuth holds OAuth client credentials for third-party sign-in providers.
+type OAuth struct {
+	GitHubClientID     string `json:"githubClientId"`
+	GitHubClientSecret string `json:"githubClientSecret"`
+	GoogleClientID     string `json:"googleClientId"`
+	GoogleClientSecret string `json:"googleClientSecret"`
+	HTTPProxy          string `json:"httpProxy"`
 }
 
 // Store loads and saves App settings at a fixed file path.

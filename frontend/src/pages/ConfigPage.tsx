@@ -13,7 +13,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import { AppService } from "../../bindings/github.com/songwei.ma/talus-mofish";
-import { App as AppConfig } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/config/models";
+import { App as AppConfig, OAuth } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/config/models";
 import { Config as AIConfig, Provider } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/aiclient/models";
 import { notify } from "../services/notifications";
 
@@ -34,6 +34,11 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
   const [aiModel, setAIModel] = useState("gpt-4o-mini");
   const [aiAPIKey, setAIAPIKey] = useState("");
   const [aiBaseURL, setAIBaseURL] = useState("");
+  const [githubClientId, setGithubClientId] = useState("");
+  const [githubClientSecret, setGithubClientSecret] = useState("");
+  const [googleClientId, setGoogleClientId] = useState("");
+  const [googleClientSecret, setGoogleClientSecret] = useState("");
+  const [oauthHttpProxy, setOauthHttpProxy] = useState("");
   const [configPath, setConfigPath] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -58,6 +63,11 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
       setAIModel(cfg.ai?.model || "gpt-4o-mini");
       setAIAPIKey(cfg.ai?.apiKey || "");
       setAIBaseURL(cfg.ai?.baseURL || "");
+      setGithubClientId(cfg.oauth?.githubClientId || "");
+      setGithubClientSecret(cfg.oauth?.githubClientSecret || "");
+      setGoogleClientId(cfg.oauth?.googleClientId || "");
+      setGoogleClientSecret(cfg.oauth?.googleClientSecret || "");
+      setOauthHttpProxy(cfg.oauth?.httpProxy || "");
       setConfigPath(path);
       onThemeChange(nextTheme);
     } catch (err) {
@@ -86,6 +96,13 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
         model: aiModel,
         apiKey: aiAPIKey,
         baseURL: aiBaseURL,
+      }),
+      oauth: new OAuth({
+        githubClientId,
+        githubClientSecret,
+        googleClientId,
+        googleClientSecret,
+        httpProxy: oauthHttpProxy,
       }),
     });
 
@@ -196,6 +213,51 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
         description="Optional API root, e.g. https://api.openai.com/v1 or https://api.moonshot.cn/v1 (not /anthropic)"
         value={aiBaseURL}
         onChange={(event) => setAIBaseURL(event.currentTarget.value)}
+      />
+
+      <Text fw={600} mt="md">
+        Account / OAuth
+      </Text>
+      <Text size="sm" c="dimmed">
+        GitHub uses the web application flow with a loopback redirect on 127.0.0.1. Register
+        callback URL <Code>http://127.0.0.1/callback</Code> on your GitHub OAuth app; the app may
+        use any local port at runtime.
+      </Text>
+
+      <TextInput
+        label="GitHub client ID"
+        value={githubClientId}
+        onChange={(event) => setGithubClientId(event.currentTarget.value)}
+        placeholder="Ov23li..."
+      />
+
+      <PasswordInput
+        label="GitHub client secret"
+        description="Required by GitHub when exchanging the authorization code for an access token"
+        value={githubClientSecret}
+        onChange={(event) => setGithubClientSecret(event.currentTarget.value)}
+      />
+
+      <TextInput
+        label="Google client ID"
+        value={googleClientId}
+        onChange={(event) => setGoogleClientId(event.currentTarget.value)}
+        placeholder="1234567890-abc.apps.googleusercontent.com"
+      />
+
+      <PasswordInput
+        label="Google client secret"
+        description="Use a Desktop OAuth client in Google Cloud Console"
+        value={googleClientSecret}
+        onChange={(event) => setGoogleClientSecret(event.currentTarget.value)}
+      />
+
+      <TextInput
+        label="OAuth HTTP proxy"
+        description="Optional override, e.g. http://127.0.0.1:7890. Leave empty to use Windows system proxy settings."
+        value={oauthHttpProxy}
+        onChange={(event) => setOauthHttpProxy(event.currentTarget.value)}
+        placeholder="http://127.0.0.1:7890"
       />
 
       <Group>

@@ -4,10 +4,12 @@ import '@mantine/notifications/styles.css';
 import { Box, MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { AppService } from '../bindings/github.com/songwei.ma/talus-mofish';
+import { AgentHome, QuickActionId } from './components/agent/AgentHome';
 import { ChatInput } from './components/agent/ChatInput';
 import { ChatMessageItem, ChatThread } from './components/agent/ChatThread';
 import { ChatSessionItem, SessionSidebar } from './components/agent/SessionSidebar';
 import { useAgentStream } from './hooks/useAgentStream';
+import { useCurrentUser } from './hooks/useCurrentUser';
 import { notify } from './services/notifications';
 import classes from './AgentApp.module.css';
 
@@ -21,6 +23,7 @@ function AgentApp() {
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [colorScheme, setColorScheme] = useState<ThemeOption>('auto');
   const activeSessionIdRef = useRef<string | null>(null);
+  const { user, loading: userLoading, signingIn, signIn, signOut } = useCurrentUser();
 
   useEffect(() => {
     activeSessionIdRef.current = activeSessionId;
@@ -126,15 +129,21 @@ function AgentApp() {
     }
   }, [activeSessionId, loadMessages]);
 
-  const handleNewChat = async () => {
-    try {
-      const session = (await AppService.CreateChatSession('')) as ChatSessionItem;
-      await loadSessions();
-      setActiveSessionId(session.id);
-      setMessages([]);
-    } catch (err) {
-      notify.failed('Failed to create chat', String(err));
+  const ensureActiveSession = useCallback(async (): Promise<string> => {
+    if (activeSessionId) {
+      return activeSessionId;
     }
+
+    const session = (await AppService.CreateChatSession('')) as ChatSessionItem;
+    setActiveSessionId(session.id);
+    setMessages([]);
+    await loadSessions();
+    return session.id;
+  }, [activeSessionId, loadSessions]);
+
+  const handleGoHome = () => {
+    setActiveSessionId(null);
+    setMessages([]);
   };
 
   const handleRenameSession = async (sessionId: string, title: string) => {
@@ -160,13 +169,10 @@ function AgentApp() {
   };
 
   const handleSend = async (content: string) => {
-    if (!activeSessionId) {
-      return;
-    }
-
     setSending(true);
     try {
-      const result = await AppService.StartChatTurn(activeSessionId, content);
+      const sessionId = await ensureActiveSession();
+      const result = await AppService.StartChatTurn(sessionId, content);
       const userMessage = result.user_message as ChatMessageItem;
       const assistantMessage = {
         ...(result.assistant_message as ChatMessageItem),
@@ -179,6 +185,31 @@ function AgentApp() {
       notify.failed('Failed to send message', String(err));
       setSending(false);
       setStreamingMessageId(null);
+    }
+  };
+
+  const handleQuickAction = async (_actionId: QuickActionId, prompt: string, autoSend: boolean) => {
+    if (!autoSend) {
+      return;
+    }
+    await handleSend(prompt);
+  };
+
+  const handleSignIn = async (provider: 'github' | 'google') => {
+    try {
+      await signIn(provider);
+    } catch (err) {
+      notify.failed('Sign-in failed', String(err));
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setActiveSessionId(null);
+      setMessages([]);
+    } catch (err) {
+      notify.failed('Sign-out failed', String(err));
     }
   };
 
@@ -199,6 +230,8 @@ function AgentApp() {
     });
   };
 
+  const isHomeView = activeSessionId === null;
+
   return (
     <MantineProvider
       defaultColorScheme="auto"
@@ -209,25 +242,44 @@ function AgentApp() {
         <SessionSidebar
           sessions={sessions}
           activeSessionId={activeSessionId}
+          user={user}
           onSelectSession={setActiveSessionId}
-          onNewChat={handleNewChat}
+          onNewChat={handleGoHome}
           onRenameSession={handleRenameSession}
           onDeleteSession={handleDeleteSession}
           onOpenManagement={handleOpenManagement}
+          onSignOut={handleSignOut}
         />
 
         <Box className={classes.main}>
-          <ChatThread
-            messages={messages}
-            sessionTitle={activeSession?.title ?? null}
-            hasActiveSession={activeSessionId !== null}
-          />
-          <ChatInput
-            disabled={activeSessionId === null}
-            sending={sending}
-            onSend={handleSend}
-            onCancel={streamingMessageId ? handleCancel : undefined}
-          />
+          {isHomeView ? (
+            <AgentHome
+              user={user}
+              userLoading={userLoading}
+              signingIn={signingIn}
+              sending={sending}
+              onSend={handleSend}
+              onCancel={streamingMessageId ? handleCancel : undefined}
+              onSignIn={handleSignIn}
+              onQuickAction={(actionId, prompt, autoSend) => {
+                void handleQuickAction(actionId, prompt, autoSend);
+              }}
+            />
+          ) : (
+            <>
+              <ChatThread
+                messages={messages}
+                sessionTitle={activeSession?.title ?? null}
+                hasActiveSession
+              />
+              <ChatInput
+                disabled={false}
+                sending={sending}
+                onSend={handleSend}
+                onCancel={streamingMessageId ? handleCancel : undefined}
+              />
+            </>
+          )}
         </Box>
       </Box>
     </MantineProvider>

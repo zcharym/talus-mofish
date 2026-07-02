@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/songwei.ma/talus-mofish/internal/agent"
+	"github.com/songwei.ma/talus-mofish/internal/auth"
 	"github.com/songwei.ma/talus-mofish/internal/autostart"
 	"github.com/songwei.ma/talus-mofish/internal/config"
 	"github.com/songwei.ma/talus-mofish/internal/database"
@@ -20,6 +21,7 @@ type Service struct {
 	wailsApp     *application.App
 	turnRegistry *agent.TurnRegistry
 	orchestrator *agent.Orchestrator
+	auth         *auth.Service
 }
 
 func New(db *database.DB, cfg *config.Store, autostartManager *autostart.Manager) *Service {
@@ -29,6 +31,7 @@ func New(db *database.DB, cfg *config.Store, autostartManager *autostart.Manager
 		config:       cfg,
 		autostart:    autostartManager,
 		turnRegistry: registry,
+		auth:         auth.New(db.Queries, cfg),
 	}
 	s.orchestrator = agent.NewOrchestrator(agentEventEmitter{}, registry, chatMessageStore{s})
 	return s

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { IconMessageChatbot } from '@tabler/icons-react';
 import { Box, ScrollArea, Stack, Text, Title } from '@mantine/core';
 import { ChatBubble } from '../ChatBubble';
 import classes from './ChatThread.module.css';
@@ -33,15 +32,7 @@ export function ChatThread({ messages, sessionTitle, hasActiveSession }: ChatThr
   }, [messages, scrollToBottom]);
 
   if (!hasActiveSession) {
-    return (
-      <Box className={classes.emptyState}>
-        <IconMessageChatbot size={48} stroke={1.25} className={classes.emptyIcon} />
-        <Title order={3}>Talus Agent</Title>
-        <Text c="dimmed" size="sm" mt="xs">
-          Select a chat or start a new conversation.
-        </Text>
-      </Box>
-    );
+    return null;
   }
 
   return (

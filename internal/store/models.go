@@ -134,6 +134,17 @@ type Setting struct {
 	UpdatedAt string `json:"updated_at"`
 }
 
+type UserAccount struct {
+	ID             string `json:"id"`
+	Provider       string `json:"provider"`
+	ProviderUserID string `json:"provider_user_id"`
+	DisplayName    string `json:"display_name"`
+	Email          string `json:"email"`
+	AvatarUrl      string `json:"avatar_url"`
+	CreatedAt      string `json:"created_at"`
+	LastLoginAt    string `json:"last_login_at"`
+}
+
 type Vocabulary struct {
 	ID           string         `json:"id"`
 	Word         string         `json:"word"`
