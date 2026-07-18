@@ -11,10 +11,11 @@ import classes from './AgentHome.module.css';
 interface AgentHomeProps {
   user: UserProfile | null;
   userLoading: boolean;
-  signingIn: 'github' | 'google' | null;
+  signingIn: 'email' | 'github' | 'google' | null;
   sending: boolean;
   onSend: (content: string) => Promise<void>;
   onCancel?: () => Promise<void>;
+  onSignInWithEmail: (email: string) => Promise<void>;
   onSignIn: (provider: 'github' | 'google') => Promise<void>;
   onQuickAction: (actionId: QuickActionId, prompt: string, autoSend: boolean) => void;
 }
@@ -26,6 +27,7 @@ export function AgentHome({
   sending,
   onSend,
   onCancel,
+  onSignInWithEmail,
   onSignIn,
   onQuickAction,
 }: AgentHomeProps) {
@@ -62,6 +64,7 @@ export function AgentHome({
       <Box className={classes.page}>
         <AuthSignIn
           signingIn={signingIn}
+          onSignInWithEmail={onSignInWithEmail}
           onSignIn={async (provider) => {
             await onSignIn(provider);
           }}

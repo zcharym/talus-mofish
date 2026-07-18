@@ -55,6 +55,15 @@ func (s *Service) SignInWithGoogle() (*UserProfile, error) {
 	return toUserProfile(profile), nil
 }
 
+// SignInWithEmail starts the email magic-link flow and persists the signed-in user.
+func (s *Service) SignInWithEmail(email string) (*UserProfile, error) {
+	profile, err := s.auth.SignInWithEmail(context.Background(), email)
+	if err != nil {
+		return nil, err
+	}
+	return toUserProfile(profile), nil
+}
+
 // SignOut clears the signed-in user and stored OAuth tokens.
 func (s *Service) SignOut() error {
 	return s.auth.SignOut(context.Background())

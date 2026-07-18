@@ -38,7 +38,6 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
   const [githubClientSecret, setGithubClientSecret] = useState("");
   const [googleClientId, setGoogleClientId] = useState("");
   const [googleClientSecret, setGoogleClientSecret] = useState("");
-  const [oauthHttpProxy, setOauthHttpProxy] = useState("");
   const [configPath, setConfigPath] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -67,7 +66,6 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
       setGithubClientSecret(cfg.oauth?.githubClientSecret || "");
       setGoogleClientId(cfg.oauth?.googleClientId || "");
       setGoogleClientSecret(cfg.oauth?.googleClientSecret || "");
-      setOauthHttpProxy(cfg.oauth?.httpProxy || "");
       setConfigPath(path);
       onThemeChange(nextTheme);
     } catch (err) {
@@ -102,7 +100,6 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
         githubClientSecret,
         googleClientId,
         googleClientSecret,
-        httpProxy: oauthHttpProxy,
       }),
     });
 
@@ -223,7 +220,7 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
       />
 
       <Text fw={600} mt="md">
-        Account / OAuth
+        OAuth
       </Text>
       <Text size="sm" c="dimmed">
         GitHub uses the web application flow with a loopback redirect on 127.0.0.1. Register
@@ -257,14 +254,6 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
         description="Use a Desktop OAuth client in Google Cloud Console"
         value={googleClientSecret}
         onChange={(event) => setGoogleClientSecret(event.currentTarget.value)}
-      />
-
-      <TextInput
-        label="OAuth HTTP proxy"
-        description="Optional override, e.g. http://127.0.0.1:7890. Leave empty to use Windows system proxy settings."
-        value={oauthHttpProxy}
-        onChange={(event) => setOauthHttpProxy(event.currentTarget.value)}
-        placeholder="http://127.0.0.1:7890"
       />
 
       <Group>

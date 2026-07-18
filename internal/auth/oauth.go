@@ -10,7 +10,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -25,6 +24,7 @@ import (
 const (
 	ProviderGitHub = "github"
 	ProviderGoogle = "google"
+	ProviderEmail  = "email"
 	callbackPath   = "/callback"
 )
 
@@ -47,21 +47,13 @@ func New(queries *store.Queries, cfg *config.Store) *Service {
 func (s *Service) oauthHTTPClient() *http.Client {
 	return &http.Client{
 		Timeout:   60 * time.Second,
-		Transport: oauthTransport(s.config.Get().OAuth.HTTPProxy),
+		Transport: oauthTransport(),
 	}
 }
 
-func oauthTransport(configuredProxy string) *http.Transport {
-	proxyFunc := ieproxy.GetProxyFunc()
-	if configuredProxy = strings.TrimSpace(configuredProxy); configuredProxy != "" {
-		proxyURL, err := url.Parse(configuredProxy)
-		if err == nil {
-			proxyFunc = http.ProxyURL(proxyURL)
-		}
-	}
-
+func oauthTransport() *http.Transport {
 	return &http.Transport{
-		Proxy: proxyFunc,
+		Proxy: ieproxy.GetProxyFunc(),
 		DialContext: (&net.Dialer{
 			Timeout:   15 * time.Second,
 			KeepAlive: 30 * time.Second,
@@ -89,7 +81,21 @@ func (s *Service) GetCurrentUser(ctx context.Context) (*UserProfile, error) {
 	if err != nil {
 		return nil, fmt.Errorf("get current user: %w", err)
 	}
-	return rowToProfile(row), nil
+
+	profile := rowToProfile(row)
+	if row.Provider == ProviderEmail {
+		refreshed, refreshErr := s.refreshEmailUser(ctx, profile)
+		if refreshErr == nil && refreshed != nil {
+			return refreshed, nil
+		}
+		if refreshErr != nil && !errors.Is(refreshErr, errAuthOffline) {
+			if errors.Is(refreshErr, errAuthSessionInvalid) {
+				_ = s.SignOut(ctx)
+				return nil, nil
+			}
+		}
+	}
+	return profile, nil
 }
 
 func (s *Service) SignInWithGitHub(ctx context.Context) (*UserProfile, error) {
@@ -165,6 +171,9 @@ func (s *Service) SignOut(ctx context.Context) error {
 	if err := clearTokens(); err != nil {
 		return err
 	}
+	if err := clearAuthSession(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -187,6 +196,13 @@ func (s *Service) persistUser(
 		AvatarUrl:      profile.AvatarURL,
 	}); err != nil {
 		return nil, fmt.Errorf("insert user account: %w", err)
+	}
+
+	if err := clearTokens(); err != nil {
+		return nil, err
+	}
+	if err := clearAuthSession(); err != nil {
+		return nil, err
 	}
 
 	if err := saveTokens(profile.Provider, accessToken, refreshToken); err != nil {
