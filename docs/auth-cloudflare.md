@@ -82,10 +82,17 @@ For a custom domain, add a route in Cloudflare Workers → your worker → Trigg
 
 ## 6. Configure the desktop app
 
-Set the Auth server URL (no trailing slash), e.g. `https://auth.yourdomain.com`, via either:
+Set the Auth server URL (no trailing slash), e.g. `https://auth.yourdomain.com`. Priority (highest first):
 
-1. **`config.json`** — set `auth.authServerUrl` in the desktop config file (path shown when hovering Save in Management → Config), or
-2. **Environment variable** — set `TALUS_AUTH_SERVER_URL` (overrides `config.json` when set)
+1. **OS env** — `TALUS_AUTH_SERVER_URL` already set in the shell
+2. **Env file** — `.env.development` (default) or `.env.production` when `TALUS_ENV=production` (see `.env.*.example`)
+3. **`config.json`** — `auth.authServerUrl` (path shown when hovering Save in Management → Config)
+
+```bash
+cp .env.development.example .env.development
+# edit TALUS_AUTH_SERVER_URL, then:
+wails3 dev
+```
 
 Then in **Agent**, use **Continue with email** to test the flow.
 
@@ -96,25 +103,25 @@ cd workers/auth
 npm run dev
 ```
 
-Point the desktop app at the local `*.workers.dev` or wrangler dev URL via `auth.authServerUrl` in `config.json` or `TALUS_AUTH_SERVER_URL`. Apply local D1 migrations with `npm run db:migrate:local`.
+Point the desktop app at the Worker URL via `.env.development` (`TALUS_AUTH_SERVER_URL`), `auth.authServerUrl` in `config.json`, or an already-exported `TALUS_AUTH_SERVER_URL`. Apply local D1 migrations with `npm run db:migrate:local`.
 
 Resend sandbox mode only delivers to your Resend account email until the domain is verified.
 
 ## API reference
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| `POST` | `/v1/auth/magic-link` | Start login `{ "email": "..." }` → `{ "requestId", "expiresAt" }` |
-| `GET` | `/v1/auth/magic-link/status/:requestId` | Poll until verified |
-| `GET` | `/v1/auth/verify?token=...&request=...` | Browser link from email |
-| `GET` | `/v1/auth/me` | Validate JWT (`Authorization: Bearer ...`) |
-| `POST` | `/v1/auth/signout` | No-op for v1 (client clears local session) |
+| Method | Path                                    | Purpose                                                           |
+| ------ | --------------------------------------- | ----------------------------------------------------------------- |
+| `POST` | `/v1/auth/magic-link`                   | Start login `{ "email": "..." }` → `{ "requestId", "expiresAt" }` |
+| `GET`  | `/v1/auth/magic-link/status/:requestId` | Poll until verified                                               |
+| `GET`  | `/v1/auth/verify?token=...&request=...` | Browser link from email                                           |
+| `GET`  | `/v1/auth/me`                           | Validate JWT (`Authorization: Bearer ...`)                        |
+| `POST` | `/v1/auth/signout`                      | No-op for v1 (client clears local session)                        |
 
 ## Troubleshooting
 
-| Issue | Check |
-|-------|-------|
-| Email not received | Resend dashboard logs; domain verified; `AUTH_FROM_EMAIL` matches domain |
-| Link invalid | `AUTH_PUBLIC_URL` matches deployed URL exactly |
-| Poll never verifies | User clicked link; D1 migration applied; check Worker logs |
-| Desktop cannot reach server | `auth.authServerUrl` in config.json or `TALUS_AUTH_SERVER_URL`; firewall/system proxy for desktop HTTP client |
+| Issue                       | Check                                                                                                              |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Email not received          | Resend dashboard logs; domain verified; `AUTH_FROM_EMAIL` matches domain                                           |
+| Link invalid                | `AUTH_PUBLIC_URL` matches deployed URL exactly                                                                     |
+| Poll never verifies         | User clicked link; D1 migration applied; check Worker logs                                                         |
+| Desktop cannot reach server | `.env.development` / `TALUS_AUTH_SERVER_URL` / `auth.authServerUrl`; firewall/system proxy for desktop HTTP client |

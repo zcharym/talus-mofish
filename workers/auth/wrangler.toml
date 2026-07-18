@@ -1,13 +1,13 @@
-name = "talus-auth"
-main = "src/index.ts"
 compatibility_date = "2025-03-01"
+main = "src/index.ts"
+name = "talus-auth"
 
 [vars]
-AUTH_APP_NAME = "Talus Agent"
-AUTH_PUBLIC_URL = "https://talus-auth.example.workers.dev"
+AUTH_APP_NAME = "Talus Auth"
+AUTH_PUBLIC_URL = "https://auth.taluship.com"
 
 [[d1_databases]]
 binding = "AUTH_DB"
+database_id = "8a6a321c-a303-4972-81c0-3299db597ade"
 database_name = "talus-auth"
-database_id = "00000000-0000-0000-0000-000000000000"
 migrations_dir = "migrations"

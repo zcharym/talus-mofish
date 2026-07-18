@@ -1,12 +1,13 @@
+import
+  {
+    displayNameFromEmail,
+    isValidEmail,
+    normalizeEmail,
+    randomId,
+    randomToken,
+    sha256Hex,
+  } from './crypto';
 import { createAccessToken, verifyJWT } from './jwt';
-import {
-  displayNameFromEmail,
-  isValidEmail,
-  normalizeEmail,
-  randomId,
-  randomToken,
-  sha256Hex,
-} from './crypto';
 import { sendMagicLinkEmail } from './resend';
 
 export interface Env {
@@ -44,17 +45,17 @@ export default {
 
     try {
       if (request.method === 'POST' && pathname === '/v1/auth/magic-link') {
-        return handleMagicLinkRequest(request, env);
+        return await handleMagicLinkRequest(request, env);
       }
       if (request.method === 'GET' && pathname.startsWith('/v1/auth/magic-link/status/')) {
         const requestId = pathname.slice('/v1/auth/magic-link/status/'.length);
-        return handleMagicLinkStatus(requestId, env);
+        return await handleMagicLinkStatus(requestId, env);
       }
       if (request.method === 'GET' && pathname === '/v1/auth/verify') {
-        return handleVerify(url, env);
+        return await handleVerify(url, env);
       }
       if (request.method === 'GET' && pathname === '/v1/auth/me') {
-        return handleMe(request, env);
+        return await handleMe(request, env);
       }
       if (request.method === 'POST' && pathname === '/v1/auth/signout') {
         return jsonResponse({ ok: true });

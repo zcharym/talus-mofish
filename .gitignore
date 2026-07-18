@@ -9,3 +9,8 @@ build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
 *.db-shm
 *.db-wal
 test/testdata/*
+.env
+.env.development
+.env.production
+.env.local
+.env.*.local
