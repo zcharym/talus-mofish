@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#1a2332" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <title>Echo Watch</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <p class="eyebrow">Talus Echo</p>
+        <h1>Echo Watch</h1>
+        <p class="lede">Pair this PWA to receive build alerts from your local desktop watcher.</p>
+      </header>
+
+      <section id="ios-guide" class="card hidden">
+        <h2>Add to Home Screen</h2>
+        <p>iOS only supports push when Echo Watch is installed as a Home Screen app.</p>
+        <ol>
+          <li>Tap <strong>Share</strong> in Safari.</li>
+          <li>Choose <strong>Add to Home Screen</strong>.</li>
+          <li>Open Echo Watch from your Home Screen, then tap Enable Notifications.</li>
+        </ol>
+      </section>
+
+      <section id="pair-card" class="card">
+        <label for="token">Pairing token</label>
+        <input id="token" type="password" autocomplete="off" placeholder="same token as echo-watch.yaml" />
+        <button id="subscribe-btn" type="button">Enable notifications</button>
+        <button id="test-btn" type="button" class="secondary hidden">Send test push</button>
+        <p id="status" class="status" role="status"></p>
+      </section>
+
+      <section class="card muted">
+        <h2>How it works</h2>
+        <ul>
+          <li><code>echo-watch</code> runs on your <strong>local PC</strong>, never inside the VDI.</li>
+          <li>It watches the VDI client window and sends minimal alerts to Cloudflare.</li>
+          <li>This PWA receives Web Push via Apple&apos;s <code>web.push.apple.com</code> on iPhone.</li>
+        </ul>
+      </section>
+    </main>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
