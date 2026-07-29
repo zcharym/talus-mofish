@@ -1,0 +1,16 @@
+worker_url: https://echo-watch.example.workers.dev
+secret: change-me-to-a-long-random-token
+poll_interval: 3s
+cooldown: 5m
+targets:
+  - name: vdi-build-result
+    process_name: mstsc.exe
+    window_title_regex: ".*Remote Desktop.*|.*VMware Horizon.*|.*Citrix Workspace.*"
+    region: { x: 80, y: 120, w: 900, h: 300 }
+    require_visible: true
+    rules:
+      - id: success
+        any_text: ["successful", "succeeded", "build succeeded"]
+      - id: failure
+        any_text: ["failed", "error"]
+        severity: high

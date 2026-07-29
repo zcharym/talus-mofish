@@ -42,3 +42,27 @@ tasks:
     cmds:
       - go run ./cmd/dbpath
 
+  watch:build:
+    summary: Build the echo-watch screen monitor CLI
+    cmds:
+      - go build -o {{.BIN_DIR}}/echo-watch.exe ./cmd/echo-watch
+
+  watch:run:
+    summary: Run echo-watch with optional config path (CONFIG=path)
+    cmds:
+      - go run ./cmd/echo-watch {{if .CONFIG}}--config {{.CONFIG}}{{end}}
+
+  watch:deploy:
+    summary: Deploy echo-watch Cloudflare Worker (includes PWA assets)
+    dir: cloud/echo-watch/worker
+    cmds:
+      - npm install
+      - npx wrangler deploy
+
+  watch:dev:
+    summary: Run echo-watch Worker locally with wrangler dev
+    dir: cloud/echo-watch/worker
+    cmds:
+      - npm install
+      - npx wrangler dev
+

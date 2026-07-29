@@ -9,3 +9,5 @@ build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
 *.db-shm
 *.db-wal
 test/testdata/*
+cloud/echo-watch/worker/node_modules
+cloud/echo-watch/worker/.wrangler

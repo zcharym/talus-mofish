@@ -1,0 +1,17 @@
+name = "echo-watch"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "../pwa"
+binding = "ASSETS"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "2b6fdccbbeb749f2bcc69a62dc1b36cd"
+preview_id = "fe703cc5d2f7489d819b4d3ec79a591c"
+
+[vars]
+# Public VAPID key only — private key and subject are secrets.
+# VAPID_PUBLIC_KEY = "REPLACE_ME"
