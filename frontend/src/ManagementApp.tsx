@@ -16,8 +16,7 @@ import { DebugPage } from './pages/DebugPage';
 import { ImportPage } from './pages/ImportPage';
 import { ReadingPage } from './pages/ReadingPage';
 import { VocabularyPage } from './pages/VocabularyPage';
-
-type ThemeOption = 'auto' | 'light' | 'dark';
+import type { ThemeOption } from './types/theme';
 
 function MainContent({
   activeItem,

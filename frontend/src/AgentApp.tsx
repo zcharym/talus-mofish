@@ -11,9 +11,8 @@ import { ChatSessionItem, SessionSidebar } from './components/agent/SessionSideb
 import { useAgentStream } from './hooks/useAgentStream';
 import { useCurrentUser } from './hooks/useCurrentUser';
 import { notify } from './services/notifications';
+import type { ThemeOption } from './types/theme';
 import classes from './AgentApp.module.css';
-
-type ThemeOption = 'auto' | 'light' | 'dark';
 
 function AgentApp() {
   const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
