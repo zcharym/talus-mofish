@@ -66,3 +66,18 @@ tasks:
       - npm install
       - npx wrangler dev
 
+  vdiupload:build:
+    summary: Build the vdi-upload CLI (H3C / VDI file transfer)
+    cmds:
+      - go build -o {{.BIN_DIR}}/vdi-upload.exe ./cmd/vdi-upload
+
+  vdiupload:run:
+    summary: Run vdi-upload (CONFIG=path PROFILE=name FILE=path)
+    cmds:
+      - go run ./cmd/vdi-upload {{if .CONFIG}}--config {{.CONFIG}}{{end}} {{if .PROFILE}}--profile {{.PROFILE}}{{end}} {{if .FILE}}--file {{.FILE}}{{end}}
+
+  vdiupload:test:
+    summary: Unit-test vdiupload domain package
+    cmds:
+      - go test ./internal/vdiupload/...
+

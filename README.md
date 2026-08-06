@@ -6,9 +6,9 @@ Talus Echo is **chat-oriented**: the Agent window is the primary surface for int
 
 ## Prerequisites
 
-- Go 1.24+ (this project uses `toolchain go1.25.4` for Wails v3 alpha.60)
-- [Wails v3 CLI](https://v3.wails.io/quick-start/installation/): `go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha.60`
-- Pin `@wailsio/runtime` to `3.0.0-alpha.76` in `frontend/package.json` (must match the Go Wails module version family)
+- Go 1.24+ (this project uses `toolchain go1.25.4` for Wails v3 beta.4)
+- [Wails v3 CLI](https://v3.wails.io/quick-start/installation/): `go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.4`
+- Pin `@wailsio/runtime` to `3.0.0-beta.1` in `frontend/package.json` (latest published runtime; keep near the Go Wails module version)
 - Node.js (for the React frontend)
 - Optional: [sqlc](https://docs.sqlc.dev/en/latest/overview/install.html) for regenerating query code
 
@@ -46,6 +46,23 @@ wails3 build GOOS=darwin
 | `internal/store/` | sqlc-generated Go data access (`task sqlc`) |
 | `internal/database/` | DB open, embedded schema apply, default path |
 | `sqlc.yaml` | sqlc configuration |
+| `internal/domain/` | Domain catalog (bounded-context IDs) |
+| `internal/watch/` | Echo Watch domain (VDI screen OCR + alerts) |
+| `internal/vdiupload/` | VDI file-upload domain (H3C Workspace automation) |
+| `cmd/echo-watch/` | Echo Watch CLI |
+| `cmd/vdi-upload/` | VDI upload CLI |
+| `cloud/echo-watch/` | Cloudflare Worker + iOS PWA for watch alerts |
+| `docs/domains/` | DDD domain map and per-domain design docs |
+
+## Domains (DDD)
+
+Talus Echo is multi-domain. See **[docs/domains/README.md](docs/domains/README.md)** for the bounded-context map, shared-kernel rules, and migration plan.
+
+| Domain | Kind | Entry |
+|--------|------|-------|
+| English Learning | desktop-agent | Wails app (`english.*`) |
+| Echo Watch | sidecar | `task watch:build` / `cloud/echo-watch` |
+| VDI Upload | sidecar | `task vdiupload:build` — design: [DESIGN.md](docs/domains/vdiupload/DESIGN.md) |
 
 ## Database
 
@@ -86,6 +103,9 @@ Bindings are generated under `frontend/bindings/` when running `wails3 dev` or `
 
 | Document | Description |
 |----------|-------------|
+| [docs/domains/README.md](docs/domains/README.md) | DDD domain map and dependency rules |
+| [docs/domains/vdiupload/DESIGN.md](docs/domains/vdiupload/DESIGN.md) | H3C / VDI automated file upload engineering design |
 | [docs/design-and-plan.md](docs/design-and-plan.md) | Product vision, architecture, data model, implementation phases |
 | [docs/chat-learning-flows-plan.md](docs/chat-learning-flows-plan.md) | English Learning agent flows (IELTS, Anki recite, article reading, tools, UI) |
 | [docs/system-tray-menu.md](docs/system-tray-menu.md) | System tray behavior |
+| [cloud/echo-watch/README.md](cloud/echo-watch/README.md) | Echo Watch deploy and PWA setup |

@@ -1,0 +1,37 @@
+# Example config for vdi-upload (H3C Workspace)
+# Copy to %AppData%\TalusEcho\vdi-upload.yaml and adjust after Phase 0 spike.
+
+default_profile: h3c-workspace
+log_level: info
+mutex_name: "Local\\TalusEcho.VDIUpload"
+
+profiles:
+  h3c-workspace:
+    window:
+      # Confirm real process name(s) during spike — placeholders below.
+      process_names:
+        - "H3CWorkspace.exe"
+      title_regex: "(?i)H3C|Workspace"
+      require_visible: true
+      restore_if_minimized: true
+    clipboard:
+      format: hdrop
+      also_set_text_paths: false
+      restore_previous: true
+      max_files: 20
+      max_total_bytes: 524288000
+    steps:
+      - focus: true
+      # Replace hotkey after spike documents the real transfer-panel shortcut.
+      - keys: ["ctrl", "alt", "u"]
+      - wait_ms: 800
+      - keys: ["ctrl", "v"]
+      - wait_ocr:
+          region: { x: 0, y: 0, w: 800, h: 200 }
+          any_text: ["成功", "complete"]
+          deny_text: ["失败", "error"]
+          timeout: 120s
+    retry:
+      attempts: 3
+      base_delay: 1s
+      max_delay: 30s
