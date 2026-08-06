@@ -11,7 +11,7 @@ permissions:
 env:
   APP_NAME: talus-mofish
   NODE_OPTIONS: "--max-old-space-size=4096"
-  WAILS3_VERSION: v3.0.0-alpha.60
+  WAILS3_VERSION: v3.0.0-beta.4
 
 jobs:
   semantic-release:
