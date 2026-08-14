@@ -81,15 +81,29 @@ type oauthResult struct {
 	err   error
 }
 
+// GetCurrentUser returns the signed-in user. When debugMode is enabled and no
+// user exists, a local debug admin user is created automatically so login is
+// not required. When debugMode is off, a leftover debug user is cleared.
 func (s *Service) GetCurrentUser(ctx context.Context) (*UserProfile, error) {
 	row, err := s.queries.GetCurrentUser(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
+		if s.config.Get().DebugMode {
+			return s.EnsureDebugUser(ctx)
+		}
 		return nil, nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("get current user: %w", err)
 	}
-	return rowToProfile(row), nil
+
+	profile := rowToProfile(row)
+	if profile.Provider == ProviderDebug && !s.config.Get().DebugMode {
+		if err := s.SignOut(ctx); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
+	return profile, nil
 }
 
 func (s *Service) SignInWithGitHub(ctx context.Context) (*UserProfile, error) {
@@ -189,7 +203,11 @@ func (s *Service) persistUser(
 		return nil, fmt.Errorf("insert user account: %w", err)
 	}
 
-	if err := saveTokens(profile.Provider, accessToken, refreshToken); err != nil {
+	// Debug sessions use a sentinel token and skip the OS keyring so local
+	// development does not depend on keyring availability.
+	if profile.Provider == ProviderDebug {
+		_ = clearTokens()
+	} else if err := saveTokens(profile.Provider, accessToken, refreshToken); err != nil {
 		return nil, err
 	}
 

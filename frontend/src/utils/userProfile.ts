@@ -1,6 +1,6 @@
 export interface UserProfile {
   id: string;
-  provider: 'github' | 'google';
+  provider: 'github' | 'google' | 'debug';
   display_name: string;
   email: string;
   avatar_url: string;

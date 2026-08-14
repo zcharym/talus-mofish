@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	_ "embed"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	_ "modernc.org/sqlite"
 
@@ -49,6 +51,11 @@ func Open(path string) (*DB, error) {
 		return nil, err
 	}
 
+	if err := migrateUserAccountProviders(sqlDB); err != nil {
+		_ = sqlDB.Close()
+		return nil, err
+	}
+
 	return &DB{
 		SQL:     sqlDB,
 		Queries: store.New(sqlDB),
@@ -76,6 +83,60 @@ func (db *DB) Close() error {
 func applySchema(sqlDB *sql.DB) error {
 	if _, err := sqlDB.Exec(schemaSQL); err != nil {
 		return fmt.Errorf("apply schema: %w", err)
+	}
+	return nil
+}
+
+// migrateUserAccountProviders rebuilds user_account when an older CHECK constraint
+// does not allow provider='debug'. CREATE TABLE IF NOT EXISTS never alters CHECKs.
+func migrateUserAccountProviders(sqlDB *sql.DB) error {
+	var createSQL string
+	err := sqlDB.QueryRow(
+		`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'user_account'`,
+	).Scan(&createSQL)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("inspect user_account schema: %w", err)
+	}
+	if strings.Contains(createSQL, "'debug'") {
+		return nil
+	}
+
+	tx, err := sqlDB.Begin()
+	if err != nil {
+		return fmt.Errorf("begin user_account migration: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	stmts := []string{
+		`CREATE TABLE user_account_new (
+			id TEXT NOT NULL PRIMARY KEY,
+			provider TEXT NOT NULL CHECK (provider IN ('github', 'google', 'debug')),
+			provider_user_id TEXT NOT NULL,
+			display_name TEXT NOT NULL,
+			email TEXT NOT NULL DEFAULT '',
+			avatar_url TEXT NOT NULL DEFAULT '',
+			created_at TEXT NOT NULL DEFAULT (datetime ('now')),
+			last_login_at TEXT NOT NULL DEFAULT (datetime ('now')),
+			UNIQUE (provider, provider_user_id)
+		)`,
+		`INSERT INTO user_account_new (
+			id, provider, provider_user_id, display_name, email, avatar_url, created_at, last_login_at
+		)
+		SELECT id, provider, provider_user_id, display_name, email, avatar_url, created_at, last_login_at
+		FROM user_account`,
+		`DROP TABLE user_account`,
+		`ALTER TABLE user_account_new RENAME TO user_account`,
+	}
+	for _, stmt := range stmts {
+		if _, err := tx.Exec(stmt); err != nil {
+			return fmt.Errorf("migrate user_account providers: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit user_account migration: %w", err)
 	}
 	return nil
 }
