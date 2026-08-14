@@ -64,6 +64,16 @@ func (s *Service) SignInWithEmail(email string) (*UserProfile, error) {
 	return toUserProfile(profile), nil
 }
 
+// SignInAsDebug creates a local admin user when debugMode is enabled.
+// Prefer GetCurrentUser in debug mode — it auto-provisions the debug user.
+func (s *Service) SignInAsDebug() (*UserProfile, error) {
+	profile, err := s.auth.EnsureDebugUser(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return toUserProfile(profile), nil
+}
+
 // SignOut clears the signed-in user and stored OAuth tokens.
 func (s *Service) SignOut() error {
 	return s.auth.SignOut(context.Background())

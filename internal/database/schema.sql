@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS anki_import_decks (
 -- === User Account ===
 CREATE TABLE IF NOT EXISTS user_account (
     id TEXT NOT NULL PRIMARY KEY,
-    provider TEXT NOT NULL CHECK (provider IN ('github', 'google', 'email')),
+    provider TEXT NOT NULL CHECK (provider IN ('github', 'google', 'email', 'debug')),
     provider_user_id TEXT NOT NULL,
     display_name TEXT NOT NULL,
     email TEXT NOT NULL DEFAULT '',

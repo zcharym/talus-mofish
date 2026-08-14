@@ -2,23 +2,29 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 )
 
-// migrateUserAccountProvider expands the user_account provider CHECK constraint to include email.
+const userAccountProviderCheck = "provider IN ('github', 'google', 'email', 'debug')"
+
+// migrateUserAccountProvider rebuilds user_account when an older CHECK constraint
+// is missing 'email' or 'debug'. CREATE TABLE IF NOT EXISTS never alters CHECKs.
 func migrateUserAccountProvider(sqlDB *sql.DB) error {
 	var tableSQL string
-	if err := sqlDB.QueryRow(
+	err := sqlDB.QueryRow(
 		`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'user_account'`,
-	).Scan(&tableSQL); err != nil {
-		if err == sql.ErrNoRows {
-			return nil
-		}
+	).Scan(&tableSQL)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
 		return fmt.Errorf("read user_account schema: %w", err)
 	}
 
-	if tableSQL == "" || strings.Contains(tableSQL, "'email'") {
+	if tableSQL == "" ||
+		(strings.Contains(tableSQL, "'email'") && strings.Contains(tableSQL, "'debug'")) {
 		return nil
 	}
 
@@ -33,7 +39,7 @@ func migrateUserAccountProvider(sqlDB *sql.DB) error {
 	statements := []string{
 		`CREATE TABLE user_account_new (
 			id TEXT NOT NULL PRIMARY KEY,
-			provider TEXT NOT NULL CHECK (provider IN ('github', 'google', 'email')),
+			provider TEXT NOT NULL CHECK (` + userAccountProviderCheck + `),
 			provider_user_id TEXT NOT NULL,
 			display_name TEXT NOT NULL,
 			email TEXT NOT NULL DEFAULT '',
