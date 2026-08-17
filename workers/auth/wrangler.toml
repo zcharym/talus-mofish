@@ -1,0 +1,13 @@
+compatibility_date = "2025-03-01"
+main = "src/index.ts"
+name = "talus-auth"
+
+[vars]
+AUTH_APP_NAME = "Talus Auth"
+AUTH_PUBLIC_URL = "https://auth.taluship.com"
+
+[[d1_databases]]
+binding = "AUTH_DB"
+database_id = "8a6a321c-a303-4972-81c0-3299db597ade"
+database_name = "talus-auth"
+migrations_dir = "migrations"

@@ -1,14 +1,35 @@
-import { IconBrandGithub, IconBrandGoogle } from '@tabler/icons-react';
-import { Box, Button, Loader, Overlay, Stack, Text } from '@mantine/core';
+import { useState } from 'react';
+import { IconBrandGithub, IconBrandGoogle, IconMail } from '@tabler/icons-react';
+import {
+  Box,
+  Button,
+  Divider,
+  Loader,
+  Overlay,
+  Stack,
+  Text,
+  TextInput,
+} from '@mantine/core';
 import classes from './AuthSignIn.module.css';
 
 interface AuthSignInProps {
-  signingIn: 'github' | 'google' | null;
+  signingIn: 'email' | 'github' | 'google' | null;
+  onSignInWithEmail: (email: string) => Promise<void>;
   onSignIn: (provider: 'github' | 'google') => Promise<void>;
 }
 
-export function AuthSignIn({ signingIn, onSignIn }: AuthSignInProps) {
+export function AuthSignIn({ signingIn, onSignInWithEmail, onSignIn }: AuthSignInProps) {
+  const [email, setEmail] = useState('');
   const waiting = signingIn !== null;
+  const waitingForEmail = signingIn === 'email';
+
+  const handleEmailSubmit = () => {
+    const trimmed = email.trim();
+    if (!trimmed || waiting) {
+      return;
+    }
+    void onSignInWithEmail(trimmed);
+  };
 
   return (
     <Box className={classes.wrapper}>
@@ -18,9 +39,37 @@ export function AuthSignIn({ signingIn, onSignIn }: AuthSignInProps) {
             Sign in to Talus Agent
           </Text>
           <Text c="dimmed" size="sm" ta="center">
-            Connect with GitHub or Google to personalize your workspace and sync your data.
+            Enter your email to receive a sign-in link, or continue with a connected account.
           </Text>
         </Stack>
+
+        <Stack gap="sm">
+          <TextInput
+            label="Email"
+            placeholder="you@example.com"
+            value={email}
+            disabled={waiting}
+            onChange={(event) => setEmail(event.currentTarget.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                handleEmailSubmit();
+              }
+            }}
+          />
+          <Button
+            className={classes.button}
+            leftSection={<IconMail size={18} />}
+            size="md"
+            disabled={waiting || !email.trim()}
+            loading={waitingForEmail}
+            onClick={handleEmailSubmit}
+          >
+            Continue with email
+          </Button>
+        </Stack>
+
+        <Divider label="or continue with" labelPosition="center" />
 
         <Stack gap="sm">
           <Button
@@ -57,10 +106,12 @@ export function AuthSignIn({ signingIn, onSignIn }: AuthSignInProps) {
           <Stack align="center" gap="sm" className={classes.overlayContent}>
             <Loader size="sm" />
             <Text fw={500} size="sm" ta="center">
-              Finish signing in in your browser
+              {waitingForEmail ? 'Check your email' : 'Finish signing in in your browser'}
             </Text>
             <Text c="dimmed" size="xs" ta="center" maw={260}>
-              Return here after approving access. This window will update automatically.
+              {waitingForEmail
+                ? 'Click the link in your inbox, then return here. This window will update automatically.'
+                : 'Return here after approving access. This window will update automatically.'}
             </Text>
           </Stack>
         </Overlay>

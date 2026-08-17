@@ -18,7 +18,13 @@ type App struct {
 	AutoStart        bool             `json:"autoStart"`
 	DebugMode        bool             `json:"debugMode"`
 	AI               aiclient.Config  `json:"ai"`
+	Auth             Auth             `json:"auth"`
 	OAuth            OAuth            `json:"oauth"`
+}
+
+// Auth holds settings for email magic-link authentication.
+type Auth struct {
+	AuthServerURL string `json:"authServerUrl"`
 }
 
 // OAuth holds OAuth client credentials for third-party sign-in providers.
@@ -27,7 +33,6 @@ type OAuth struct {
 	GitHubClientSecret string `json:"githubClientSecret"`
 	GoogleClientID     string `json:"googleClientId"`
 	GoogleClientSecret string `json:"googleClientSecret"`
-	HTTPProxy          string `json:"httpProxy"`
 }
 
 // Store loads and saves App settings at a fixed file path.

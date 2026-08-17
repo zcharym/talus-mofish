@@ -11,9 +11,8 @@ import { ChatSessionItem, SessionSidebar } from './components/agent/SessionSideb
 import { useAgentStream } from './hooks/useAgentStream';
 import { useCurrentUser } from './hooks/useCurrentUser';
 import { notify } from './services/notifications';
+import type { ThemeOption } from './types/theme';
 import classes from './AgentApp.module.css';
-
-type ThemeOption = 'auto' | 'light' | 'dark';
 
 function AgentApp() {
   const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
@@ -23,7 +22,7 @@ function AgentApp() {
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [colorScheme, setColorScheme] = useState<ThemeOption>('auto');
   const activeSessionIdRef = useRef<string | null>(null);
-  const { user, loading: userLoading, signingIn, signIn, signOut } = useCurrentUser();
+  const { user, loading: userLoading, signingIn, signInWithEmail, signIn, signOut } = useCurrentUser();
 
   useEffect(() => {
     activeSessionIdRef.current = activeSessionId;
@@ -195,6 +194,14 @@ function AgentApp() {
     await handleSend(prompt);
   };
 
+  const handleSignInWithEmail = async (email: string) => {
+    try {
+      await signInWithEmail(email);
+    } catch (err) {
+      notify.failed('Sign-in failed', String(err));
+    }
+  };
+
   const handleSignIn = async (provider: 'github' | 'google') => {
     try {
       await signIn(provider);
@@ -260,6 +267,7 @@ function AgentApp() {
               sending={sending}
               onSend={handleSend}
               onCancel={streamingMessageId ? handleCancel : undefined}
+              onSignInWithEmail={handleSignInWithEmail}
               onSignIn={handleSignIn}
               onQuickAction={(actionId, prompt, autoSend) => {
                 void handleQuickAction(actionId, prompt, autoSend);

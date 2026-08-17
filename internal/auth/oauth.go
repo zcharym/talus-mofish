@@ -10,7 +10,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -25,6 +24,7 @@ import (
 const (
 	ProviderGitHub = "github"
 	ProviderGoogle = "google"
+	ProviderEmail  = "email"
 	callbackPath   = "/callback"
 )
 
@@ -47,21 +47,13 @@ func New(queries *store.Queries, cfg *config.Store) *Service {
 func (s *Service) oauthHTTPClient() *http.Client {
 	return &http.Client{
 		Timeout:   60 * time.Second,
-		Transport: oauthTransport(s.config.Get().OAuth.HTTPProxy),
+		Transport: oauthTransport(),
 	}
 }
 
-func oauthTransport(configuredProxy string) *http.Transport {
-	proxyFunc := ieproxy.GetProxyFunc()
-	if configuredProxy = strings.TrimSpace(configuredProxy); configuredProxy != "" {
-		proxyURL, err := url.Parse(configuredProxy)
-		if err == nil {
-			proxyFunc = http.ProxyURL(proxyURL)
-		}
-	}
-
+func oauthTransport() *http.Transport {
 	return &http.Transport{
-		Proxy: proxyFunc,
+		Proxy: ieproxy.GetProxyFunc(),
 		DialContext: (&net.Dialer{
 			Timeout:   15 * time.Second,
 			KeepAlive: 30 * time.Second,
@@ -81,15 +73,41 @@ type oauthResult struct {
 	err   error
 }
 
+// GetCurrentUser returns the signed-in user. When debugMode is enabled and no
+// user exists, a local debug admin user is created automatically so login is
+// not required. When debugMode is off, a leftover debug user is cleared.
 func (s *Service) GetCurrentUser(ctx context.Context) (*UserProfile, error) {
 	row, err := s.queries.GetCurrentUser(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
+		if s.config.Get().DebugMode {
+			return s.EnsureDebugUser(ctx)
+		}
 		return nil, nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("get current user: %w", err)
 	}
-	return rowToProfile(row), nil
+
+	profile := rowToProfile(row)
+	if profile.Provider == ProviderDebug && !s.config.Get().DebugMode {
+		if err := s.SignOut(ctx); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
+	if row.Provider == ProviderEmail {
+		refreshed, refreshErr := s.refreshEmailUser(ctx, profile)
+		if refreshErr == nil && refreshed != nil {
+			return refreshed, nil
+		}
+		if refreshErr != nil && !errors.Is(refreshErr, errAuthOffline) {
+			if errors.Is(refreshErr, errAuthSessionInvalid) {
+				_ = s.SignOut(ctx)
+				return nil, nil
+			}
+		}
+	}
+	return profile, nil
 }
 
 func (s *Service) SignInWithGitHub(ctx context.Context) (*UserProfile, error) {
@@ -165,6 +183,9 @@ func (s *Service) SignOut(ctx context.Context) error {
 	if err := clearTokens(); err != nil {
 		return err
 	}
+	if err := clearAuthSession(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -189,8 +210,19 @@ func (s *Service) persistUser(
 		return nil, fmt.Errorf("insert user account: %w", err)
 	}
 
-	if err := saveTokens(profile.Provider, accessToken, refreshToken); err != nil {
+	if err := clearTokens(); err != nil {
 		return nil, err
+	}
+	if err := clearAuthSession(); err != nil {
+		return nil, err
+	}
+
+	// Debug sessions use a sentinel token and skip the OS keyring so local
+	// development does not depend on keyring availability.
+	if profile.Provider != ProviderDebug {
+		if err := saveTokens(profile.Provider, accessToken, refreshToken); err != nil {
+			return nil, err
+		}
 	}
 
 	return &UserProfile{

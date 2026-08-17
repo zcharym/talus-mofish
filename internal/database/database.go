@@ -77,6 +77,9 @@ func applySchema(sqlDB *sql.DB) error {
 	if _, err := sqlDB.Exec(schemaSQL); err != nil {
 		return fmt.Errorf("apply schema: %w", err)
 	}
+	if err := migrateUserAccountProvider(sqlDB); err != nil {
+		return err
+	}
 	return nil
 }
 

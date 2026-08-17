@@ -15,6 +15,10 @@ import (
 var assets embed.FS
 
 func main() {
+	if err := config.LoadEnv(); err != nil {
+		log.Fatal(err)
+	}
+
 	db, err := database.OpenDefault()
 	if err != nil {
 		log.Fatal(err)

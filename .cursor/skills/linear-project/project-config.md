@@ -6,12 +6,12 @@ Fill in these values after the first Linear MCP discovery call. The agent reads 
 
 | Field | Value |
 |-------|-------|
-| Team name | Talus |
+| Team name | Taluship |
 | Team ID | TAL |
-| Team UUID | cb7a680d-472b-4bfc-8cc7-209f55acf3b1 |
-| Project name | Talus Mofish |
-| Project ID | 32601757-e459-4f86-9e8e-228ebc69fe15 |
-| Project URL | https://linear.app/talus/project/talus-mofish-a8bb88fce0f5 |
+| Team UUID | 9014d09c-a528-4e93-8cb2-b186a179c4b7 |
+| Project name | talus-mofish |
+| Project ID | 0f90a64a-bba4-42d7-982f-c69fe0046fb6 |
+| Project URL | https://linear.app/taluship/project/talus-mofish-edffbfec79d9 |
 | Initiative name (optional) | _TODO_ |
 | Initiative ID (optional) | _TODO_ |
 
@@ -19,8 +19,8 @@ Fill in these values after the first Linear MCP discovery call. The agent reads 
 
 | Field | Value |
 |-------|-------|
-| Default team ID | _same as Team ID_ |
-| Default project ID | 32601757-e459-4f86-9e8e-228ebc69fe15 |
+| Default team ID | 9014d09c-a528-4e93-8cb2-b186a179c4b7 |
+| Default project ID | 0f90a64a-bba4-42d7-982f-c69fe0046fb6 |
 | Default labels | ""|
 | Default priority | 0 |
 

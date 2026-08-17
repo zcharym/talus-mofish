@@ -11,3 +11,10 @@ build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
 test/testdata/*
 cloud/echo-watch/worker/node_modules
 cloud/echo-watch/worker/.wrangler
+.env
+.env.development
+.env.production
+.env.local
+.env.*.local
+cloud/echo-watch/worker/node_modules
+cloud/echo-watch/worker/.wrangler

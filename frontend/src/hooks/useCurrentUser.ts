@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { AppService } from '../../bindings/github.com/songwei.ma/talus-mofish';
 import { UserProfile } from '../utils/userProfile';
 
-type AuthProvider = 'github' | 'google';
+type OAuthProvider = 'github' | 'google';
+type AuthProvider = 'email' | OAuthProvider;
 
 export function useCurrentUser() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -26,22 +27,30 @@ export function useCurrentUser() {
     void refresh();
   }, [refresh]);
 
-  const signIn = useCallback(
-    async (provider: AuthProvider) => {
-      setSigningIn(provider);
-      try {
-        const profile =
-          provider === 'github'
-            ? ((await AppService.SignInWithGitHub()) as UserProfile)
-            : ((await AppService.SignInWithGoogle()) as UserProfile);
-        setUser(profile);
-        return profile;
-      } finally {
-        setSigningIn(null);
-      }
-    },
-    [],
-  );
+  const signInWithEmail = useCallback(async (email: string) => {
+    setSigningIn('email');
+    try {
+      const profile = (await AppService.SignInWithEmail(email)) as UserProfile;
+      setUser(profile);
+      return profile;
+    } finally {
+      setSigningIn(null);
+    }
+  }, []);
+
+  const signIn = useCallback(async (provider: OAuthProvider) => {
+    setSigningIn(provider);
+    try {
+      const profile =
+        provider === 'github'
+          ? ((await AppService.SignInWithGitHub()) as UserProfile)
+          : ((await AppService.SignInWithGoogle()) as UserProfile);
+      setUser(profile);
+      return profile;
+    } finally {
+      setSigningIn(null);
+    }
+  }, []);
 
   const signOut = useCallback(async () => {
     await AppService.SignOut();
@@ -53,6 +62,7 @@ export function useCurrentUser() {
     loading,
     signingIn,
     refresh,
+    signInWithEmail,
     signIn,
     signOut,
   };

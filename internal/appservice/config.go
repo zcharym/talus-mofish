@@ -18,7 +18,10 @@ func (s *Service) GetConfig() config.App {
 }
 
 // SaveConfig persists updated application settings to config.json.
+// Auth.AuthServerURL is application-level (.env.* / TALUS_AUTH_SERVER_URL / config.json)
+// and is not managed by the Config UI, so it is preserved from the current store.
 func (s *Service) SaveConfig(cfg config.App) error {
+	cfg.Auth = s.config.Get().Auth
 	if err := s.config.Update(cfg); err != nil {
 		return fmt.Errorf("save config: %w", err)
 	}
