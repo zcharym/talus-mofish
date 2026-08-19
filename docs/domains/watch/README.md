@@ -10,7 +10,7 @@ Run on the **physical PC** (never inside the VDI guest). Locate the local VDI cl
 
 | Layer | Path |
 |-------|------|
-| Domain logic | `internal/watch` |
+| Domain logic | `backend/watch` |
 | CLI adapter | `cmd/echo-watch` |
 | Cloud + PWA | `cloud/echo-watch` |
 | Ops docs | `cloud/echo-watch/README.md` |
@@ -18,7 +18,7 @@ Run on the **physical PC** (never inside the VDI guest). Locate the local VDI cl
 ## Boundaries
 
 - **Owns:** target window resolution, capture/OCR, rule engine, alert notifier contract.
-- **Uses:** Win32 via `golang.org/x/sys/windows` (today in-package); planned extract to `internal/platform/win32` when shared with `vdiupload`.
+- **Uses:** Win32 via `golang.org/x/sys/windows` (today in-package); planned extract to `backend/platform/win32` when shared with `vdiupload`.
 - **Does not own:** guest-side automation or file transfer (`vdiupload`).
 
 ## Related

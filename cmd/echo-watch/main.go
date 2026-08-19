@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/songwei.ma/talus-mofish/internal/watch"
+	"github.com/songwei.ma/talus-mofish/backend/watch"
 )
 
 func main() {

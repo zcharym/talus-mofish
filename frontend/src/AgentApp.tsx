@@ -3,7 +3,7 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { Box, MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import { AppService } from '../bindings/github.com/songwei.ma/talus-mofish';
+import { ChatService, ConfigService, SystemService } from '../bindings/github.com/songwei.ma/talus-mofish/backend/services';
 import { AgentHome, QuickActionId } from './components/agent/AgentHome';
 import { ChatInput } from './components/agent/ChatInput';
 import { ChatMessageItem, ChatThread } from './components/agent/ChatThread';
@@ -35,7 +35,7 @@ function AgentApp() {
 
   const loadSessions = useCallback(async () => {
     try {
-      const items = await AppService.ListChatSessions();
+      const items = await ChatService.ListChatSessions();
       setSessions(items as ChatSessionItem[]);
     } catch (err) {
       notify.failed('Failed to load chat sessions', String(err));
@@ -44,7 +44,7 @@ function AgentApp() {
 
   const loadMessages = useCallback(async (sessionId: string) => {
     try {
-      const items = await AppService.ListChatMessages(sessionId);
+      const items = await ChatService.ListChatMessages(sessionId);
       setMessages(items as ChatMessageItem[]);
     } catch (err) {
       notify.failed('Failed to load messages', String(err));
@@ -106,7 +106,7 @@ function AgentApp() {
   });
 
   useEffect(() => {
-    AppService.GetConfig()
+    ConfigService.GetConfig()
       .then((cfg) => {
         const theme = (cfg.theme as ThemeOption) || 'auto';
         setColorScheme(theme);
@@ -133,7 +133,7 @@ function AgentApp() {
       return activeSessionId;
     }
 
-    const session = (await AppService.CreateChatSession('')) as ChatSessionItem;
+    const session = (await ChatService.CreateChatSession('')) as ChatSessionItem;
     setActiveSessionId(session.id);
     setMessages([]);
     await loadSessions();
@@ -147,7 +147,7 @@ function AgentApp() {
 
   const handleRenameSession = async (sessionId: string, title: string) => {
     try {
-      await AppService.RenameChatSession(sessionId, title);
+      await ChatService.RenameChatSession(sessionId, title);
       await loadSessions();
     } catch (err) {
       notify.failed('Failed to rename chat', String(err));
@@ -156,7 +156,7 @@ function AgentApp() {
 
   const handleDeleteSession = async (sessionId: string) => {
     try {
-      await AppService.DeleteChatSession(sessionId);
+      await ChatService.DeleteChatSession(sessionId);
       if (activeSessionId === sessionId) {
         setActiveSessionId(null);
         setMessages([]);
@@ -171,7 +171,7 @@ function AgentApp() {
     setSending(true);
     try {
       const sessionId = await ensureActiveSession();
-      const result = await AppService.StartChatTurn(sessionId, content);
+      const result = await ChatService.StartChatTurn(sessionId, content);
       const userMessage = result.user_message as ChatMessageItem;
       const assistantMessage = {
         ...(result.assistant_message as ChatMessageItem),
@@ -225,14 +225,14 @@ function AgentApp() {
       return;
     }
     try {
-      await AppService.CancelChatTurn(activeSessionId, streamingMessageId);
+      await ChatService.CancelChatTurn(activeSessionId, streamingMessageId);
     } catch (err) {
       notify.failed('Failed to cancel response', String(err));
     }
   };
 
   const handleOpenManagement = () => {
-    AppService.ShowManagementWindow().catch((err: unknown) => {
+    SystemService.ShowManagementWindow().catch((err: unknown) => {
       notify.failed('Failed to open management', String(err));
     });
   };

@@ -32,8 +32,16 @@ tasks:
     cmds:
       - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
 
+  dev:mcp:
+    summary: Dev mode with Wails in-app MCP server at http://127.0.0.1:9099/mcp
+    env:
+      WAILS_MCP: "1"
+      EXTRA_TAGS: mcp
+    cmds:
+      - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
+
   sqlc:
-    summary: Regenerate type-safe queries from internal/database/schema.sql and db/queries
+    summary: Regenerate type-safe queries from backend/storage/schema.sql and backend/storage/queries
     cmds:
       - sqlc generate
 
@@ -79,5 +87,5 @@ tasks:
   vdiupload:test:
     summary: Unit-test vdiupload domain package
     cmds:
-      - go test ./internal/vdiupload/...
+      - go test ./backend/vdiupload/...
 

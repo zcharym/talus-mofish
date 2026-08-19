@@ -11,14 +11,14 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { AppService } from "../../bindings/github.com/songwei.ma/talus-mofish";
+import { EnglishService, SystemService } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
 import {
   AnkiDeckPreview,
   AnkiPreview,
   ImportDeckConfig,
   ImportResult,
-} from "../../bindings/github.com/songwei.ma/talus-mofish/internal/content/models";
-import { AnkiImport } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/store/models";
+} from "../../bindings/github.com/songwei.ma/talus-mofish/backend/english/content/models";
+import { AnkiImport } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/storage/store/models";
 import { notify } from "../services/notifications";
 
 type TargetType = "vocabulary" | "reading" | "skip";
@@ -64,7 +64,7 @@ export function ImportPage() {
 
   const loadHistory = useCallback(async () => {
     try {
-      const items = await AppService.ListAnkiImports();
+      const items = await EnglishService.ListAnkiImports();
       setHistory(items ?? []);
     } catch (err) {
       console.error(err);
@@ -89,13 +89,13 @@ export function ImportPage() {
   const handlePickFile = async () => {
     setLoading(true);
     try {
-      const path = await AppService.PickAnkiAPKG();
+      const path = await SystemService.PickAnkiAPKG();
       if (!path) {
         return;
       }
       setApkgPath(path);
       setLastResult(null);
-      const data = await AppService.PreviewAnkiAPKG(path);
+      const data = await EnglishService.PreviewAnkiAPKG(path);
       setPreview(data);
       initDeckConfigs(data.decks ?? []);
     } catch (err) {
@@ -149,7 +149,7 @@ export function ImportPage() {
           fieldMapping: state?.fieldMapping ?? {},
         });
       });
-      const result = await AppService.ImportAnkiAPKG(apkgPath, configs);
+      const result = await EnglishService.ImportAnkiAPKG(apkgPath, configs);
       setLastResult(result);
       notify.success(
         "Import complete",

@@ -10,10 +10,10 @@ Vocabulary, articles/reading, Anki `.apkg` import, SRS review, and chat Agent fl
 
 | Area | Location |
 |------|----------|
-| Anki / content import | `internal/content`, `internal/content/apkg` |
-| Persistence | `internal/store` (sqlc), `internal/database/schema.sql`, `db/queries/` |
-| Wails API | `internal/appservice` (articles, vocabulary, srs, import, media, chat) |
-| Agent tools / flows | `internal/agent` + docs in `docs/chat-learning-flows-plan.md` |
+| Anki / content import | `backend/content`, `backend/content/apkg` |
+| Persistence | `backend/store` (sqlc), `backend/database/schema.sql`, `backend/storage/queries/` |
+| Wails API | `backend/services` (articles, vocabulary, srs, import, media, chat) |
+| Agent tools / flows | `backend/agent` + docs in `docs/chat-learning-flows-plan.md` |
 
 ## Boundaries
 
@@ -23,4 +23,4 @@ Vocabulary, articles/reading, Anki `.apkg` import, SRS review, and chat Agent fl
 
 ## Migration note
 
-Physical package consolidation under `internal/english/` is deferred to avoid churn in Wails bindings and sqlc paths. Prefer extracting application services first, then relocating packages.
+Physical package consolidation under `backend/english/` is deferred to avoid churn in Wails bindings and sqlc paths. Prefer extracting application services first, then relocating packages.

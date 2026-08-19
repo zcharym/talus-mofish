@@ -37,7 +37,7 @@ Talus Echo is a **chat-oriented desktop agent** for multiple domains. The **Agen
 | **A Programmer's Guide to English** | First-principles methodology, "build a parser" mental model, corpus-first approach |
 | **Read Frog** | Immersive reading, AI-powered contextual explanations, real-content learning |
 
-The application is scaffolded with Wails v3 + React (Mantine) + SQLite. It uses a **dual-window layout**: Management hosts domain tools grouped by section (e.g. **English Learning** → Import, Reading, Vocabulary); Agent provides streaming LLM chat with domain-specific quick actions and planned **Agent Flows** (written, chat-oriented sessions driven by tools). See [English Learning Flows Plan](chat-learning-flows-plan.md). Future domains will follow the same `{domain}.{page}` route pattern and appservice module grouping.
+The application is scaffolded with Wails v3 + React (Mantine) + SQLite. It uses a **dual-window layout**: Management hosts domain tools grouped by section (e.g. **English Learning** → Import, Reading, Vocabulary); Agent provides streaming LLM chat with domain-specific quick actions and planned **Agent Flows** (written, chat-oriented sessions driven by tools). See [English Learning Flows Plan](chat-learning-flows-plan.md). Future domains will follow the same `{domain}.{page}` route pattern and services module grouping.
 
 ---
 
@@ -203,7 +203,7 @@ Read Frog (陪读蛙) is an open-source AI browser extension (5,500+ stars, 20K 
 
 ## 5. Core Modules
 
-### 5.1 SRS Engine (`internal/srs/`)
+### 5.1 SRS Engine (`backend/srs/`)
 
 The heart of the application. See [Section 6](#6-spaced-repetition-system-srs-design) for detailed algorithm design.
 
@@ -213,7 +213,7 @@ The heart of the application. See [Section 6](#6-spaced-repetition-system-srs-de
 - `calculator.go` — SM-2 interval calculation with configurable parameters
 - `leech.go` — Leech detection and handling
 
-### 5.2 AI Service (`internal/ai/`)
+### 5.2 AI Service (`backend/ai/`)
 
 A multi-provider AI client for contextual explanations, translation, and content generation.
 
@@ -224,7 +224,7 @@ A multi-provider AI client for contextual explanations, translation, and content
 - `generator.go` — Sentence/example generation for vocabulary items
 - `config.go` — Provider selection, API key management, model params
 
-### 5.3 Content Manager (`internal/content/`)
+### 5.3 Content Manager (`backend/content/`)
 
 Manages course content, reading materials, and vocabulary lists.
 
@@ -234,7 +234,7 @@ Manages course content, reading materials, and vocabulary lists.
 - `importer.go` — Import Anki decks, JSON course packs, OPML podcast lists
 - `yaml_loader.go` — Parse YAML/JSON course definitions into DB records
 
-### 5.4 Stats & Tracking (`internal/stats/`)
+### 5.4 Stats & Tracking (`backend/stats/`)
 
 Tracks learning activity, streaks, and progress.
 
@@ -243,15 +243,15 @@ Tracks learning activity, streaks, and progress.
 - `streaks.go` — Daily streak calculation, freeze logic
 - `reports.go` — Review history, retention rates, forecast
 
-### 5.5 Config Service (`internal/config/`)
+### 5.5 Config Service (`backend/config/`)
 
 **Already implemented** — persists theme, daily goal, words per session. Will be extended with AI provider settings, audio preferences, and course selection.
 
-### 5.6 Agent & Learning Flow Engine (`internal/agent/`, `internal/learning/`)
+### 5.6 Agent & Learning Flow Engine (`backend/agent/`, `backend/learning/`)
 
 **Partially implemented** — streaming chat in the Agent window; Learning Flows are planned.
 
-The Agent window (`frontend/src/AgentApp.tsx`) provides session-based chat with Wails event streaming (`agent:stream-chunk`, `agent:turn-done`). The orchestrator lives in Go (`internal/agent/orchestrator.go`) with a fixed tutor system prompt.
+The Agent window (`frontend/src/AgentApp.tsx`) provides session-based chat with Wails event streaming (`agent:stream-chunk`, `agent:turn-done`). The orchestrator lives in Go (`backend/agent/orchestrator.go`) with a fixed tutor system prompt.
 
 **Planned Learning Flow layer** (see [chat-learning-flows-plan.md](chat-learning-flows-plan.md)):
 
@@ -651,7 +651,7 @@ Management sidebar is organized by **domain**. Each domain is a collapsible sect
 
 #### Future domains
 
-Additional top-level sections (e.g. coding, notes) will follow the same pattern: collapsible parent, `{domain}.*` routes, dedicated appservice modules, and Agent quick-action groups.
+Additional top-level sections (e.g. coding, notes) will follow the same pattern: collapsible parent, `{domain}.*` routes, dedicated services modules, and Agent quick-action groups.
 
 ### 8.2 Page Designs
 
@@ -847,12 +847,12 @@ Recite Words (`RecitePage`) and Reading (`ReadingPage`) in the Management window
 
 | Task | Files | Description |
 |------|-------|-------------|
-| 1.1 SRS data model | `internal/database/schema.sql`, `db/queries/srs.sql` | decks, cards, review_log tables and queries |
-| 1.2 SRS engine (Go) | `internal/srs/` | Card, Scheduler, Calculator, Leech detector |
-| 1.3 SRS service | `appservice.go` | Expose SRS operations to frontend via Wails bindings |
+| 1.1 SRS data model | `backend/database/schema.sql`, `backend/storage/queries/srs.sql` | decks, cards, review_log tables and queries |
+| 1.2 SRS engine (Go) | `backend/srs/` | Card, Scheduler, Calculator, Leech detector |
+| 1.3 SRS service | `services.go` | Expose SRS operations to frontend via Wails bindings |
 | 1.4 Recite page (frontend) | `frontend/src/pages/RecitePage.tsx` | Card display, tap-to-reveal, rating buttons |
-| 1.5 Seed data & import | `internal/content/` | Built-in CET-4/CET-6 word lists; Anki APKG import |
-| 1.6 Basic stats tracking | `internal/stats/` | Session logging, daily goal tracking |
+| 1.5 Seed data & import | `backend/content/` | Built-in CET-4/CET-6 word lists; Anki APKG import |
+| 1.6 Basic stats tracking | `backend/stats/` | Session logging, daily goal tracking |
 
 **Deliverable**: User can open the app, see due cards, review them with Again/Hard/Good/Easy, see next interval.
 
@@ -862,12 +862,12 @@ Recite Words (`RecitePage`) and Reading (`ReadingPage`) in the Management window
 
 | Task | Files | Description |
 |------|-------|-------------|
-| 2.1 AI service (Go) | `internal/ai/` | Multi-provider HTTP client, batch translation |
-| 2.2 Article management | `internal/database/schema.sql`, `db/queries/articles.sql` | articles, clippings tables |
+| 2.1 AI service (Go) | `backend/ai/` | Multi-provider HTTP client, batch translation |
+| 2.2 Article management | `backend/database/schema.sql`, `backend/storage/queries/articles.sql` | articles, clippings tables |
 | 2.3 Reading page (frontend) | `frontend/src/pages/ReadingPage.tsx` | Article display, word click popover |
 | 2.4 AI explanation popover | `frontend/src/components/WordPopover.tsx` | Popover with AI explanation |
-| 2.5 Save-to-SRS flow | `appservice.go` | Clip word → create card → add to review queue |
-| 2.6 Clipboard/URL import | `internal/content/reader.go` | Import from clipboard or URL |
+| 2.5 Save-to-SRS flow | `services.go` | Clip word → create card → add to review queue |
+| 2.6 Clipboard/URL import | `backend/content/reader.go` | Import from clipboard or URL |
 
 **Deliverable**: User can paste an article, click words for AI explanations, save them to SRS deck.
 
@@ -878,7 +878,7 @@ Recite Words (`RecitePage`) and Reading (`ReadingPage`) in the Management window
 | Task | Files | Description |
 |------|-------|-------------|
 | 3.1 Vocabulary page | `frontend/src/pages/VocabPage.tsx` | Search, filter, sort, edit |
-| 3.2 Course loader | `internal/content/course.go` | YAML/JSON → DB pipeline |
+| 3.2 Course loader | `backend/content/course.go` | YAML/JSON → DB pipeline |
 | 3.3 Challenge types | `frontend/src/components/challenges/` | Cards, Options, ShortInput, Chips components |
 | 3.4 Listening page | `frontend/src/pages/ListeningPage.tsx` | YouTube integration, transcript display |
 | 3.5 Course browser | `frontend/src/pages/CoursesPage.tsx` | Browse/select courses and modules |
@@ -891,11 +891,11 @@ Recite Words (`RecitePage`) and Reading (`ReadingPage`) in the Management window
 
 | Task | Files | Description |
 |------|-------|-------------|
-| 4.1 Daily stats engine | `internal/stats/tracker.go` | Streak calculation, goal tracking |
+| 4.1 Daily stats engine | `backend/stats/tracker.go` | Streak calculation, goal tracking |
 | 4.2 Stats dashboard | `frontend/src/pages/StatsPage.tsx` | Charts (review count, retention %, time) |
-| 4.3 Retention forecast | `internal/stats/forecast.go` | Predict future review load |
+| 4.3 Retention forecast | `backend/stats/forecast.go` | Predict future review load |
 | 4.4 Gamification | `frontend/src/components/` | Streak display, session complete celebration |
-| 4.5 Study scheduler | `internal/srs/scheduler.go` | Smart daily scheduling based on workload forecast |
+| 4.5 Study scheduler | `backend/srs/scheduler.go` | Smart daily scheduling based on workload forecast |
 
 **Deliverable**: Full analytics dashboard, streak tracking, study planning.
 
@@ -906,8 +906,8 @@ Recite Words (`RecitePage`) and Reading (`ReadingPage`) in the Management window
 | Task | Files | Description |
 |------|-------|-------------|
 | 5.1 Grammar page | `frontend/src/pages/GrammarPage.tsx` | Grammar challenges, rule cards |
-| 5.2 Anki import/export | `internal/content/importer.go` | APKG format support |
-| 5.3 Backup & sync | `internal/database/` | DB export, cloud sync (optional, future) |
+| 5.2 Anki import/export | `backend/content/importer.go` | APKG format support |
+| 5.3 Backup & sync | `backend/database/` | DB export, cloud sync (optional, future) |
 | 5.4 Performance | All | Card review optimization, batch queries |
 | 5.5 Onboarding | `frontend/src/pages/Onboarding.tsx` | First-run wizard |
 
@@ -921,9 +921,9 @@ Full specification: [chat-learning-flows-plan.md](chat-learning-flows-plan.md).
 
 | Task | Files | Description |
 |------|-------|-------------|
-| 6.1 Tool loop + content parts | `internal/agent/orchestrator.go`, `stream_processor.go` | Tool-call loop, `content_parts_json` on messages |
-| 6.2 Flow engine | `internal/learning/` | Session flow state, vocab recite, article read |
-| 6.3 Agent tools | `internal/agent/tools/` | Deck import, recite, article fetch, grading |
+| 6.1 Tool loop + content parts | `backend/agent/orchestrator.go`, `stream_processor.go` | Tool-call loop, `content_parts_json` on messages |
+| 6.2 Flow engine | `backend/learning/` | Session flow state, vocab recite, article read |
+| 6.3 Agent tools | `backend/agent/tools/` | Deck import, recite, article fetch, grading |
 | 6.4 Study Panel UI | `frontend/src/components/agent/StudyPanel.tsx` | Flashcard and article panel beside chat |
 | 6.5 Flow templates | `learning_flow_templates` table, Flow Picker | User-created and built-in IELTS starters |
 

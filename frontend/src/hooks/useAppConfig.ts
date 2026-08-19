@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { AppService } from "../../bindings/github.com/songwei.ma/talus-mofish";
-import { App as AppConfig, OAuth } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/config/models";
-import { Config as AIConfig, Provider } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/aiclient/models";
+import { ConfigService } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
+import { App as AppConfig, OAuth } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/types/models";
+import { Config as AIConfig, Provider } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/utils/aiclient/models";
 import { notify } from "../services/notifications";
 import type { ThemeOption } from "../types/theme";
 
@@ -56,7 +56,7 @@ export function useAppConfig({ onThemeChange, onDebugModeChange }: UseAppConfigO
     setLoading(true);
 
     try {
-      const [cfg, path] = await Promise.all([AppService.GetConfig(), AppService.ConfigPath()]);
+      const [cfg, path] = await Promise.all([ConfigService.GetConfig(), ConfigService.ConfigPath()]);
 
       const nextTheme = (cfg.theme as ThemeOption) || "auto";
       const nextDebugMode = cfg.debugMode ?? false;
@@ -115,7 +115,7 @@ export function useAppConfig({ onThemeChange, onDebugModeChange }: UseAppConfigO
     });
 
     try {
-      await AppService.SaveConfig(payload);
+      await ConfigService.SaveConfig(payload);
       onThemeChange(form.theme);
       onDebugModeChange?.(form.debugMode);
       notify.success("Saved", "Configuration saved to config.json.");

@@ -38,20 +38,19 @@ wails3 build GOOS=darwin
 
 | Path | Purpose |
 |------|---------|
-| `main.go` | Wails app entry, service registration |
-| `appservice.go` | Backend API exposed to the frontend |
+| `main.go` | Wails app entry, registers five backend services |
 | `frontend/` | React + TypeScript UI (Vite) |
-| `internal/database/schema.sql` | SQLite schema (sqlc source of truth, embedded at runtime) |
-| `db/queries/` | SQL queries consumed by sqlc |
-| `internal/store/` | sqlc-generated Go data access (`task sqlc`) |
-| `internal/database/` | DB open, embedded schema apply, default path |
-| `sqlc.yaml` | sqlc configuration |
-| `internal/domain/` | Domain catalog (bounded-context IDs) |
-| `internal/watch/` | Echo Watch domain (VDI screen OCR + alerts) |
-| `internal/vdiupload/` | VDI file-upload domain (H3C Workspace automation) |
-| `cmd/echo-watch/` | Echo Watch CLI |
-| `cmd/vdi-upload/` | VDI upload CLI |
+| `backend/services/` | Wails-bound API facades (`System`, `Config`, `Auth`, `Chat`, `English`) |
+| `backend/storage/` | SQLite open, schema, config.json, sqlc queries + store |
+| `backend/types/` | Shared Wails/JSON DTOs |
+| `backend/utils/` | Env loader, LLM client, autostart |
+| `backend/consts/` | Domain IDs and shared constants |
+| `backend/agent/`, `backend/auth/` | Chat orchestration and identity kernel |
+| `backend/english/content/` | English Learning importers (Anki APKG) |
+| `backend/watch/`, `backend/vdiupload/` | Sidecar domain packages |
+| `cmd/echo-watch/`, `cmd/vdi-upload/` | Sidecar CLIs |
 | `cloud/echo-watch/` | Cloudflare Worker + iOS PWA for watch alerts |
+| `sqlc.yaml` | sqlc configuration |
 | `docs/domains/` | DDD domain map and per-domain design docs |
 
 ## Domains (DDD)
@@ -68,10 +67,10 @@ Talus Echo is multi-domain. See **[docs/domains/README.md](docs/domains/README.m
 
 - Engine: SQLite via [`modernc.org/sqlite`](https://pkg.go.dev/modernc.org/sqlite) (pure Go; works with Wails Windows builds where `CGO_ENABLED=0`)
 - Default file: `talus-mofish/talus-mofish.db` under the OS user data directory:
-  - **Windows**: `%LOCALAPPDATA%\talus-mofish\` (`internal/database/paths_windows.go`)
+  - **Windows**: `%LOCALAPPDATA%\talus-mofish\` (`backend/storage/paths_windows.go`)
   - **macOS**: `~/Library/Application Support/talus-mofish/`
   - **Linux**: `$XDG_CONFIG_HOME/talus-mofish/` or `~/.config/talus-mofish/` (`paths_unix.go`)
-- Schema: idempotent SQL in `internal/database/schema.sql` (embedded in `database.go` at build time)
+- Schema: idempotent SQL in `backend/storage/schema.sql` (embedded in `storage/database.go` at build time)
 
 Print the default DB path:
 
@@ -89,15 +88,42 @@ task sqlc
 
 ## Adding schema / queries
 
-1. Edit `internal/database/schema.sql` (or add numbered migration files later).
-2. Add queries under `db/queries/*.sql`.
-3. Run `task sqlc` and commit `internal/store/` changes.
+1. Edit `backend/storage/schema.sql` (or add numbered migration files later).
+2. Add queries under `backend/storage/queries/*.sql`.
+3. Run `task sqlc` and commit `backend/storage/store/` changes.
 
 ## Wails services
 
-- `AppService` — settings CRUD, config, autostart, chat sessions, vocabulary, articles, Anki import, and `DatabasePath()`
+Five services are bound from `backend/services/` (Tiny RDM-style split):
+
+| Service | Role |
+|---------|------|
+| `SystemService` | DB path, windows, file picker, media paths, autostart status |
+| `ConfigService` | `config.json`, settings KV |
+| `AuthService` | Sign-in / sign-out |
+| `ChatService` | Chat sessions and streaming turns |
+| `EnglishService` | Anki import, articles, vocabulary, SRS |
 
 Bindings are generated under `frontend/bindings/` when running `wails3 dev` or `wails3 build`.
+
+## LLM Control (MCP)
+
+Wails v3 can compile a loopback [MCP server](https://v3.wails.io/guides/mcp-service/) into the desktop app. Agents then list windows, inspect the DOM, click/type, and call bound Go services. The server is **opt-in**: without the `mcp` build tag it is absent from the binary.
+
+```bash
+task dev:mcp
+# PowerShell equivalent:
+# $env:WAILS_MCP=1; wails3 dev
+```
+
+On startup the app logs:
+
+```
+INFO MCP server started. Connect MCP clients using the streamable HTTP transport.
+     url=http://127.0.0.1:9099/mcp
+```
+
+This repo's `.cursor/mcp.json` points Cursor at that URL. The endpoint is only up while the app is running with MCP enabled. Production `task build` / `task package` do not set `WAILS_MCP`, so release binaries do not include the server.
 
 ## Documentation
 

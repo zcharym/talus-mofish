@@ -10,7 +10,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/songwei.ma/talus-mofish/internal/vdiupload"
+	"github.com/songwei.ma/talus-mofish/backend/vdiupload"
 )
 
 func main() {

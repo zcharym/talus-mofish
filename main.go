@@ -4,10 +4,10 @@ import (
 	"embed"
 	"log"
 
-	"github.com/songwei.ma/talus-mofish/internal/appservice"
-	"github.com/songwei.ma/talus-mofish/internal/autostart"
-	"github.com/songwei.ma/talus-mofish/internal/config"
-	"github.com/songwei.ma/talus-mofish/internal/database"
+	"github.com/songwei.ma/talus-mofish/backend/services"
+	"github.com/songwei.ma/talus-mofish/backend/storage"
+	"github.com/songwei.ma/talus-mofish/backend/utils"
+	"github.com/songwei.ma/talus-mofish/backend/utils/autostart"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -15,11 +15,11 @@ import (
 var assets embed.FS
 
 func main() {
-	if err := config.LoadEnv(); err != nil {
+	if err := utils.LoadEnv(); err != nil {
 		log.Fatal(err)
 	}
 
-	db, err := database.OpenDefault()
+	db, err := storage.OpenDefault()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,11 +29,11 @@ func main() {
 		}
 	}()
 
-	configPath, err := database.DefaultConfigPath()
+	configPath, err := storage.DefaultConfigPath()
 	if err != nil {
 		log.Fatal(err)
 	}
-	cfg, err := config.Load(configPath)
+	cfg, err := storage.LoadConfig(configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,13 +43,21 @@ func main() {
 		log.Printf("apply autostart: %v", err)
 	}
 
-	appService := NewAppService(db, cfg, autostartManager)
+	systemSvc := services.NewSystemService(db, autostartManager)
+	configSvc := services.NewConfigService(db, cfg, autostartManager)
+	authSvc := services.NewAuthService(db, cfg)
+	chatSvc := services.NewChatService(db, cfg)
+	englishSvc := services.NewEnglishService(db)
 
 	app := application.New(application.Options{
 		Name:        "talus-mofish",
 		Description: "Chat-oriented desktop agent",
 		Services: []application.Service{
-			application.NewService(appService),
+			application.NewService(systemSvc),
+			application.NewService(configSvc),
+			application.NewService(authSvc),
+			application.NewService(chatSvc),
+			application.NewService(englishSvc),
 		},
 		Assets: application.AssetOptions{
 			Handler: newAssetHandler(assets),
@@ -65,11 +73,10 @@ func main() {
 		},
 	})
 
-	appService.SetWailsApp(app)
-
 	windowManager := NewWindowManager(app)
 	windowManager.CreateWindows()
-	appservice.ConfigureWindows(windowManager)
+	services.WireSystemRuntime(systemSvc, app, windowManager)
+	services.WireChatRuntime(chatSvc, app, windowManager)
 
 	setupSystemTray(app, windowManager)
 

@@ -3,7 +3,7 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { AppShell, MantineProvider, Text, Title } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import { AppService } from '../bindings/github.com/songwei.ma/talus-mofish';
+import { ConfigService } from '../bindings/github.com/songwei.ma/talus-mofish/backend/services';
 import { NavbarSegmented } from './components/management/NavbarSegmented';
 import {
   DEFAULT_MANAGEMENT_ROUTE,
@@ -107,7 +107,7 @@ function ManagementApp() {
   }, []);
 
   useEffect(() => {
-    AppService.GetConfig()
+    ConfigService.GetConfig()
       .then((cfg) => {
         const theme = (cfg.theme as ThemeOption) || 'auto';
         applyTheme(theme);

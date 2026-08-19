@@ -12,7 +12,7 @@ import {
   IconVocabulary,
 } from '@tabler/icons-react';
 import { Collapse, Text, UnstyledButton } from '@mantine/core';
-import { AppService } from '../../../../bindings/github.com/songwei.ma/talus-mofish';
+import { SystemService } from '../../../../bindings/github.com/songwei.ma/talus-mofish/backend/services';
 import {
   isEnglishLearningRoute,
   ManagementRoute,
@@ -99,7 +99,7 @@ export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: N
           className={classes.link}
           onClick={(event) => {
             event.preventDefault();
-            AppService.ShowAgentWindow().catch((err: unknown) => {
+            SystemService.ShowAgentWindow().catch((err: unknown) => {
               console.error(err);
             });
           }}

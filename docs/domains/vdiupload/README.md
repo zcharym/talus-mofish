@@ -12,9 +12,9 @@ Automated host→guest file transfer for **H3C Workspace** (extensible to RDP/Ci
 
 | Path | Role |
 |------|------|
-| `internal/vdiupload` | Domain package (orchestrator, config, ports) |
+| `backend/vdiupload` | Domain package (orchestrator, config, ports) |
 | `cmd/vdi-upload` | CLI adapter |
-| `internal/vdiupload/vdi-upload.example.yaml` | Example profile |
+| `backend/vdiupload/vdi-upload.example.yaml` | Example profile |
 
 ## Commands
 

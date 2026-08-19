@@ -11,12 +11,12 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { AppService } from "../../bindings/github.com/songwei.ma/talus-mofish";
+import { EnglishService } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
+import { Article } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/storage/store/models";
 import {
-  Article,
   ArticlePageResult,
   ArticleSummary,
-} from "../../bindings/github.com/songwei.ma/talus-mofish/internal/store/models";
+} from "../../bindings/github.com/songwei.ma/talus-mofish/backend/types/models";
 import { FlipCard } from "../components/management/FlipCard";
 import { useDynamicScrollHeight } from "../hooks/useDynamicScrollHeight";
 import { notify } from "../services/notifications";
@@ -37,7 +37,7 @@ export function ReadingPage() {
   const loadPage = useCallback(async (pageNum: number) => {
     setLoadingList(true);
     try {
-      const result = await AppService.ListArticlesPage(pageNum, PAGE_SIZE);
+      const result = await EnglishService.ListArticlesPage(pageNum, PAGE_SIZE);
       setPageResult(result);
       setPage(result.page);
     } catch (err) {
@@ -51,7 +51,7 @@ export function ReadingPage() {
   const loadArticle = useCallback(async (id: string) => {
     setLoadingArticle(true);
     try {
-      const article = await AppService.GetArticle(id);
+      const article = await EnglishService.GetArticle(id);
       setSelectedArticle(article);
       setModalOpen(true);
     } catch (err) {

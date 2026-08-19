@@ -29,8 +29,8 @@ Talus Echo becomes a **written-first, chat-native English workbench**: the Agent
 **Constraints inherited from the current app:**
 
 - Text input only ([`frontend/src/components/agent/ChatInput.tsx`](../frontend/src/components/agent/ChatInput.tsx) — no voice/files yet)
-- Go-side orchestration + Wails events for streaming ([`internal/agent/orchestrator.go`](../internal/agent/orchestrator.go))
-- Existing domain data: SRS cards/decks, vocabulary, articles, Anki import ([`internal/database/schema.sql`](../internal/database/schema.sql))
+- Go-side orchestration + Wails events for streaming ([`backend/agent/orchestrator.go`](../backend/agent/orchestrator.go))
+- Existing domain data: SRS cards/decks, vocabulary, articles, Anki import ([`backend/database/schema.sql`](../backend/database/schema.sql))
 
 **Builds on (partially implemented):** [Chatbox Agent Flow Plan](../.cursor/plans/chatbox_agent_flow_plan_a7ec3a59.plan.md) — streaming shell exists; tool loop and `contentParts` are the next layer.
 
@@ -66,11 +66,11 @@ flowchart TB
   end
 
   subgraph go [Go Backend]
-    Orch[internal/agent/orchestrator]
-    FlowEngine[internal/learning/flow_engine]
-    Tools[internal/agent/tools]
-    Content[internal/content importer + article fetcher]
-    SRS[internal/srs scheduler future]
+    Orch[backend/agent/orchestrator]
+    FlowEngine[backend/learning/flow_engine]
+    Tools[backend/agent/tools]
+    Content[backend/content importer + article fetcher]
+    SRS[backend/srs scheduler future]
   end
 
   subgraph db [SQLite]
@@ -208,7 +208,7 @@ Panel syncs via `agent:flow-state` and `agent:widget` events, not only message r
 
 ### 6.1 Database schema additions
 
-Extend [`internal/database/schema.sql`](../internal/database/schema.sql):
+Extend [`backend/database/schema.sql`](../backend/database/schema.sql):
 
 ```sql
 -- Reusable flow templates (user-created "skills")
@@ -249,9 +249,9 @@ CREATE TABLE article_analysis (
 CREATE INDEX idx_article_analysis_article ON article_analysis(article_id);
 ```
 
-Use a migration runner (existing pattern in [`internal/database/`](../internal/database/)) rather than raw ALTER in production.
+Use a migration runner (existing pattern in [`backend/database/`](../backend/database/)) rather than raw ALTER in production.
 
-### 6.2 Flow engine (`internal/learning/`)
+### 6.2 Flow engine (`backend/learning/`)
 
 | File | Role |
 |------|------|
@@ -260,9 +260,9 @@ Use a migration runner (existing pattern in [`internal/database/`](../internal/d
 | `article_read.go` | Bind article to session; trigger analysis job |
 | `types.go` | `FlowState`, `ReciteState`, `ArticleReadState` |
 
-Reuses existing store queries: [`db/queries/srs.sql`](../db/queries/srs.sql), [`db/queries/articles.sql`](../db/queries/articles.sql), [`internal/content/importer.go`](../internal/content/importer.go).
+Reuses existing store queries: [`backend/storage/queries/srs.sql`](../backend/storage/queries/srs.sql), [`backend/storage/queries/articles.sql`](../backend/storage/queries/articles.sql), [`backend/content/importer.go`](../backend/content/importer.go).
 
-### 6.3 Agent tools (`internal/agent/tools/`)
+### 6.3 Agent tools (`backend/agent/tools/`)
 
 Implement after extending orchestrator with tool-call loop (Phase B of chatbox plan).
 
@@ -279,7 +279,7 @@ Implement after extending orchestrator with tool-call loop (Phase B of chatbox p
 | Tool | Purpose |
 |------|---------|
 | `list_decks` | Query SRS decks (including Anki-imported) |
-| `import_anki_apkg` | Wrap [`ImportAnkiAPKG`](../internal/appservice/import.go) — agent guides mapping via chat |
+| `import_anki_apkg` | Wrap [`ImportAnkiAPKG`](../backend/services/import.go) — agent guides mapping via chat |
 | `create_recite_session` | Build card queue: `{ deck_id, count, filter_level? }` |
 | `present_card` | Emit flashcard widget + update flow state |
 | `grade_response` | Compare typed answer; update SRS via `review_log`; emit quiz-result part |
@@ -296,11 +296,11 @@ Implement after extending orchestrator with tool-call loop (Phase B of chatbox p
 | `get_article_analysis` | Return mined sentences/vocab when `status='done'` |
 | `save_clipping` | Insert `clippings` row; optional `save_to_deck` |
 
-**Tool assembly** (`internal/agent/tools_builder.go` — new): gate tools by `session.flow_type` + model capabilities, mirroring Chatbox's conditional assembly.
+**Tool assembly** (`backend/agent/tools_builder.go` — new): gate tools by `session.flow_type` + model capabilities, mirroring Chatbox's conditional assembly.
 
 ### 6.4 Streaming pattern extensions
 
-Current events ([`internal/agent/events.go`](../internal/agent/events.go)):
+Current events ([`backend/agent/events.go`](../backend/agent/events.go)):
 
 | Event | Payload | When |
 |-------|---------|------|
@@ -310,14 +310,14 @@ Current events ([`internal/agent/events.go`](../internal/agent/events.go)):
 | `agent:turn-done` | existing | Turn complete |
 | `agent:turn-error` / `agent:turn-cancelled` | existing | Error/cancel |
 
-Orchestrator changes in [`internal/agent/orchestrator.go`](../internal/agent/orchestrator.go):
+Orchestrator changes in [`backend/agent/orchestrator.go`](../backend/agent/orchestrator.go):
 
 1. Tool-call loop (max ~10 iterations per user message)
 2. `stream_processor.go` folds chunks into `content_parts_json`
 3. Tools emit widgets via emitter before/after text response
 4. Debounced persist (~2s) writes both `content` (plain-text fallback) and `content_parts_json`
 
-Context builder ([`internal/agent/context.go`](../internal/agent/context.go)) injects:
+Context builder ([`backend/agent/context.go`](../backend/agent/context.go)) injects:
 
 - Flow template system prompt addendum
 - Serialized `flow_state` summary (current card, article title)
@@ -326,7 +326,7 @@ Context builder ([`internal/agent/context.go`](../internal/agent/context.go)) in
 
 ### 6.5 Article fetch pipeline
 
-New file: `internal/content/article_fetcher.go`
+New file: `backend/content/article_fetcher.go`
 
 1. Validate URL; fetch with timeout + size limit
 2. Extract main content (recommend [go-readability](https://github.com/go-shiori/go-readability) or similar)
@@ -376,7 +376,7 @@ sequenceDiagram
 
 **UI notes:** Reuse ImportPage mapping logic ([`ImportPage.tsx`](../frontend/src/pages/ImportPage.tsx)) — agent can either invoke the same Go importer or open Management window for complex field mapping. For v1, agent calls existing `PreviewAnkiAPKG` + `ImportAnkiAPKG` bindings with user-confirmed mapping stored in flow state.
 
-**SRS:** Wire `grade_response` to existing [`UpdateCardSRS`](../db/queries/srs.sql) / `CreateReviewLog`. SM-2 scheduler in `internal/srs/` can land in parallel (currently DB-only).
+**SRS:** Wire `grade_response` to existing [`UpdateCardSRS`](../backend/storage/queries/srs.sql) / `CreateReviewLog`. SM-2 scheduler in `backend/srs/` can land in parallel (currently DB-only).
 
 ### 7.2 Article link → read locally → future analysis
 
@@ -415,11 +415,11 @@ sequenceDiagram
 
 | Existing asset | How Learning Flows use it |
 |----------------|---------------------------|
-| [`internal/content/importer.go`](../internal/content/importer.go) | Anki → decks/cards/vocabulary |
-| [`articles`](../internal/database/schema.sql) + [`ReadingPage`](../frontend/src/pages/ReadingPage.tsx) | Shared article store; Management window remains library view |
+| [`backend/content/importer.go`](../backend/content/importer.go) | Anki → decks/cards/vocabulary |
+| [`articles`](../backend/database/schema.sql) + [`ReadingPage`](../frontend/src/pages/ReadingPage.tsx) | Shared article store; Management window remains library view |
 | [`FlipCard`](../frontend/src/components/FlipCard/FlipCard.tsx) | Study Panel + inline flashcard parts |
-| [`clippings`](../internal/database/schema.sql) | User selections during article flow |
-| [`internal/config/config.go`](../internal/config/config.go) | `wordsPerSession`, AI provider |
+| [`clippings`](../backend/database/schema.sql) | User selections during article flow |
+| [`backend/config/config.go`](../backend/config/config.go) | `wordsPerSession`, AI provider |
 | Agent/Management windows | Cross-window events: `article:created`, `vocab:updated` for Management refresh |
 
 Chat remains in Agent window; Management stays the **library admin** surface. Flows bridge both via shared SQLite.
@@ -435,18 +435,18 @@ Chat remains in Agent window; Management stays the **library admin** surface. Fl
 - Frontend: render text + tool-call parts; markdown for assistant text
 - Extend `BuildMessages` with flow-aware system prompt
 
-**Key files:** [`internal/agent/orchestrator.go`](../internal/agent/orchestrator.go), [`frontend/src/hooks/useAgentStream.ts`](../frontend/src/hooks/useAgentStream.ts), [`db/queries/chat.sql`](../db/queries/chat.sql)
+**Key files:** [`backend/agent/orchestrator.go`](../backend/agent/orchestrator.go), [`frontend/src/hooks/useAgentStream.ts`](../frontend/src/hooks/useAgentStream.ts), [`backend/storage/queries/chat.sql`](../backend/storage/queries/chat.sql)
 
 ### Phase 2 — Vocab recite flow
 
-- `internal/learning/vocab_recite.go` + tools: `create_recite_session`, `present_card`, `grade_response`
+- `backend/learning/vocab_recite.go` + tools: `create_recite_session`, `present_card`, `grade_response`
 - Study Panel + flashcard/quiz-result content parts
 - End-of-session summary; optional `save_flow_template`
 - Wire SRS rating to `review_log`
 
 ### Phase 3 — Article read flow
 
-- `internal/content/article_fetcher.go`
+- `backend/content/article_fetcher.go`
 - Tools: `fetch_article`, `bind_article_to_session`
 - Study Panel article reader (markdown render)
 - Background `article_analysis` worker + `get_article_analysis` tool

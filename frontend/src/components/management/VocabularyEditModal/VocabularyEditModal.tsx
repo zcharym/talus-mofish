@@ -13,14 +13,14 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { AppService } from "../../../../bindings/github.com/songwei.ma/talus-mofish";
+import { EnglishService } from "../../../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
 import {
   Card,
   Deck,
   UpdateCardContentParams,
   UpdateVocabularyParams,
   Vocabulary,
-} from "../../../../bindings/github.com/songwei.ma/talus-mofish/internal/store/models";
+} from "../../../../bindings/github.com/songwei.ma/talus-mofish/backend/storage/store/models";
 import { FlipCard } from "../FlipCard";
 import { notify } from "../../../services/notifications";
 
@@ -96,9 +96,9 @@ export function VocabularyEditModal({
     setLoading(true);
     try {
       const [vocabItem, linkedCards, deckList] = await Promise.all([
-        AppService.GetVocabulary(vocabId),
-        AppService.ListCardsForVocab(vocabId),
-        AppService.ListDecks(),
+        EnglishService.GetVocabulary(vocabId),
+        EnglishService.ListCardsForVocab(vocabId),
+        EnglishService.ListDecks(),
       ]);
       setVocab(vocabItem);
       setCards(linkedCards.map((card) => cardToDraft(card as Card)));
@@ -136,7 +136,7 @@ export function VocabularyEditModal({
     }
     setSaving(true);
     try {
-      await AppService.UpdateVocabulary(
+      await EnglishService.UpdateVocabulary(
         new UpdateVocabularyParams({
           id: vocab.id,
           word: vocab.word,
@@ -151,7 +151,7 @@ export function VocabularyEditModal({
       );
 
       for (const card of cards) {
-        await AppService.UpdateCardContent(
+        await EnglishService.UpdateCardContent(
           new UpdateCardContentParams({
             id: card.id,
             front: card.front,
@@ -184,10 +184,10 @@ export function VocabularyEditModal({
     try {
       if (deleteCardsChecked) {
         for (const card of cards) {
-          await AppService.DeleteCard(card.id);
+          await EnglishService.DeleteCard(card.id);
         }
       }
-      await AppService.DeleteVocabulary(vocab.id);
+      await EnglishService.DeleteVocabulary(vocab.id);
       notify.success("Deleted", "Vocabulary entry removed.");
       setDeleteConfirmOpen(false);
       onDeleted();

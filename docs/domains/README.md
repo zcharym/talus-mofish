@@ -1,17 +1,22 @@
 # Domain map (DDD layout)
 
-Talus Echo is a **multi-domain monorepo**. Bounded contexts are owned packages; a thin **shared kernel** stays under flat `internal/` packages that domains may depend on — never the reverse.
+Talus Echo is a **multi-domain monorepo**. Bounded contexts are owned packages under `backend/`; a thin **shared kernel** (`backend/services`, `backend/storage`, `backend/types`, `backend/utils`, `backend/agent`, `backend/auth`) may be used by domains — never the reverse.
 
-## Before → after
+## Backend layout (Tiny RDM-style)
 
-| Concern | Before | After |
-|---------|--------|-------|
-| Domain IDs | `internal/domain` (English only) | `internal/domain` catalogs `english`, `watch`, `vdiupload` |
-| English Learning | Spread across `content/`, `store/`, `appservice/` (undocumented as a BC) | Documented BC; physical consolidation deferred |
-| Echo Watch | `internal/watch` + `cmd/echo-watch` + `cloud/echo-watch` (ad-hoc) | Same paths; owned as BC `watch` with docs under `docs/domains/watch/` |
-| VDI upload | — | New BC: `internal/vdiupload`, `cmd/vdi-upload`, design in `docs/domains/vdiupload/` |
-| Shared kernel | Implicit (appservice, agent, db, auth, …) | Explicit: see [Shared kernel](#shared-kernel); must not import domain packages |
-| Design docs | Flat `docs/*.md` | Domain docs under `docs/domains/<id>/`; platform docs stay in `docs/` |
+```
+backend/
+├── services/     # Wails-bound facades (System, Config, Auth, Chat, English)
+├── storage/      # SQLite + config.json + sqlc store
+├── types/        # Shared Wails/JSON DTOs
+├── utils/        # aiclient, autostart, env loader
+├── consts/       # Domain IDs and constants
+├── agent/        # Chat orchestration kernel
+├── auth/         # Identity kernel
+├── english/      # English Learning domain (content importers)
+├── watch/        # Echo Watch sidecar domain
+└── vdiupload/    # VDI upload sidecar domain
+```
 
 ## Bounded contexts
 
@@ -19,8 +24,8 @@ Talus Echo is a **multi-domain monorepo**. Bounded contexts are owned packages; 
 flowchart TB
   subgraph desktop["Desktop agent (Wails)"]
     EN[english]
-    AS[appservice / agent facade]
-    EN --> AS
+    SVC[services]
+    EN --> SVC
   end
 
   subgraph sidecars["Side-car CLIs"]
@@ -33,43 +38,40 @@ flowchart TB
   end
 
   subgraph kernel["Shared kernel"]
-    K[config · database · store · auth · aiclient · autostart · win32*]
+    K[services · storage · types · utils · agent · auth]
   end
 
-  AS --> K
+  SVC --> K
   EN -.->|uses| K
   W --> K
   U --> K
   W --> CW
 ```
 
-\* `win32` helpers are a planned extract from `watch` / `vdiupload` (see migration).
-
 | Domain | Kind | Code | Docs |
 |--------|------|------|------|
-| [english](./english/) | desktop-agent | `internal/content`, `internal/store`, appservice english APIs | [README](./english/README.md), [design-and-plan](../design-and-plan.md) |
-| [watch](./watch/) | sidecar | `internal/watch`, `cmd/echo-watch`, `cloud/echo-watch` | [README](./watch/README.md) |
-| [vdiupload](./vdiupload/) | sidecar | `internal/vdiupload`, `cmd/vdi-upload` | [DESIGN.md](./vdiupload/DESIGN.md) |
+| [english](./english/) | desktop-agent | `backend/english/content`, `backend/storage/store`, `backend/services/english` | [README](./english/README.md), [design-and-plan](../design-and-plan.md) |
+| [watch](./watch/) | sidecar | `backend/watch`, `cmd/echo-watch`, `cloud/echo-watch` | [README](./watch/README.md) |
+| [vdiupload](./vdiupload/) | sidecar | `backend/vdiupload`, `cmd/vdi-upload` | [DESIGN.md](./vdiupload/DESIGN.md) |
 
 ## Shared kernel
 
-Packages that multiple domains may use. **Rule:** kernel packages must not import `internal/watch`, `internal/vdiupload`, or future domain roots.
+Packages that multiple domains may use. **Rule:** kernel packages must not import `backend/watch`, `backend/vdiupload`, or `backend/english`.
 
 | Package | Role |
 |---------|------|
-| `internal/appservice` | Wails application service / API facade |
-| `internal/agent`, `internal/aiclient` | Chat orchestration + LLM client |
-| `internal/auth`, `internal/config`, `internal/autostart` | Identity, settings, OS login items |
-| `internal/database`, `internal/store` | SQLite + sqlc |
-| `internal/content` | Content importers (today English-owned; treat as domain until split) |
-| `internal/httputil`, `internal/debuglog` | Cross-cutting utilities |
-| `internal/domain` | Domain catalog only (no business logic) |
+| `backend/services` | Wails API facades |
+| `backend/agent`, `backend/utils/aiclient` | Chat orchestration + LLM client |
+| `backend/auth`, `backend/storage`, `backend/utils/autostart` | Identity, persistence, OS login items |
+| `backend/storage/store` | sqlc-generated SQLite access |
+| `backend/types` | Shared DTOs for Wails bindings |
+| `backend/consts` | Domain catalog and constants |
 
 Planned shared extract (not yet moved):
 
 | Package | Role |
 |---------|------|
-| `internal/platform/win32` | Window enum, focus, clipboard, SendInput — shared by watch + vdiupload |
+| `backend/platform/win32` | Window enum, focus, clipboard, SendInput — shared by watch + vdiupload |
 
 ## Dependency rules
 
@@ -80,10 +82,8 @@ Planned shared extract (not yet moved):
 
 ## Remaining migration steps
 
-1. Gradually move English-specific appservice methods behind `internal/english` application services; keep Wails bindings stable.
-2. Extract duplicated Win32 window/process helpers from `internal/watch` into `internal/platform/win32` once `vdiupload` needs the same APIs.
-3. Optionally relocate `internal/content` under `internal/english/content` when import churn is acceptable.
-4. Keep `cloud/echo-watch` co-located with the watch delivery story (do not nest under `internal/`).
+1. Extract duplicated Win32 window/process helpers from `backend/watch` into `backend/platform/win32` once `vdiupload` needs the same APIs.
+2. Keep `cloud/echo-watch` co-located with the watch delivery story (do not nest under `backend/`).
 
 ## Task / build entry points
 

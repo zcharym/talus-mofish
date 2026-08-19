@@ -165,7 +165,7 @@ Keep the VDI client **open and not minimized** while a build is running.
 
 ```
 cmd/echo-watch/           CLI entry
-internal/watch/           config, capture, OCR, rules, notifier
+backend/watch/           config, capture, OCR, rules, notifier
 cloud/echo-watch/worker/  Cloudflare Worker (TypeScript)
 cloud/echo-watch/pwa/     Safari-first PWA
 ```

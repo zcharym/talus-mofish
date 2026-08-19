@@ -13,8 +13,9 @@ import {
   TextInput,
 } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
-import { AppService } from "../../bindings/github.com/songwei.ma/talus-mofish";
-import { Vocabulary, VocabularyPageResult } from "../../bindings/github.com/songwei.ma/talus-mofish/internal/store/models";
+import { EnglishService } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
+import { Vocabulary } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/storage/store/models";
+import { VocabularyPageResult } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/types/models";
 import { VocabularyEditModal } from "../components/management/VocabularyEditModal";
 import { useDynamicScrollHeight } from "../hooks/useDynamicScrollHeight";
 import { notify } from "../services/notifications";
@@ -39,7 +40,7 @@ export function VocabularyPage() {
   const loadPage = useCallback(async (pageNum: number) => {
     setLoading(true);
     try {
-      const result = await AppService.ListVocabularyPage(pageNum, PAGE_SIZE);
+      const result = await EnglishService.ListVocabularyPage(pageNum, PAGE_SIZE);
       setPageResult(result);
       setPage(result.page);
     } catch (err) {
@@ -58,7 +59,7 @@ export function VocabularyPage() {
     }
     setLoading(true);
     try {
-      const results = await AppService.SearchVocabulary(trimmed, SEARCH_LIMIT);
+      const results = await EnglishService.SearchVocabulary(trimmed, SEARCH_LIMIT);
       setSearchResults(results as Vocabulary[]);
     } catch (err) {
       console.error(err);

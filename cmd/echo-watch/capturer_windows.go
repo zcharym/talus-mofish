@@ -2,7 +2,7 @@
 
 package main
 
-import "github.com/songwei.ma/talus-mofish/internal/watch"
+import "github.com/songwei.ma/talus-mofish/backend/watch"
 
 func newCapturer() (watch.Capturer, error) {
 	return watch.NewWindowsCapturer(), nil

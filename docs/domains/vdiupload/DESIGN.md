@@ -3,7 +3,7 @@
 > **Domain ID:** `vdiupload`  
 > **Audience:** experienced Go backend engineers with limited Win32 UI-automation experience  
 > **Status:** Design + scaffold (implementation phased)  
-> **Code roots:** `internal/vdiupload`, `cmd/vdi-upload`  
+> **Code roots:** `backend/vdiupload`, `cmd/vdi-upload`  
 > **Related:** [Domain map](../README.md), [Echo Watch](../watch/README.md)
 
 ---
@@ -40,7 +40,7 @@
 
 **Non-goals (v1).** In-guest agents, kernel drivers, modifying H3C binaries, cross-OS hosts, tight coupling to the Wails English Learning app.
 
-**Relationship to Echo Watch.** Both automate against the **local VDI client window**. Watch is **read-only** (capture/OCR/alert). Upload is **write** (clipboard + input). Share Win32 primitives later via `internal/platform/win32`; keep domains independent.
+**Relationship to Echo Watch.** Both automate against the **local VDI client window**. Watch is **read-only** (capture/OCR/alert). Upload is **write** (clipboard + input). Share Win32 primitives later via `backend/platform/win32`; keep domains independent.
 
 ---
 
@@ -52,7 +52,7 @@
 flowchart LR
   subgraph HostPC["Physical Windows host"]
     CLI["cmd/vdi-upload"]
-    Dom["internal/vdiupload"]
+    Dom["backend/vdiupload"]
     Clip["Clipboard CF_HDROP"]
     Win["H3C Workspace client window"]
     CLI --> Dom
@@ -101,7 +101,7 @@ sequenceDiagram
 | Idempotent jobs | Same file set + destination key → safe to retry |
 | Fail loud | Distinguish config errors, window-not-found, clipboard failure, timeout |
 | Thin Win32 surface | Isolate syscall wrappers; business flow stays testable with fakes |
-| Domain isolation | No imports from `internal/watch`; shared code → platform kernel later |
+| Domain isolation | No imports from `backend/watch`; shared code → platform kernel later |
 
 ### 1.4 Trade-offs
 
@@ -166,7 +166,7 @@ Find the correct top-level HWND for the H3C Workspace **session client** (not in
 5. **Z-order / largest area** tie-break among matches.
 6. Optional **child dialog** search for “Upload” / “文件传输” titles after main window focused.
 
-Reuse patterns already proven in `internal/watch` (`EnumWindows`, PID → exe via Toolhelp snapshot, title regex).
+Reuse patterns already proven in `backend/watch` (`EnumWindows`, PID → exe via Toolhelp snapshot, title regex).
 
 ### 3.3 Failure modes
 
@@ -243,7 +243,7 @@ VDI client chrome scales with DPI, resolution, and local window size. Clipboard 
 | Signal | Mechanism | Reliability |
 |--------|-----------|-------------|
 | OCR text match | BitBlt client region + OCR (reuse watch capturer patterns) | Medium; language packs |
-| Pixel hash change then settle | HashGate-style (see `internal/watch`) | Medium |
+| Pixel hash change then settle | HashGate-style (see `backend/watch`) | Medium |
 | Dialog close | Enum child windows; expected dialog gone | High if dialog exists |
 | Clipboard cleared by guest | Observational only; weak | Low |
 | Timeout | Absolute deadline | Always as backstop |
@@ -316,7 +316,7 @@ cmd/vdi-upload/
   automator_windows.go    # wire real Win32 backends
   automator_stub.go       # non-Windows: clear error
 
-internal/vdiupload/
+backend/vdiupload/
   doc.go                  # domain package docs
   config.go               # YAML profile + job config
   types.go                # Job, Result, ErrorCode
@@ -383,7 +383,7 @@ Exit codes: `0` success; `2` retryable; `3` fatal config; `4` unsupported OS; `1
 
 ### 7.5 Relation to Wails app
 
-v1 is **standalone**. Optional later: appservice method “queue upload job” that shells out or imports the orchestrator — still keep domain package free of Wails types.
+v1 is **standalone**. Optional later: services method “queue upload job” that shells out or imports the orchestrator — still keep domain package free of Wails types.
 
 ---
 
@@ -423,7 +423,7 @@ flowchart TB
 
 ### 8.2 Implementation notes for Go engineers new to Win32
 
-- Prefer `golang.org/x/sys/windows` + `NewLazySystemDLL` (same style as `internal/watch`).
+- Prefer `golang.org/x/sys/windows` + `NewLazySystemDLL` (same style as `backend/watch`).
 - Keep structs **exact layout** (`DROPFILES`) with `encoding/binary` or explicit fields + `unsafe`.
 - Always match `OpenClipboard` / `CloseClipboard`; use `defer`.
 - Global alloc for clipboard: `GlobalAlloc(GMEM_MOVEABLE)`, `GlobalLock`/`Unlock`; ownership transfers to system on successful `SetClipboardData`.
@@ -534,7 +534,7 @@ Design profiles as the extension point:
 | Citrix Workspace | `wfica32.exe` / `CDViewer.exe` | May need Citrix file transfer UX steps |
 | VMware Horizon | `horizon-client.exe` / `vmware-view.exe` | Similar clipboard channel |
 
-Add `profiles.rdp-mstsc`, etc., without new packages. Only introduce `internal/vdiupload/h3c` if product-specific logic exceeds YAML.
+Add `profiles.rdp-mstsc`, etc., without new packages. Only introduce `backend/vdiupload/h3c` if product-specific logic exceeds YAML.
 
 **Future enhancements**
 
@@ -573,7 +573,7 @@ Estimated effort (single experienced Go + one Windows lab machine): Phase 0–1 
 | Clipboard races with user | Wrong paste | Named mutex; short critical section; restore |
 | AV / EDR flags SendInput | Blocked automation | Code-sign binary; allow-list path; document for security team |
 | Large file transfer timeouts | False failure | Tunable timeout; batching; progress OCR later |
-| Coupling to watch Win32 copy-paste | Drift | Extract `internal/platform/win32` in Phase 5 |
+| Coupling to watch Win32 copy-paste | Drift | Extract `backend/platform/win32` in Phase 5 |
 
 ---
 
@@ -586,7 +586,7 @@ Estimated effort (single experienced Go + one Windows lab machine): Phase 0–1 
 | `golang.org/x/sys/windows` | Win32 (already in module) |
 | `github.com/google/uuid` | Job IDs (already in module) |
 
-**Avoid unless proven necessary:** RobotGo, bitbar automation frameworks, full COM/UIA wrappers, CGO. Prefer raw syscalls matching `internal/watch` for consistency and `CGO_ENABLED=0` friendliness.
+**Avoid unless proven necessary:** RobotGo, bitbar automation frameworks, full COM/UIA wrappers, CGO. Prefer raw syscalls matching `backend/watch` for consistency and `CGO_ENABLED=0` friendliness.
 
 OCR: either shell out to an existing local OCR used by watch, or share a capturer interface in a later extract — do not add a heavy ML dependency in v1 if watch’s approach can be reused.
 
@@ -676,11 +676,11 @@ sequenceDiagram
 ```mermaid
 flowchart TB
   cmd["cmd/vdi-upload"]
-  vu["internal/vdiupload"]
-  dom["internal/domain"]
+  vu["backend/vdiupload"]
+  dom["backend/domain"]
   yaml["gopkg.in/yaml.v3"]
   xsys["golang.org/x/sys/windows"]
-  future["internal/platform/win32 - future"]
+  future["backend/platform/win32 - future"]
 
   cmd --> vu
   vu --> yaml

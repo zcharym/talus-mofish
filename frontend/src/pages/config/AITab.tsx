@@ -1,5 +1,5 @@
 import { PasswordInput, Select, Stack, Text, TextInput } from "@mantine/core";
-import { Provider } from "../../../bindings/github.com/songwei.ma/talus-mofish/internal/aiclient/models";
+import { Provider } from "../../../bindings/github.com/songwei.ma/talus-mofish/backend/utils/aiclient/models";
 import type { AppConfigForm } from "../../hooks/useAppConfig";
 
 interface AITabProps {
