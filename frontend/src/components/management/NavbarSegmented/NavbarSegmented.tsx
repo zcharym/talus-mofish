@@ -93,7 +93,7 @@ export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: N
             )}
           </UnstyledButton>
 
-          <Collapse in={englishExpanded}>
+          <Collapse expanded={englishExpanded}>
             <div className={classes.nestedLinks}>
               {englishLearningItems.map((item) => renderLink(item, true))}
             </div>
@@ -112,7 +112,7 @@ export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: N
             )}
           </UnstyledButton>
 
-          <Collapse in={obsidianExpanded}>
+          <Collapse expanded={obsidianExpanded}>
             <div className={classes.nestedLinks}>
               {obsidianItems.map((item) => renderLink(item, true))}
             </div>
