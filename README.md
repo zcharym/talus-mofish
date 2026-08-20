@@ -6,7 +6,7 @@ Talus Echo is **chat-oriented**: the Agent window is the primary surface for int
 
 ## Prerequisites
 
-- Go 1.24+ (this project uses `toolchain go1.25.4` for Wails v3 beta.4)
+- Go 1.27+ (this project uses `toolchain go1.27.0` for Wails v3 beta.4)
 - [Wails v3 CLI](https://v3.wails.io/quick-start/installation/): `go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.4`
 - Pin `@wailsio/runtime` to `3.0.0-beta.1` in `frontend/package.json` (latest published runtime; keep near the Go Wails module version)
 - Node.js (for the React frontend)

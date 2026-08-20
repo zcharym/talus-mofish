@@ -1,7 +1,7 @@
 # Talus Echo — Agent Platform: Design & Plan
 
 > **Project:** Talus Echo (aka Talus MoFish)  
-> **Stack:** Wails v3 (Go 1.24+ / React 18 + TypeScript + Mantine) / SQLite (modernc.org/sqlite)  
+> **Stack:** Wails v3 (Go 1.27+ / React 18 + TypeScript + Mantine) / SQLite (modernc.org/sqlite)  
 > **Date:** 2026-06-05 (updated 2026-07-02)  
 > **Related:** [English Learning Flows Plan](chat-learning-flows-plan.md) — agent flows for the English Learning domain (IELTS, Anki, article reading)
 
