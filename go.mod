@@ -1,8 +1,6 @@
 module github.com/songwei.ma/talus-mofish
 
-go 1.25.0
-
-toolchain go1.25.4
+go 1.27.0
 
 require (
 	github.com/google/uuid v1.6.0
