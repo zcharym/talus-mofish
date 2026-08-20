@@ -5,9 +5,12 @@ import {
   IconBug,
   IconChevronDown,
   IconChevronRight,
+  IconFileText,
   IconInfoCircle,
   IconLanguage,
+  IconMarkdown,
   IconMessageChatbot,
+  IconSearch,
   IconUpload,
   IconVocabulary,
 } from '@tabler/icons-react';
@@ -15,6 +18,7 @@ import { Collapse, Text, UnstyledButton } from '@mantine/core';
 import { SystemService } from '../../../../bindings/github.com/songwei.ma/talus-mofish/backend/services';
 import {
   isEnglishLearningRoute,
+  isObsidianRoute,
   ManagementRoute,
   type ManagementRouteId,
 } from '../../../navigation/routes';
@@ -32,6 +36,11 @@ const englishLearningItems: NavItem[] = [
   { id: ManagementRoute.EnglishVocabulary, label: 'Vocabulary', icon: IconVocabulary },
 ];
 
+const obsidianItems: NavItem[] = [
+  { id: ManagementRoute.ObsidianNotes, label: 'Notes', icon: IconFileText },
+  { id: ManagementRoute.ObsidianSearch, label: 'Search', icon: IconSearch },
+];
+
 interface NavbarSegmentedProps {
   activeItem: string;
   debugMode: boolean;
@@ -42,6 +51,7 @@ export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: N
   const [englishExpanded, setEnglishExpanded] = useState(
     () => isEnglishLearningRoute(activeItem) || activeItem === '',
   );
+  const [obsidianExpanded, setObsidianExpanded] = useState(() => isObsidianRoute(activeItem));
 
   const renderLink = (item: NavItem, nested = false) => (
     <a
@@ -86,6 +96,25 @@ export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: N
           <Collapse in={englishExpanded}>
             <div className={classes.nestedLinks}>
               {englishLearningItems.map((item) => renderLink(item, true))}
+            </div>
+          </Collapse>
+
+          <UnstyledButton
+            className={classes.sectionHeader}
+            onClick={() => setObsidianExpanded((expanded) => !expanded)}
+          >
+            <IconMarkdown className={classes.linkIcon} stroke={1.5} />
+            <span className={classes.sectionLabel}>Obsidian</span>
+            {obsidianExpanded ? (
+              <IconChevronDown className={classes.chevron} size={16} />
+            ) : (
+              <IconChevronRight className={classes.chevron} size={16} />
+            )}
+          </UnstyledButton>
+
+          <Collapse in={obsidianExpanded}>
+            <div className={classes.nestedLinks}>
+              {obsidianItems.map((item) => renderLink(item, true))}
             </div>
           </Collapse>
 

@@ -6,7 +6,7 @@ Talus Echo is a **multi-domain monorepo**. Bounded contexts are owned packages u
 
 ```
 backend/
-├── services/     # Wails-bound facades (System, Config, Auth, Chat, English, Sudoku)
+├── services/     # Wails-bound facades (System, Config, Auth, Chat, English, Sudoku, Obsidian)
 ├── storage/      # SQLite + config.json + sqlc store
 ├── types/        # Shared Wails/JSON DTOs
 ├── utils/        # aiclient, autostart, env loader
@@ -15,6 +15,7 @@ backend/
 ├── auth/         # Identity kernel
 ├── english/      # English Learning domain (content importers)
 ├── sudoku/       # YouDoSudoku Agent window games
+├── obsidian/     # Obsidian Local REST API vault client
 ├── watch/        # Echo Watch sidecar domain
 └── vdiupload/    # VDI upload sidecar domain
 ```
@@ -26,9 +27,11 @@ flowchart TB
   subgraph desktop["Desktop agent (Wails)"]
     EN[english]
     SU[sudoku]
+    OB[obsidian]
     SVC[services]
     EN --> SVC
     SU --> SVC
+    OB --> SVC
   end
 
   subgraph sidecars["Side-car CLIs"]
@@ -47,6 +50,7 @@ flowchart TB
   SVC --> K
   EN -.->|uses| K
   SU -.->|uses| K
+  OB -.->|uses| K
   W --> K
   U --> K
   W --> CW
@@ -56,12 +60,13 @@ flowchart TB
 |--------|------|------|------|
 | [english](./english/) | desktop-agent | `backend/english/content`, `backend/storage/store`, `backend/services/english` | [README](./english/README.md), [design-and-plan](../design-and-plan.md) |
 | [sudoku](./sudoku/) | desktop-agent | `backend/sudoku`, `backend/services/sudoku.go`, `backend/storage` | [README](./sudoku/README.md) |
+| [obsidian](./obsidian/) | desktop-agent | `backend/obsidian`, `backend/services/obsidian.go` | [README](./obsidian/README.md) |
 | [watch](./watch/) | sidecar | `backend/watch`, `cmd/echo-watch`, `cloud/echo-watch` | [README](./watch/README.md) |
 | [vdiupload](./vdiupload/) | sidecar | `backend/vdiupload`, `cmd/vdi-upload` | [DESIGN.md](./vdiupload/DESIGN.md) |
 
 ## Shared kernel
 
-Packages that multiple domains may use. **Rule:** kernel packages must not import `backend/watch`, `backend/vdiupload`, or `backend/english`.
+Packages that multiple domains may use. **Rule:** kernel packages must not import `backend/watch`, `backend/vdiupload`, `backend/english`, or `backend/obsidian`.
 
 | Package | Role |
 |---------|------|

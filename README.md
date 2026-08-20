@@ -38,15 +38,16 @@ wails3 build GOOS=darwin
 
 | Path | Purpose |
 |------|---------|
-| `main.go` | Wails app entry, registers five backend services |
+| `main.go` | Wails app entry, registers backend services |
 | `frontend/` | React + TypeScript UI (Vite) |
-| `backend/services/` | Wails-bound API facades (`System`, `Config`, `Auth`, `Chat`, `English`) |
+| `backend/services/` | Wails-bound API facades (`System`, `Config`, `Auth`, `Chat`, `English`, `Sudoku`, `Obsidian`) |
 | `backend/storage/` | SQLite open, schema, config.json, sqlc queries + store |
 | `backend/types/` | Shared Wails/JSON DTOs |
 | `backend/utils/` | Env loader, LLM client, autostart |
 | `backend/consts/` | Domain IDs and shared constants |
 | `backend/agent/`, `backend/auth/` | Chat orchestration and identity kernel |
 | `backend/english/content/` | English Learning importers (Anki APKG) |
+| `backend/obsidian/` | Obsidian Local REST API client |
 | `backend/watch/`, `backend/vdiupload/` | Sidecar domain packages |
 | `cmd/echo-watch/`, `cmd/vdi-upload/` | Sidecar CLIs |
 | `cloud/echo-watch/` | Cloudflare Worker + iOS PWA for watch alerts |
@@ -60,6 +61,7 @@ Talus Echo is multi-domain. See **[docs/domains/README.md](docs/domains/README.m
 | Domain | Kind | Entry |
 |--------|------|-------|
 | English Learning | desktop-agent | Wails app (`english.*`) |
+| Obsidian | desktop-agent | Wails app (`obsidian.*`) — [docs](docs/domains/obsidian/README.md) |
 | Echo Watch | sidecar | `task watch:build` / `cloud/echo-watch` |
 | VDI Upload | sidecar | `task vdiupload:build` — design: [DESIGN.md](docs/domains/vdiupload/DESIGN.md) |
 
@@ -94,7 +96,7 @@ task sqlc
 
 ## Wails services
 
-Five services are bound from `backend/services/` (Tiny RDM-style split):
+Services are bound from `backend/services/` (Tiny RDM-style split):
 
 | Service | Role |
 |---------|------|
@@ -103,6 +105,8 @@ Five services are bound from `backend/services/` (Tiny RDM-style split):
 | `AuthService` | Sign-in / sign-out |
 | `ChatService` | Chat sessions and streaming turns |
 | `EnglishService` | Anki import, articles, vocabulary, SRS |
+| `SudokuService` | YouDoSudoku games in the Agent window |
+| `ObsidianService` | Vault browse, note edit, and search via Local REST API |
 
 Bindings are generated under `frontend/bindings/` when running `wails3 dev` or `wails3 build`.
 

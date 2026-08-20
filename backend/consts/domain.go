@@ -25,10 +25,13 @@ const (
 
 	// Sudoku is the YouDoSudoku-backed puzzle game in the Agent window.
 	Sudoku = "sudoku"
+
+	// Obsidian is the Local REST API vault browser in the Management window.
+	Obsidian = "obsidian"
 )
 
 // All lists known domain identifiers for discovery and tooling.
-var All = []string{English, Watch, VDIUpload, Sudoku}
+var All = []string{English, Watch, VDIUpload, Sudoku, Obsidian}
 
 // Info describes a domain for docs and tooling.
 type Info struct {
@@ -74,6 +77,14 @@ func Catalog() []Info {
 			CodeRoot:    "backend/sudoku, backend/services/sudoku.go, backend/storage",
 			DocsRoot:    "docs/domains/sudoku",
 			Description: "YouDoSudoku-backed puzzle sessions in the Agent window.",
+		},
+		{
+			ID:          Obsidian,
+			Name:        "Obsidian",
+			Kind:        "desktop-agent",
+			CodeRoot:    "backend/obsidian, backend/services/obsidian.go",
+			DocsRoot:    "docs/domains/obsidian",
+			Description: "Vault browse, note edit, and search via Obsidian Local REST API.",
 		},
 	}
 }
