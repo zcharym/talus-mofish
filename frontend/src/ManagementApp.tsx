@@ -14,6 +14,8 @@ import {
 import { ConfigPage } from './pages/ConfigPage';
 import { DebugPage } from './pages/DebugPage';
 import { ImportPage } from './pages/ImportPage';
+import { ObsidianNotesPage } from './pages/ObsidianNotesPage';
+import { ObsidianSearchPage } from './pages/ObsidianSearchPage';
 import { ReadingPage } from './pages/ReadingPage';
 import { VocabularyPage } from './pages/VocabularyPage';
 import type { ThemeOption } from './types/theme';
@@ -22,10 +24,16 @@ function MainContent({
   activeItem,
   onThemeChange,
   onDebugModeChange,
+  obsidianFocusPath,
+  onObsidianFocusConsumed,
+  onOpenObsidianNote,
 }: {
   activeItem: ManagementRouteId;
   onThemeChange: (theme: ThemeOption) => void;
   onDebugModeChange: (enabled: boolean) => void;
+  obsidianFocusPath: string | null;
+  onObsidianFocusConsumed: () => void;
+  onOpenObsidianNote: (path: string) => void;
 }) {
   const title = PAGE_TITLES[activeItem] ?? 'Talus Echo';
 
@@ -74,6 +82,27 @@ function MainContent({
     );
   }
 
+  if (activeItem === ManagementRoute.ObsidianNotes) {
+    return (
+      <>
+        <Title order={2}>{title}</Title>
+        <ObsidianNotesPage
+          focusPath={obsidianFocusPath}
+          onFocusConsumed={onObsidianFocusConsumed}
+        />
+      </>
+    );
+  }
+
+  if (activeItem === ManagementRoute.ObsidianSearch) {
+    return (
+      <>
+        <Title order={2}>{title}</Title>
+        <ObsidianSearchPage onOpenNote={onOpenObsidianNote} />
+      </>
+    );
+  }
+
   if (activeItem === ManagementRoute.About) {
     return (
       <>
@@ -94,6 +123,7 @@ function ManagementApp() {
   const [activeItem, setActiveItem] = useState<ManagementRouteId>(DEFAULT_MANAGEMENT_ROUTE);
   const [colorScheme, setColorScheme] = useState<ThemeOption>('auto');
   const [debugMode, setDebugMode] = useState(false);
+  const [obsidianFocusPath, setObsidianFocusPath] = useState<string | null>(null);
 
   const applyTheme = useCallback((theme: ThemeOption) => {
     setColorScheme(theme);
@@ -104,6 +134,15 @@ function ManagementApp() {
     setActiveItem((current) =>
       current === ManagementRoute.Debug && !enabled ? DEFAULT_MANAGEMENT_ROUTE : current,
     );
+  }, []);
+
+  const openObsidianNote = useCallback((path: string) => {
+    setObsidianFocusPath(path);
+    setActiveItem(ManagementRoute.ObsidianNotes);
+  }, []);
+
+  const consumeObsidianFocus = useCallback(() => {
+    setObsidianFocusPath(null);
   }, []);
 
   useEffect(() => {
@@ -138,6 +177,9 @@ function ManagementApp() {
             activeItem={activeItem}
             onThemeChange={applyTheme}
             onDebugModeChange={applyDebugMode}
+            obsidianFocusPath={obsidianFocusPath}
+            onObsidianFocusConsumed={consumeObsidianFocus}
+            onOpenObsidianNote={openObsidianNote}
           />
         </AppShell.Main>
       </AppShell>

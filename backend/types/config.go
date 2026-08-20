@@ -1,6 +1,10 @@
 package types
 
-import "github.com/songwei.ma/talus-mofish/backend/utils/aiclient"
+import (
+	"strings"
+
+	"github.com/songwei.ma/talus-mofish/backend/utils/aiclient"
+)
 
 // App holds user-facing application settings persisted in config.json.
 type App struct {
@@ -13,6 +17,7 @@ type App struct {
 	Auth             Auth            `json:"auth"`
 	OAuth            OAuth           `json:"oauth"`
 	Sudoku           Sudoku          `json:"sudoku"`
+	Obsidian         Obsidian        `json:"obsidian"`
 }
 
 // Auth holds settings for email magic-link authentication.
@@ -31,4 +36,23 @@ type OAuth struct {
 // Sudoku holds optional YouDoSudoku API credentials.
 type Sudoku struct {
 	APIKey string `json:"apiKey"`
+}
+
+// DefaultObsidianBaseURL is the Local REST API HTTPS endpoint (self-signed cert).
+const DefaultObsidianBaseURL = "https://127.0.0.1:27124"
+
+// Obsidian holds Local REST API connection settings.
+type Obsidian struct {
+	BaseURL string `json:"baseUrl"`
+	APIKey  string `json:"apiKey"`
+}
+
+// Normalize fills the default plugin URL when unset.
+func (o Obsidian) Normalize() Obsidian {
+	o.BaseURL = strings.TrimSpace(o.BaseURL)
+	if o.BaseURL == "" {
+		o.BaseURL = DefaultObsidianBaseURL
+	}
+	o.APIKey = strings.TrimSpace(o.APIKey)
+	return o
 }

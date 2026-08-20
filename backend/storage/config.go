@@ -24,6 +24,7 @@ func DefaultApp() types.App {
 		DailyGoalMinutes: 30,
 		WordsPerSession:  20,
 		AI:               aiclient.DefaultConfig(),
+		Obsidian:         types.Obsidian{BaseURL: types.DefaultObsidianBaseURL},
 	}
 }
 
@@ -96,5 +97,6 @@ func mergeDefaults(app, defaults types.App) types.App {
 		app.WordsPerSession = defaults.WordsPerSession
 	}
 	app.AI = app.AI.Normalize()
+	app.Obsidian = app.Obsidian.Normalize()
 	return app
 }

@@ -4,6 +4,7 @@ import {
   IconBook,
   IconGrid3x3,
   IconKey,
+  IconMarkdown,
   IconRobot,
   IconSettings,
 } from "@tabler/icons-react";
@@ -13,6 +14,7 @@ import { AITab } from "./config/AITab";
 import { EnglishLearningTab } from "./config/EnglishLearningTab";
 import { GeneralTab } from "./config/GeneralTab";
 import { OAuthTab } from "./config/OAuthTab";
+import { ObsidianTab } from "./config/ObsidianTab";
 import { SudokuTab } from "./config/SudokuTab";
 
 interface ConfigPageProps {
@@ -26,6 +28,7 @@ const CONFIG_TABS = [
   { value: "ai", label: "AI", icon: IconRobot },
   { value: "oauth", label: "OAuth", icon: IconKey },
   { value: "sudoku", label: "Sudoku", icon: IconGrid3x3 },
+  { value: "obsidian", label: "Obsidian", icon: IconMarkdown },
 ] as const;
 
 export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps) {
@@ -93,6 +96,14 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
 
         <Tabs.Panel value="sudoku" pt="md">
           <SudokuTab sudokuAPIKey={form.sudokuAPIKey} onChange={updateForm} />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="obsidian" pt="md">
+          <ObsidianTab
+            obsidianBaseUrl={form.obsidianBaseUrl}
+            obsidianAPIKey={form.obsidianAPIKey}
+            onChange={updateForm}
+          />
         </Tabs.Panel>
       </Tabs>
 

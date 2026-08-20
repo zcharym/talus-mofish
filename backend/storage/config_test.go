@@ -46,6 +46,7 @@ func TestUpdatePersistsChanges(t *testing.T) {
 		DailyGoalMinutes: 45,
 		WordsPerSession:  15,
 		AI:               aiclient.DefaultConfig(),
+		Obsidian:         types.Obsidian{BaseURL: types.DefaultObsidianBaseURL},
 	}
 	if err := store.Update(updated); err != nil {
 		t.Fatalf("Update() error = %v", err)
