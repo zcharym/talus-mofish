@@ -7,8 +7,8 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-//go:embed assets/icon.jpg
-var appIconJPG []byte
+//go:embed assets/icon.png
+var appIconPNG []byte
 
 //go:embed build/windows/icon.ico
 var appIconICO []byte
@@ -20,7 +20,7 @@ func setupSystemTray(app *application.App, wm *WindowManager) *application.Syste
 	case "windows":
 		systemTray.SetIcon(appIconICO)
 	default:
-		systemTray.SetIcon(appIconJPG)
+		systemTray.SetIcon(appIconPNG)
 	}
 	systemTray.OnClick(wm.ShowAgentWindow)
 
