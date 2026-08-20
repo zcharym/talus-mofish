@@ -22,10 +22,13 @@ const (
 	// VDIUpload is automated host→guest file transfer for H3C Workspace (and later RDP/Citrix/Horizon).
 	// Delivery: cmd/vdi-upload. Code: backend/vdiupload. Design: docs/domains/vdiupload/DESIGN.md.
 	VDIUpload = "vdiupload"
+
+	// Sudoku is the YouDoSudoku-backed puzzle game in the Agent window.
+	Sudoku = "sudoku"
 )
 
 // All lists known domain identifiers for discovery and tooling.
-var All = []string{English, Watch, VDIUpload}
+var All = []string{English, Watch, VDIUpload, Sudoku}
 
 // Info describes a domain for docs and tooling.
 type Info struct {
@@ -63,6 +66,14 @@ func Catalog() []Info {
 			CodeRoot:    "backend/vdiupload, cmd/vdi-upload",
 			DocsRoot:    "docs/domains/vdiupload",
 			Description: "Automate file upload into H3C Workspace VDI via clipboard + Win32 UI automation.",
+		},
+		{
+			ID:          Sudoku,
+			Name:        "Sudoku",
+			Kind:        "desktop-agent",
+			CodeRoot:    "backend/sudoku, backend/services/sudoku.go, backend/storage",
+			DocsRoot:    "docs/domains/sudoku",
+			Description: "YouDoSudoku-backed puzzle sessions in the Agent window.",
 		},
 	}
 }

@@ -1,16 +1,16 @@
 -- name: ListChatSessions :many
-SELECT id, title, created_at, updated_at
+SELECT id, title, kind, created_at, updated_at
 FROM chat_sessions
 ORDER BY updated_at DESC;
 
 -- name: GetChatSession :one
-SELECT id, title, created_at, updated_at
+SELECT id, title, kind, created_at, updated_at
 FROM chat_sessions
 WHERE id = ?;
 
 -- name: CreateChatSession :exec
-INSERT INTO chat_sessions (id, title, created_at, updated_at)
-VALUES (?, ?, datetime('now'), datetime('now'));
+INSERT INTO chat_sessions (id, title, kind, created_at, updated_at)
+VALUES (?, ?, ?, datetime('now'), datetime('now'));
 
 -- name: RenameChatSession :exec
 UPDATE chat_sessions

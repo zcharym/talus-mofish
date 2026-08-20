@@ -48,6 +48,7 @@ func main() {
 	authSvc := services.NewAuthService(db, cfg)
 	chatSvc := services.NewChatService(db, cfg)
 	englishSvc := services.NewEnglishService(db)
+	sudokuSvc := services.NewSudokuService(db, cfg)
 
 	app := application.New(application.Options{
 		Name:        "talus-mofish",
@@ -58,6 +59,7 @@ func main() {
 			application.NewService(authSvc),
 			application.NewService(chatSvc),
 			application.NewService(englishSvc),
+			application.NewService(sudokuSvc),
 		},
 		Assets: application.AssetOptions{
 			Handler: newAssetHandler(assets),

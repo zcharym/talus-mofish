@@ -1,11 +1,12 @@
-export type QuickActionDomain = 'english' | 'general';
+export type QuickActionDomain = 'english' | 'general' | 'games';
 
 export type QuickActionId =
   | 'recite_words'
   | 'read_article'
   | 'ielts_writing'
   | 'vocabulary_quiz'
-  | 'save_as_flow';
+  | 'save_as_flow'
+  | 'play_sudoku';
 
 export interface QuickAction {
   id: QuickActionId;
@@ -51,9 +52,17 @@ export const QUICK_ACTIONS: QuickAction[] = [
     autoSend: false,
     domain: 'general',
   },
+  {
+    id: 'play_sudoku',
+    label: 'Play Sudoku',
+    prompt: '',
+    autoSend: false,
+    domain: 'games',
+  },
 ];
 
 export const QUICK_ACTION_DOMAINS: { domain: QuickActionDomain; label: string }[] = [
   { domain: 'english', label: 'English Learning' },
   { domain: 'general', label: 'Agent' },
+  { domain: 'games', label: 'Games' },
 ];

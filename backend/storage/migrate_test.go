@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"database/sql"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -109,5 +110,63 @@ func TestMigrateUserAccountProviderPreservesEmailWhenAddingDebug(t *testing.T) {
 	}
 	if count != 1 {
 		t.Fatalf("expected 1 email user preserved, got %d", count)
+	}
+}
+
+func TestMigrateChatSessionKindAddsColumn(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "legacy.db")
+
+	sqlDB, err := sql.Open(driverName, sqliteDSN(path))
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	if _, err := sqlDB.Exec(`
+		CREATE TABLE chat_sessions (
+			id TEXT NOT NULL PRIMARY KEY,
+			title TEXT NOT NULL DEFAULT 'New chat',
+			created_at TEXT NOT NULL DEFAULT (datetime('now')),
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		);
+		INSERT INTO chat_sessions (id, title) VALUES ('s1', 'Old chat');
+	`); err != nil {
+		_ = sqlDB.Close()
+		t.Fatalf("create legacy chat_sessions: %v", err)
+	}
+	if err := sqlDB.Close(); err != nil {
+		t.Fatalf("close legacy db: %v", err)
+	}
+
+	db, err := Open(path)
+	if err != nil {
+		t.Fatalf("open migrated database: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = db.Close()
+	})
+
+	hasKind, err := tableHasColumn(db.SQL, "chat_sessions", "kind")
+	if err != nil {
+		t.Fatalf("tableHasColumn: %v", err)
+	}
+	if !hasKind {
+		t.Fatal("expected chat_sessions.kind after Open")
+	}
+
+	var kind string
+	if err := db.SQL.QueryRow(`SELECT kind FROM chat_sessions WHERE id = 's1'`).Scan(&kind); err != nil {
+		t.Fatalf("read migrated kind: %v", err)
+	}
+	if kind != "chat" {
+		t.Fatalf("kind = %q, want chat", kind)
+	}
+
+	var table string
+	if err := db.SQL.QueryRow(
+		`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'sudoku_games'`,
+	).Scan(&table); err != nil {
+		t.Fatalf("sudoku_games missing: %v", err)
 	}
 }

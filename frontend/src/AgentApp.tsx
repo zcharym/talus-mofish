@@ -3,11 +3,12 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { Box, MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import { ChatService, ConfigService, SystemService } from '../bindings/github.com/songwei.ma/talus-mofish/backend/services';
+import { ChatService, ConfigService, SudokuService, SystemService } from '../bindings/github.com/songwei.ma/talus-mofish/backend/services';
 import { AgentHome, QuickActionId } from './components/agent/AgentHome';
 import { ChatInput } from './components/agent/ChatInput';
 import { ChatMessageItem, ChatThread } from './components/agent/ChatThread';
 import { ChatSessionItem, SessionSidebar } from './components/agent/SessionSidebar';
+import { SudokuBoard } from './components/agent/SudokuBoard';
 import { useAgentStream } from './hooks/useAgentStream';
 import { useCurrentUser } from './hooks/useCurrentUser';
 import { notify } from './services/notifications';
@@ -121,12 +122,16 @@ function AgentApp() {
   }, [loadSessions]);
 
   useEffect(() => {
-    if (activeSessionId) {
-      void loadMessages(activeSessionId);
-    } else {
+    if (!activeSessionId) {
       setMessages([]);
+      return;
     }
-  }, [activeSessionId, loadMessages]);
+    if (activeSession?.kind === 'sudoku') {
+      setMessages([]);
+      return;
+    }
+    void loadMessages(activeSessionId);
+  }, [activeSessionId, activeSession?.kind, loadMessages]);
 
   const ensureActiveSession = useCallback(async (): Promise<string> => {
     if (activeSessionId) {
@@ -187,7 +192,21 @@ function AgentApp() {
     }
   };
 
-  const handleQuickAction = async (_actionId: QuickActionId, prompt: string, autoSend: boolean) => {
+  const handleQuickAction = async (actionId: QuickActionId, prompt: string, autoSend: boolean) => {
+    if (actionId === 'play_sudoku') {
+      setSending(true);
+      try {
+        const result = await SudokuService.NewSudokuGame('easy');
+        await loadSessions();
+        setActiveSessionId(result.session.id);
+        setMessages([]);
+      } catch (err) {
+        notify.failed('Could not start Sudoku', String(err));
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
     if (!autoSend) {
       return;
     }
@@ -238,6 +257,7 @@ function AgentApp() {
   };
 
   const isHomeView = activeSessionId === null;
+  const isSudokuView = activeSession?.kind === 'sudoku';
 
   return (
     <MantineProvider
@@ -272,6 +292,12 @@ function AgentApp() {
               onQuickAction={(actionId, prompt, autoSend) => {
                 void handleQuickAction(actionId, prompt, autoSend);
               }}
+            />
+          ) : isSudokuView && activeSessionId ? (
+            <SudokuBoard
+              sessionId={activeSessionId}
+              sessionTitle={activeSession?.title ?? null}
+              onSessionUpdated={loadSessions}
             />
           ) : (
             <>

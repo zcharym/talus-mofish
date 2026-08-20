@@ -12,6 +12,7 @@ type App struct {
 	AI               aiclient.Config `json:"ai"`
 	Auth             Auth            `json:"auth"`
 	OAuth            OAuth           `json:"oauth"`
+	Sudoku           Sudoku          `json:"sudoku"`
 }
 
 // Auth holds settings for email magic-link authentication.
@@ -25,4 +26,9 @@ type OAuth struct {
 	GitHubClientSecret string `json:"githubClientSecret"`
 	GoogleClientID     string `json:"googleClientId"`
 	GoogleClientSecret string `json:"googleClientSecret"`
+}
+
+// Sudoku holds optional YouDoSudoku API credentials.
+type Sudoku struct {
+	APIKey string `json:"apiKey"`
 }

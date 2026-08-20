@@ -6,7 +6,7 @@ Talus Echo is a **multi-domain monorepo**. Bounded contexts are owned packages u
 
 ```
 backend/
-├── services/     # Wails-bound facades (System, Config, Auth, Chat, English)
+├── services/     # Wails-bound facades (System, Config, Auth, Chat, English, Sudoku)
 ├── storage/      # SQLite + config.json + sqlc store
 ├── types/        # Shared Wails/JSON DTOs
 ├── utils/        # aiclient, autostart, env loader
@@ -14,6 +14,7 @@ backend/
 ├── agent/        # Chat orchestration kernel
 ├── auth/         # Identity kernel
 ├── english/      # English Learning domain (content importers)
+├── sudoku/       # YouDoSudoku Agent window games
 ├── watch/        # Echo Watch sidecar domain
 └── vdiupload/    # VDI upload sidecar domain
 ```
@@ -24,8 +25,10 @@ backend/
 flowchart TB
   subgraph desktop["Desktop agent (Wails)"]
     EN[english]
+    SU[sudoku]
     SVC[services]
     EN --> SVC
+    SU --> SVC
   end
 
   subgraph sidecars["Side-car CLIs"]
@@ -43,6 +46,7 @@ flowchart TB
 
   SVC --> K
   EN -.->|uses| K
+  SU -.->|uses| K
   W --> K
   U --> K
   W --> CW
@@ -51,6 +55,7 @@ flowchart TB
 | Domain | Kind | Code | Docs |
 |--------|------|------|------|
 | [english](./english/) | desktop-agent | `backend/english/content`, `backend/storage/store`, `backend/services/english` | [README](./english/README.md), [design-and-plan](../design-and-plan.md) |
+| [sudoku](./sudoku/) | desktop-agent | `backend/sudoku`, `backend/services/sudoku.go`, `backend/storage` | [README](./sudoku/README.md) |
 | [watch](./watch/) | sidecar | `backend/watch`, `cmd/echo-watch`, `cloud/echo-watch` | [README](./watch/README.md) |
 | [vdiupload](./vdiupload/) | sidecar | `backend/vdiupload`, `cmd/vdi-upload` | [DESIGN.md](./vdiupload/DESIGN.md) |
 

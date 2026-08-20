@@ -108,12 +108,10 @@ Bindings are generated under `frontend/bindings/` when running `wails3 dev` or `
 
 ## LLM Control (MCP)
 
-Wails v3 can compile a loopback [MCP server](https://v3.wails.io/guides/mcp-service/) into the desktop app. Agents then list windows, inspect the DOM, click/type, and call bound Go services. The server is **opt-in**: without the `mcp` build tag it is absent from the binary.
+Wails v3 can compile a loopback [MCP server](https://v3.wails.io/guides/mcp-service/) into the desktop app. Agents then list windows, inspect the DOM, click/type, and call bound Go services. This repo enables it by default via `Taskfile.yml` (`WAILS_MCP=1`, `EXTRA_TAGS=mcp`).
 
 ```bash
-task dev:mcp
-# PowerShell equivalent:
-# $env:WAILS_MCP=1; wails3 dev
+task dev
 ```
 
 On startup the app logs:
@@ -123,7 +121,7 @@ INFO MCP server started. Connect MCP clients using the streamable HTTP transport
      url=http://127.0.0.1:9099/mcp
 ```
 
-This repo's `.cursor/mcp.json` points Cursor at that URL. The endpoint is only up while the app is running with MCP enabled. Production `task build` / `task package` do not set `WAILS_MCP`, so release binaries do not include the server.
+This repo's `.cursor/mcp.json` points Cursor at that URL. The endpoint is only up while the app is running. To build without MCP, override the defaults: `task build EXTRA_TAGS=`.
 
 ## Documentation
 

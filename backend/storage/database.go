@@ -80,6 +80,9 @@ func applySchema(sqlDB *sql.DB) error {
 	if err := migrateUserAccountProvider(sqlDB); err != nil {
 		return err
 	}
+	if err := migrateChatSessionKind(sqlDB); err != nil {
+		return err
+	}
 	return nil
 }
 

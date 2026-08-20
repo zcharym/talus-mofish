@@ -46,7 +46,7 @@ export function AgentHome({
       return;
     }
     onQuickAction(action.id, action.prompt, action.autoSend);
-    if (!action.autoSend) {
+    if (!action.autoSend && action.id !== 'play_sudoku') {
       setDraft(action.prompt);
     }
   };

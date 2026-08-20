@@ -32,17 +32,18 @@ func (q *Queries) CreateChatMessage(ctx context.Context, arg CreateChatMessagePa
 }
 
 const createChatSession = `-- name: CreateChatSession :exec
-INSERT INTO chat_sessions (id, title, created_at, updated_at)
-VALUES (?, ?, datetime('now'), datetime('now'))
+INSERT INTO chat_sessions (id, title, kind, created_at, updated_at)
+VALUES (?, ?, ?, datetime('now'), datetime('now'))
 `
 
 type CreateChatSessionParams struct {
 	ID    string `json:"id"`
 	Title string `json:"title"`
+	Kind  string `json:"kind"`
 }
 
 func (q *Queries) CreateChatSession(ctx context.Context, arg CreateChatSessionParams) error {
-	_, err := q.db.ExecContext(ctx, createChatSession, arg.ID, arg.Title)
+	_, err := q.db.ExecContext(ctx, createChatSession, arg.ID, arg.Title, arg.Kind)
 	return err
 }
 
@@ -76,7 +77,7 @@ func (q *Queries) GetChatMessage(ctx context.Context, id string) (ChatMessage, e
 }
 
 const getChatSession = `-- name: GetChatSession :one
-SELECT id, title, created_at, updated_at
+SELECT id, title, kind, created_at, updated_at
 FROM chat_sessions
 WHERE id = ?
 `
@@ -87,6 +88,7 @@ func (q *Queries) GetChatSession(ctx context.Context, id string) (ChatSession, e
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
+		&i.Kind,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -130,7 +132,7 @@ func (q *Queries) ListChatMessages(ctx context.Context, sessionID string) ([]Cha
 }
 
 const listChatSessions = `-- name: ListChatSessions :many
-SELECT id, title, created_at, updated_at
+SELECT id, title, kind, created_at, updated_at
 FROM chat_sessions
 ORDER BY updated_at DESC
 `
@@ -147,6 +149,7 @@ func (q *Queries) ListChatSessions(ctx context.Context) ([]ChatSession, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Title,
+			&i.Kind,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

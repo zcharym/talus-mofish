@@ -9,6 +9,46 @@ import (
 
 const userAccountProviderCheck = "provider IN ('github', 'google', 'email', 'debug')"
 
+func tableHasColumn(sqlDB *sql.DB, table, column string) (bool, error) {
+	rows, err := sqlDB.Query(`PRAGMA table_info(` + table + `)`)
+	if err != nil {
+		return false, fmt.Errorf("pragma table_info(%s): %w", table, err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var cid int
+		var name, colType string
+		var notNull, pk int
+		var dflt sql.NullString
+		if err := rows.Scan(&cid, &name, &colType, &notNull, &dflt, &pk); err != nil {
+			return false, fmt.Errorf("scan table_info(%s): %w", table, err)
+		}
+		if strings.EqualFold(name, column) {
+			return true, nil
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return false, fmt.Errorf("table_info(%s): %w", table, err)
+	}
+	return false, nil
+}
+
+// migrateChatSessionKind adds chat_sessions.kind for databases created before Sudoku sessions.
+func migrateChatSessionKind(sqlDB *sql.DB) error {
+	hasKind, err := tableHasColumn(sqlDB, "chat_sessions", "kind")
+	if err != nil {
+		return err
+	}
+	if hasKind {
+		return nil
+	}
+	if _, err := sqlDB.Exec(`ALTER TABLE chat_sessions ADD COLUMN kind TEXT NOT NULL DEFAULT 'chat'`); err != nil {
+		return fmt.Errorf("add chat_sessions.kind: %w", err)
+	}
+	return nil
+}
+
 // migrateUserAccountProvider rebuilds user_account when an older CHECK constraint
 // is missing 'email' or 'debug'. CREATE TABLE IF NOT EXISTS never alters CHECKs.
 func migrateUserAccountProvider(sqlDB *sql.DB) error {

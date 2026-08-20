@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, Code, Group, HoverCard, Stack, Tabs, Text } from "@mantine/core";
 import {
   IconBook,
+  IconGrid3x3,
   IconKey,
   IconRobot,
   IconSettings,
@@ -12,6 +13,7 @@ import { AITab } from "./config/AITab";
 import { EnglishLearningTab } from "./config/EnglishLearningTab";
 import { GeneralTab } from "./config/GeneralTab";
 import { OAuthTab } from "./config/OAuthTab";
+import { SudokuTab } from "./config/SudokuTab";
 
 interface ConfigPageProps {
   onThemeChange: (theme: ThemeOption) => void;
@@ -23,6 +25,7 @@ const CONFIG_TABS = [
   { value: "english", label: "English Learning", icon: IconBook },
   { value: "ai", label: "AI", icon: IconRobot },
   { value: "oauth", label: "OAuth", icon: IconKey },
+  { value: "sudoku", label: "Sudoku", icon: IconGrid3x3 },
 ] as const;
 
 export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps) {
@@ -86,6 +89,10 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
             googleClientSecret={form.googleClientSecret}
             onChange={updateForm}
           />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="sudoku" pt="md">
+          <SudokuTab sudokuAPIKey={form.sudokuAPIKey} onChange={updateForm} />
         </Tabs.Panel>
       </Tabs>
 

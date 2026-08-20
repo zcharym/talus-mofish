@@ -7,6 +7,7 @@ import {
   IconPin,
   IconPinned,
   IconPencil,
+  IconGrid3x3,
   IconTrash,
 } from '@tabler/icons-react';
 import {
@@ -35,6 +36,7 @@ const isMacOS =
 export interface ChatSessionItem {
   id: string;
   title: string;
+  kind?: string;
   created_at: string;
   updated_at: string;
 }
@@ -77,9 +79,12 @@ function SessionRow({
         data-active={isActive || undefined}
         onClick={() => onSelectSession(session.id)}
       >
-        <Text size="sm" lineClamp={1}>
-          {session.title}
-        </Text>
+        <Group gap={6} wrap="nowrap">
+          {session.kind === 'sudoku' ? <IconGrid3x3 size={14} /> : null}
+          <Text size="sm" lineClamp={1}>
+            {session.title}
+          </Text>
+        </Group>
       </UnstyledButton>
       <Group gap={2} wrap="nowrap" className={classes.sessionActions}>
         <ActionIcon

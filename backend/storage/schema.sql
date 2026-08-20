@@ -193,6 +193,7 @@ CREATE TABLE IF NOT EXISTS user_account (
 CREATE TABLE IF NOT EXISTS chat_sessions (
     id TEXT NOT NULL PRIMARY KEY,
     title TEXT NOT NULL DEFAULT 'New chat',
+    kind TEXT NOT NULL DEFAULT 'chat' CHECK (kind IN ('chat', 'sudoku')),
     created_at TEXT NOT NULL DEFAULT (datetime ('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime ('now'))
 );
@@ -206,3 +207,16 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 );
 
 CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages (session_id, created_at);
+
+-- === Sudoku ===
+CREATE TABLE IF NOT EXISTS sudoku_games (
+    id TEXT NOT NULL PRIMARY KEY,
+    session_id TEXT NOT NULL UNIQUE REFERENCES chat_sessions (id) ON DELETE CASCADE,
+    difficulty TEXT NOT NULL CHECK (difficulty IN ('easy', 'medium', 'hard')),
+    puzzle TEXT NOT NULL,
+    solution TEXT NOT NULL,
+    board TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'playing' CHECK (status IN ('playing', 'solved')),
+    created_at TEXT NOT NULL DEFAULT (datetime ('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime ('now'))
+);

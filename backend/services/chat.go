@@ -92,6 +92,7 @@ func (s *ChatService) CreateChatSession(title string) (store.ChatSession, error)
 	if err := s.db.Queries.CreateChatSession(ctx, store.CreateChatSessionParams{
 		ID:    session.ID,
 		Title: session.Title,
+		Kind:  "chat",
 	}); err != nil {
 		return store.ChatSession{}, fmt.Errorf("create chat session: %w", err)
 	}

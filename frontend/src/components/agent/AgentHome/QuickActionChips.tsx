@@ -2,6 +2,7 @@ import {
   IconBook2,
   IconBrain,
   IconDeviceFloppy,
+  IconGrid3x3,
   IconPencil,
   IconVocabulary,
 } from '@tabler/icons-react';
@@ -20,6 +21,7 @@ const ICONS = {
   ielts_writing: IconPencil,
   vocabulary_quiz: IconBrain,
   save_as_flow: IconDeviceFloppy,
+  play_sudoku: IconGrid3x3,
 } as const;
 
 export function QuickActionChips({ disabled = false, onSelect }: QuickActionChipsProps) {

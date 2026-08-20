@@ -82,6 +82,7 @@ type ChatMessage struct {
 type ChatSession struct {
 	ID        string `json:"id"`
 	Title     string `json:"title"`
+	Kind      string `json:"kind"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 }
@@ -132,6 +133,18 @@ type Setting struct {
 	Key       string `json:"key"`
 	Value     string `json:"value"`
 	UpdatedAt string `json:"updated_at"`
+}
+
+type SudokuGame struct {
+	ID         string `json:"id"`
+	SessionID  string `json:"session_id"`
+	Difficulty string `json:"difficulty"`
+	Puzzle     string `json:"puzzle"`
+	Solution   string `json:"solution"`
+	Board      string `json:"board"`
+	Status     string `json:"status"`
+	CreatedAt  string `json:"created_at"`
+	UpdatedAt  string `json:"updated_at"`
 }
 
 type UserAccount struct {

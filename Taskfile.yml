@@ -11,6 +11,10 @@ vars:
   BIN_DIR: "bin"
   VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
 
+env:
+  WAILS_MCP: "1"
+  EXTRA_TAGS: mcp
+
 tasks:
   build:
     summary: Builds the application
@@ -28,15 +32,7 @@ tasks:
       - task: "{{OS}}:run"
 
   dev:
-    summary: Runs the application in development mode
-    cmds:
-      - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
-
-  dev:mcp:
-    summary: Dev mode with Wails in-app MCP server at http://127.0.0.1:9099/mcp
-    env:
-      WAILS_MCP: "1"
-      EXTRA_TAGS: mcp
+    summary: Runs the application in development mode with MCP at http://127.0.0.1:9099/mcp
     cmds:
       - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
 

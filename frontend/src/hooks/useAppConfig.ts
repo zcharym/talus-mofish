@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ConfigService } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
-import { App as AppConfig, OAuth } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/types/models";
+import { App as AppConfig, OAuth, Sudoku } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/types/models";
 import { Config as AIConfig, Provider } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/utils/aiclient/models";
 import { notify } from "../services/notifications";
 import type { ThemeOption } from "../types/theme";
@@ -19,6 +19,7 @@ export interface AppConfigForm {
   githubClientSecret: string;
   googleClientId: string;
   googleClientSecret: string;
+  sudokuAPIKey: string;
 }
 
 const defaultForm: AppConfigForm = {
@@ -35,6 +36,7 @@ const defaultForm: AppConfigForm = {
   githubClientSecret: "",
   googleClientId: "",
   googleClientSecret: "",
+  sudokuAPIKey: "",
 };
 
 export interface UseAppConfigOptions {
@@ -75,6 +77,7 @@ export function useAppConfig({ onThemeChange, onDebugModeChange }: UseAppConfigO
         githubClientSecret: cfg.oauth?.githubClientSecret || "",
         googleClientId: cfg.oauth?.googleClientId || "",
         googleClientSecret: cfg.oauth?.googleClientSecret || "",
+        sudokuAPIKey: cfg.sudoku?.apiKey || "",
       });
       setConfigPath(path);
       onThemeChange(nextTheme);
@@ -111,6 +114,9 @@ export function useAppConfig({ onThemeChange, onDebugModeChange }: UseAppConfigO
         githubClientSecret: form.githubClientSecret,
         googleClientId: form.googleClientId,
         googleClientSecret: form.googleClientSecret,
+      }),
+      sudoku: new Sudoku({
+        apiKey: form.sudokuAPIKey,
       }),
     });
 
