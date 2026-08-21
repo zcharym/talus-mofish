@@ -33,26 +33,45 @@ const isMacOS =
   typeof navigator !== 'undefined' &&
   (navigator.platform?.includes('Mac') || navigator.userAgent.includes('Mac'));
 
+/**
+ * Represents a chat session in the sidebar list.
+ */
 export interface ChatSessionItem {
   id: string;
   title: string;
+  /** Optional session type (e.g., 'sudoku' for game sessions) */
   kind?: string;
   created_at: string;
   updated_at: string;
 }
 
+/**
+ * Props for the SessionSidebar component.
+ */
 interface SessionSidebarProps {
+  /** All available chat sessions */
   sessions: ChatSessionItem[];
+  /** ID of the currently active session */
   activeSessionId: string | null;
+  /** Currently signed-in user profile */
   user: UserProfile | null;
+  /** Callback when a session is selected */
   onSelectSession: (sessionId: string) => void;
+  /** Callback when the new chat button is clicked */
   onNewChat: () => void;
+  /** Callback when a session is renamed */
   onRenameSession: (sessionId: string, title: string) => Promise<void>;
+  /** Callback when a session is deleted */
   onDeleteSession: (sessionId: string) => Promise<void>;
+  /** Callback when the management window should be opened */
   onOpenManagement: () => void;
+  /** Callback when the user signs out */
   onSignOut: () => Promise<void>;
 }
 
+/**
+ * Props for individual session rows in the sidebar.
+ */
 interface SessionRowProps {
   session: ChatSessionItem;
   isActive: boolean;
@@ -63,6 +82,10 @@ interface SessionRowProps {
   onDelete: (session: ChatSessionItem) => void;
 }
 
+/**
+ * SessionRow renders a single chat session item in the sidebar.
+ * It includes the session title, pin/unpin button, and a menu for rename/delete actions.
+ */
 function SessionRow({
   session,
   isActive,
@@ -119,6 +142,12 @@ function SessionRow({
   );
 }
 
+/**
+ * SessionSidebar provides navigation and management for chat sessions.
+ * It displays pinned and recent sessions, allows creating new chats,
+ * and provides actions for renaming, deleting, and pinning sessions.
+ * The sidebar also includes user profile display and sign-out functionality.
+ */
 export function SessionSidebar({
   sessions,
   activeSessionId,
