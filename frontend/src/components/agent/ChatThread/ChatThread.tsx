@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { Box, ScrollArea, Stack, Text, Title } from '@mantine/core';
+import { Box, Burger, Group, ScrollArea, Stack, Text, Title } from '@mantine/core';
 import { ChatBubble } from '../ChatBubble';
 import classes from './ChatThread.module.css';
 
@@ -16,9 +16,15 @@ interface ChatThreadProps {
   messages: ChatMessageItem[];
   sessionTitle: string | null;
   hasActiveSession: boolean;
+  onOpenSidebar?: () => void;
 }
 
-export function ChatThread({ messages, sessionTitle, hasActiveSession }: ChatThreadProps) {
+export function ChatThread({
+  messages,
+  sessionTitle,
+  hasActiveSession,
+  onOpenSidebar,
+}: ChatThreadProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -38,7 +44,14 @@ export function ChatThread({ messages, sessionTitle, hasActiveSession }: ChatThr
   return (
     <Box className={classes.thread}>
       <Box className={classes.header}>
-        <Title order={4}>{sessionTitle ?? 'Chat'}</Title>
+        <Group gap="sm" wrap="nowrap">
+          {onOpenSidebar ? (
+            <Burger opened={false} onClick={onOpenSidebar} size="sm" aria-label="Open chats" />
+          ) : null}
+          <Title order={4} className={classes.title}>
+            {sessionTitle ?? 'Chat'}
+          </Title>
+        </Group>
       </Box>
 
       <ScrollArea className={classes.scrollArea} viewportRef={viewportRef} type="auto">

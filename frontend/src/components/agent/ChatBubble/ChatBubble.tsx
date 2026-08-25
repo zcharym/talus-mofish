@@ -58,7 +58,7 @@ export function ChatBubble({ role, content, streaming = false, menuItems = [] }:
     <Box className={`${classes.row} ${isUser ? classes.rowUser : classes.rowAssistant}`}>
       <Paper
         className={`${classes.bubble} ${isUser ? classes.bubbleUser : classes.bubbleAssistant}`}
-        radius="md"
+        radius="lg"
         p="sm"
         shadow="xs"
       >

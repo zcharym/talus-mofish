@@ -17,6 +17,7 @@ import { Note } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/
 import { VaultTree } from "../components/management/VaultTree";
 import { useDynamicScrollHeight } from "../hooks/useDynamicScrollHeight";
 import { notify } from "../services/notifications";
+import classes from "./ObsidianNotesPage.module.css";
 
 function errorMessage(err: unknown): string {
   if (typeof err === "string") {
@@ -125,8 +126,8 @@ export function ObsidianNotesPage({ focusPath, onFocusConsumed }: ObsidianNotesP
   return (
     <>
       <div ref={editorAnchorRef} />
-      <Group align="stretch" gap="md" wrap="nowrap" mt="sm">
-        <Paper withBorder p="xs" w={280} miw={220} style={{ flexShrink: 0 }}>
+      <Group align="stretch" gap="md" className={classes.layout}>
+        <Paper withBorder p="xs" className={classes.vault}>
           <Text size="xs" c="dimmed" mb="xs">
             Vault
           </Text>
@@ -139,7 +140,7 @@ export function ObsidianNotesPage({ focusPath, onFocusConsumed }: ObsidianNotesP
           </ScrollArea>
         </Paper>
 
-        <Stack gap="sm" style={{ flex: 1, minWidth: 0 }}>
+        <Stack gap="sm" className={classes.editor}>
           {selectedPath ? (
             <>
               <Group justify="space-between" align="flex-start">

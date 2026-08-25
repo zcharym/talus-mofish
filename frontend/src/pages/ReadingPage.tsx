@@ -121,7 +121,7 @@ export function ReadingPage() {
                   p="sm"
                   style={{
                     cursor: "pointer",
-                    borderColor: article.id === selectedId ? "var(--mantine-color-blue-5)" : undefined,
+                    borderColor: article.id === selectedId ? "var(--mantine-color-persimmon-5)" : undefined,
                   }}
                   onClick={() => handleSelect(article)}
                 >

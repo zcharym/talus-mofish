@@ -15,3 +15,8 @@ func WireChatRuntime(s *ChatService, app *application.App, wm WindowManager) {
 	s.wailsApp = app
 	s.windows = wm
 }
+
+// WireConfigRuntime attaches Wails so config saves can notify both windows.
+func WireConfigRuntime(s *ConfigService, app *application.App) {
+	s.wailsApp = app
+}

@@ -16,6 +16,12 @@
   max-width: min(720px, 85%);
 }
 
+@media (max-width: 56.24em) {
+  .bubble {
+    max-width: min(720px, 92%);
+  }
+}
+
 .bubbleActions {
   margin-top: 0.25rem;
   opacity: 0;
@@ -38,7 +44,7 @@
 }
 
 .bubbleUser {
-  background-color: var(--mantine-color-blue-filled);
+  background-color: var(--mantine-color-persimmon-filled);
   color: var(--mantine-color-white);
 }
 

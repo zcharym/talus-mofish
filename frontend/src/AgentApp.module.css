@@ -1,14 +1,20 @@
 .app {
   display: flex;
-  height: 100vh;
+  height: 100dvh;
   width: 100vw;
   overflow: hidden;
-  background-color: var(--mantine-color-body);
+  background-color: var(--mantine-color-body, var(--talus-bg));
+  color: var(--mantine-color-text, var(--talus-ink));
 }
 
 .main {
+  position: relative;
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+.main[data-overlay][data-platform='darwin'] {
+  padding-top: 50px;
 }

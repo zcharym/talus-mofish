@@ -1,21 +1,19 @@
 .navbar {
-  background-color: var(--mantine-color-body);
+  background-color: var(--talus-surface, var(--mantine-color-body));
   height: 100%;
-  width: 300px;
+  width: 100%;
   padding: var(--mantine-spacing-md);
   display: flex;
   flex-direction: column;
-  border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-right: 1px solid var(--talus-hairline, light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4)));
 }
 
 .navbarMain {
   flex: 1;
-  margin-top: var(--mantine-spacing-xl);
 }
 
 .title {
-  text-transform: uppercase;
-  letter-spacing: -0.25px;
+  letter-spacing: -0.02em;
 }
 
 .link {
@@ -25,11 +23,12 @@
   font-size: var(--mantine-font-size-sm);
   color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
   padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-  border-radius: var(--mantine-radius-sm);
+  border-radius: var(--mantine-radius-md);
   font-weight: 500;
+  transition: background-color 160ms ease, transform 120ms ease;
 
   &:hover {
-    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+    background-color: light-dark(rgba(28, 33, 24, 0.05), rgba(236, 232, 222, 0.06));
     color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
 
     & .linkIcon {
@@ -37,14 +36,18 @@
     }
   }
 
+  &:active {
+    transform: scale(0.98);
+  }
+
   &[data-active] {
     &,
     &:hover {
-      background-color: var(--mantine-color-blue-light);
-      color: var(--mantine-color-blue-light-color);
+      background-color: var(--mantine-color-persimmon-light);
+      color: var(--mantine-color-persimmon-light-color);
 
       & .linkIcon {
-        color: var(--mantine-color-blue-light-color);
+        color: var(--mantine-color-persimmon-light-color);
       }
     }
   }
@@ -69,11 +72,11 @@
   font-size: var(--mantine-font-size-sm);
   color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
   padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-  border-radius: var(--mantine-radius-sm);
+  border-radius: var(--mantine-radius-md);
   font-weight: 600;
 
   &:hover {
-    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+    background-color: light-dark(rgba(28, 33, 24, 0.05), rgba(236, 232, 222, 0.06));
     color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
 
     & .linkIcon {
@@ -94,7 +97,7 @@
 .nestedLinks {
   margin-left: var(--mantine-spacing-sm);
   padding-left: var(--mantine-spacing-xs);
-  border-left: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-left: 1px solid var(--talus-hairline, light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4)));
 }
 
 .nestedLink {
@@ -105,11 +108,11 @@
   color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
   padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
   padding-left: var(--mantine-spacing-xs);
-  border-radius: var(--mantine-radius-sm);
+  border-radius: var(--mantine-radius-md);
   font-weight: 400;
 
   &:hover {
-    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+    background-color: light-dark(rgba(28, 33, 24, 0.05), rgba(236, 232, 222, 0.06));
     color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
 
     & .linkIcon {
@@ -120,11 +123,11 @@
   &[data-active] {
     &,
     &:hover {
-      background-color: var(--mantine-color-blue-light);
-      color: var(--mantine-color-blue-light-color);
+      background-color: var(--mantine-color-persimmon-light);
+      color: var(--mantine-color-persimmon-light-color);
 
       & .linkIcon {
-        color: var(--mantine-color-blue-light-color);
+        color: var(--mantine-color-persimmon-light-color);
       }
     }
   }
@@ -135,6 +138,6 @@
 }
 
 .footer {
-  border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-top: 1px solid var(--talus-hairline, light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4)));
   padding-top: var(--mantine-spacing-md);
 }

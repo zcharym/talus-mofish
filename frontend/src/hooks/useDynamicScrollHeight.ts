@@ -21,8 +21,9 @@ export function useDynamicScrollHeight(
       const { top } = anchor.getBoundingClientRect();
       const footerHeight = footerRef.current?.getBoundingClientRect().height ?? 0;
       const footerGap = footerHeight > 0 ? FOOTER_GAP : 0;
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
       const next =
-        window.innerHeight - top - footerHeight - footerGap - VIEWPORT_BOTTOM_PADDING;
+        viewportHeight - top - footerHeight - footerGap - VIEWPORT_BOTTOM_PADDING;
 
       setHeight(Math.max(MIN_HEIGHT, Math.floor(next)));
     };
@@ -43,10 +44,12 @@ export function useDynamicScrollHeight(
     }
 
     window.addEventListener('resize', update);
+    window.visualViewport?.addEventListener('resize', update);
 
     return () => {
       observer.disconnect();
       window.removeEventListener('resize', update);
+      window.visualViewport?.removeEventListener('resize', update);
     };
   }, [anchorRef, footerRef, ...deps]);
 

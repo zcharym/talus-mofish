@@ -75,6 +75,7 @@ export function AgentHomeInput({
             radius="xl"
             variant="light"
             color="red"
+            className={classes.sendButton}
             aria-label="Stop generating"
             onClick={() => void onCancel()}
           >
@@ -85,6 +86,7 @@ export function AgentHomeInput({
             size="lg"
             radius="xl"
             variant="filled"
+            className={classes.sendButton}
             aria-label="Send message"
             disabled={disabled || sending || !currentValue.trim()}
             onClick={() => void handleSend()}

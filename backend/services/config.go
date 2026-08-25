@@ -10,12 +10,14 @@ import (
 	"github.com/songwei.ma/talus-mofish/backend/storage/store"
 	"github.com/songwei.ma/talus-mofish/backend/types"
 	"github.com/songwei.ma/talus-mofish/backend/utils/autostart"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // ConfigService exposes config.json and key/value settings APIs.
 type ConfigService struct {
 	db        *storage.DB
 	config    *storage.ConfigStore
+	wailsApp  *application.App
 	autostart *autostart.Manager
 }
 
@@ -48,6 +50,12 @@ func (s *ConfigService) SaveConfig(cfg types.App) error {
 	}
 	if err := s.autostart.Sync(cfg.AutoStart); err != nil {
 		return fmt.Errorf("apply autostart: %w", err)
+	}
+	if s.wailsApp != nil {
+		s.wailsApp.Event.Emit("config:changed", map[string]any{
+			"theme":     cfg.Theme,
+			"debugMode": cfg.DebugMode,
+		})
 	}
 	return nil
 }

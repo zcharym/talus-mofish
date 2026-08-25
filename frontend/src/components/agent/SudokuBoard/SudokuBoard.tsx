@@ -1,6 +1,6 @@
 import { KeyboardEvent, useCallback, useEffect, useState } from 'react';
 import { IconCheck, IconEraser } from '@tabler/icons-react';
-import { Box, Button, Group, Loader, Select, Text, Title } from '@mantine/core';
+import { Box, Burger, Button, Group, Loader, Select, Text, Title } from '@mantine/core';
 import { SudokuService } from '../../../../bindings/github.com/songwei.ma/talus-mofish/backend/services';
 import { notify } from '../../../services/notifications';
 import classes from './SudokuBoard.module.css';
@@ -20,6 +20,7 @@ interface SudokuBoardProps {
   sessionId: string;
   sessionTitle: string | null;
   onSessionUpdated: () => Promise<void>;
+  onOpenSidebar?: () => void;
 }
 
 const DIFFICULTIES = [
@@ -33,7 +34,7 @@ function isGiven(puzzle: string, index: number): boolean {
   return cell !== undefined && cell !== '0';
 }
 
-export function SudokuBoard({ sessionId, sessionTitle, onSessionUpdated }: SudokuBoardProps) {
+export function SudokuBoard({ sessionId, sessionTitle, onSessionUpdated, onOpenSidebar }: SudokuBoardProps) {
   const [game, setGame] = useState<SudokuGameState | null>(null);
   const [difficulty, setDifficulty] = useState('easy');
   const [selected, setSelected] = useState<number | null>(null);
@@ -171,8 +172,13 @@ export function SudokuBoard({ sessionId, sessionTitle, onSessionUpdated }: Sudok
   return (
     <Box className={classes.page}>
       <Box className={classes.header}>
-        <Title order={4}>{sessionTitle || 'Sudoku'}</Title>
-        <Group gap="sm" wrap="nowrap">
+        <Group gap="sm" wrap="nowrap" className={classes.headerTitle}>
+          {onOpenSidebar ? (
+            <Burger opened={false} onClick={onOpenSidebar} size="sm" aria-label="Open chats" />
+          ) : null}
+          <Title order={4}>{sessionTitle || 'Sudoku'}</Title>
+        </Group>
+        <Group gap="sm" wrap="wrap">
           <Select
             size="xs"
             w={120}

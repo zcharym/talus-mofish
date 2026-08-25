@@ -16,7 +16,7 @@ export function DebugPage() {
       </Text>
 
       <Tabs value={activeDemo} onChange={(value) => setActiveDemo(value ?? activeDemo)}>
-        <Tabs.List>
+        <Tabs.List style={{ flexWrap: "wrap" }}>
           {debugDemos.map((demo) => (
             <Tabs.Tab key={demo.id} value={demo.id}>
               {demo.title}

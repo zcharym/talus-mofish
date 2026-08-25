@@ -22,23 +22,36 @@ func NewWindowManager(app *application.App) *WindowManager {
 }
 
 func (wm *WindowManager) CreateWindows() {
-	wm.managementWindow = wm.createWindow(windowNameManagement, "Talus Echo — Manage", "/")
-	wm.agentWindow = wm.createWindow(windowNameAgent, "Talus Agent", "/agent")
+	wm.managementWindow = wm.createWindow(
+		windowNameManagement, "Talus Echo — Manage", "/",
+		1280, 820, 800, 560,
+	)
+	wm.agentWindow = wm.createWindow(
+		windowNameAgent, "Talus Agent", "/agent",
+		1080, 740, 720, 520,
+	)
 
 	wm.managementWindow.Hide()
 	wm.agentWindow.Show()
 }
 
-func (wm *WindowManager) createWindow(name, title, url string) *application.WebviewWindow {
+func (wm *WindowManager) createWindow(
+	name, title, url string,
+	width, height, minWidth, minHeight int,
+) *application.WebviewWindow {
 	window := wm.app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Name:  name,
-		Title: title,
+		Name:      name,
+		Title:     title,
+		Width:     width,
+		Height:    height,
+		MinWidth:  minWidth,
+		MinHeight: minHeight,
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:                application.MacBackdropTranslucent,
 			TitleBar:                application.MacTitleBarHiddenInset,
 		},
-		BackgroundColour: application.NewRGB(27, 38, 54),
+		BackgroundColour: application.NewRGB(20, 22, 18),
 		URL:              url,
 	})
 

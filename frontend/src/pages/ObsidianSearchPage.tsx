@@ -52,7 +52,7 @@ export function ObsidianSearchPage({ onOpenNote }: ObsidianSearchPageProps) {
 
   return (
     <Stack gap="md" mt="sm" maw={720}>
-      <Group align="flex-end">
+      <Group align="flex-end" wrap="wrap">
         <TextInput
           style={{ flex: 1 }}
           label="Search vault"

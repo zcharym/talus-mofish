@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { IconMessageChatbot } from '@tabler/icons-react';
-import { Anchor, Avatar, Box, Group, Loader, Stack, Title } from '@mantine/core';
+import { Anchor, Avatar, Box, Burger, Group, Loader, Stack, Title } from '@mantine/core';
 import { AuthSignIn } from '../AuthSignIn';
 import { UserProfile, getWelcomeMessage } from '../../../utils/userProfile';
 import { AgentHomeInput } from './AgentHomeInput';
@@ -18,6 +18,7 @@ interface AgentHomeProps {
   onSignInWithEmail: (email: string) => Promise<void>;
   onSignIn: (provider: 'github' | 'google') => Promise<void>;
   onQuickAction: (actionId: QuickActionId, prompt: string, autoSend: boolean) => void;
+  onOpenSidebar?: () => void;
 }
 
 export function AgentHome({
@@ -30,6 +31,7 @@ export function AgentHome({
   onSignInWithEmail,
   onSignIn,
   onQuickAction,
+  onOpenSidebar,
 }: AgentHomeProps) {
   const [draft, setDraft] = useState('');
 
@@ -51,9 +53,19 @@ export function AgentHome({
     }
   };
 
+  const menuButton = onOpenSidebar ? (
+    <Burger
+      opened={false}
+      onClick={onOpenSidebar}
+      size="sm"
+      aria-label="Open chats"
+    />
+  ) : null;
+
   if (userLoading) {
     return (
-      <Box className={classes.page}>
+      <Box className={classes.page} data-with-menu={onOpenSidebar ? true : undefined}>
+        {menuButton ? <Box className={classes.menuButton}>{menuButton}</Box> : null}
         <Loader size="sm" />
       </Box>
     );
@@ -61,7 +73,8 @@ export function AgentHome({
 
   if (!user) {
     return (
-      <Box className={classes.page}>
+      <Box className={classes.page} data-with-menu={onOpenSidebar ? true : undefined}>
+        {menuButton ? <Box className={classes.menuButton}>{menuButton}</Box> : null}
         <AuthSignIn
           signingIn={signingIn}
           onSignInWithEmail={onSignInWithEmail}
@@ -74,16 +87,22 @@ export function AgentHome({
   }
 
   return (
-    <Box className={classes.page}>
+    <Box className={classes.page} data-with-menu={onOpenSidebar ? true : undefined}>
+      {menuButton ? <Box className={classes.menuButton}>{menuButton}</Box> : null}
       <Stack gap="xl" className={classes.content}>
-        <Group justify="space-between" align="flex-start" wrap="nowrap">
-          <Group gap="sm" align="center">
+        <Group
+          className={`${classes.greetingRow} ${classes.reveal}`}
+          justify="space-between"
+          align="flex-start"
+          wrap="wrap"
+        >
+          <Group gap="sm" align="center" wrap="nowrap">
             {user.avatar_url ? (
               <Avatar src={user.avatar_url} alt={user.display_name} radius="xl" size={28} />
             ) : (
               <IconMessageChatbot size={28} stroke={1.25} className={classes.icon} />
             )}
-            <Title order={2} className={classes.greeting}>
+            <Title order={2} className={classes.greeting} lineClamp={2}>
               {welcomeMessage}
             </Title>
           </Group>
@@ -92,15 +111,19 @@ export function AgentHome({
           </Anchor>
         </Group>
 
-        <AgentHomeInput
-          sending={sending}
-          value={draft}
-          onValueChange={setDraft}
-          onSend={onSend}
-          onCancel={onCancel}
-        />
+        <Box className={`${classes.reveal} ${classes.revealDelay1}`}>
+          <AgentHomeInput
+            sending={sending}
+            value={draft}
+            onValueChange={setDraft}
+            onSend={onSend}
+            onCancel={onCancel}
+          />
+        </Box>
 
-        <QuickActionChips disabled={sending} onSelect={handleQuickAction} />
+        <Box className={`${classes.reveal} ${classes.revealDelay2}`}>
+          <QuickActionChips disabled={sending} onSelect={handleQuickAction} />
+        </Box>
       </Stack>
     </Box>
   );

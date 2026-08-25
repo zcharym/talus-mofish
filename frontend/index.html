@@ -5,6 +5,24 @@
     <link rel="icon" type="image/svg+xml" href="/wails.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Talus Echo</title>
+    <script>
+      (function () {
+        try {
+          var stored = window.localStorage.getItem('mantine-color-scheme-value');
+          var scheme =
+            stored === 'light' || stored === 'dark' || stored === 'auto' ? stored : 'auto';
+          var computed =
+            scheme !== 'auto'
+              ? scheme
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          document.documentElement.setAttribute('data-mantine-color-scheme', computed);
+        } catch (e) {
+          document.documentElement.setAttribute('data-mantine-color-scheme', 'dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -48,6 +48,7 @@ export function ChatInput({ disabled, sending, onSend, onCancel }: ChatInputProp
             radius="xl"
             variant="light"
             color="red"
+            className={classes.sendButton}
             aria-label="Stop generating"
             onClick={() => void onCancel()}
           >
@@ -58,6 +59,7 @@ export function ChatInput({ disabled, sending, onSend, onCancel }: ChatInputProp
             size="lg"
             radius="xl"
             variant="filled"
+            className={classes.sendButton}
             aria-label="Send message"
             disabled={disabled || sending || !value.trim()}
             onClick={() => void handleSend()}

@@ -26,12 +26,9 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import { UserProfile } from '../../../utils/userProfile';
+import { isMacOS } from '../../../utils/platform';
 import { loadPinnedSessionIds, savePinnedSessionIds } from './pinnedSessions';
 import classes from './SessionSidebar.module.css';
-
-const isMacOS =
-  typeof navigator !== 'undefined' &&
-  (navigator.platform?.includes('Mac') || navigator.userAgent.includes('Mac'));
 
 export interface ChatSessionItem {
   id: string;
@@ -51,6 +48,7 @@ interface SessionSidebarProps {
   onDeleteSession: (sessionId: string) => Promise<void>;
   onOpenManagement: () => void;
   onSignOut: () => Promise<void>;
+  overlay?: boolean;
 }
 
 interface SessionRowProps {
@@ -129,6 +127,7 @@ export function SessionSidebar({
   onDeleteSession,
   onOpenManagement,
   onSignOut,
+  overlay = false,
 }: SessionSidebarProps) {
   const [renameSessionId, setRenameSessionId] = useState<string | null>(null);
   const [renameTitle, setRenameTitle] = useState('');
@@ -242,7 +241,11 @@ export function SessionSidebar({
   const isEmpty = sessions.length === 0;
 
   return (
-    <Box className={classes.sidebar} data-platform={isMacOS ? 'darwin' : undefined}>
+    <Box
+      className={classes.sidebar}
+      data-platform={isMacOS ? 'darwin' : undefined}
+      data-overlay={overlay || undefined}
+    >
       <Box className={classes.header}>
         <Box className={classes.titlebarSpacer} aria-hidden="true" />
         {user ? (

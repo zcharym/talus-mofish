@@ -1,7 +1,7 @@
 .wrapper {
-  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
-  border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  background-color: var(--mantine-color-body);
+  padding: var(--mantine-spacing-sm) clamp(0.85rem, 2.4vw, 1.5rem) var(--mantine-spacing-md);
+  border-top: 1px solid var(--talus-hairline, light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4)));
+  background-color: color-mix(in srgb, var(--talus-surface, var(--mantine-color-body)) 92%, transparent);
 }
 
 .inputRow {
@@ -19,4 +19,12 @@
   margin-top: var(--mantine-spacing-xs);
   font-size: var(--mantine-font-size-xs);
   color: var(--mantine-color-dimmed);
+}
+
+.sendButton {
+  transition: transform 120ms ease;
+}
+
+.sendButton:active:not(:disabled) {
+  transform: scale(0.96);
 }

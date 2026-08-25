@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import '@mantine/core/styles.css';
-import '@mantine/notifications/styles.css';
-import { Box, MantineProvider } from '@mantine/core';
-import { Notifications } from '@mantine/notifications';
-import { ChatService, ConfigService, SudokuService, SystemService } from '../bindings/github.com/songwei.ma/talus-mofish/backend/services';
+import { Box, Drawer } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
+import { ChatService, SudokuService, SystemService } from '../bindings/github.com/songwei.ma/talus-mofish/backend/services';
 import { AgentHome, QuickActionId } from './components/agent/AgentHome';
 import { ChatInput } from './components/agent/ChatInput';
 import { ChatMessageItem, ChatThread } from './components/agent/ChatThread';
 import { ChatSessionItem, SessionSidebar } from './components/agent/SessionSidebar';
 import { SudokuBoard } from './components/agent/SudokuBoard';
 import { useAgentStream } from './hooks/useAgentStream';
+import { useConfigColorScheme } from './hooks/useConfigColorScheme';
 import { useCurrentUser } from './hooks/useCurrentUser';
 import { notify } from './services/notifications';
-import type { ThemeOption } from './types/theme';
+import { ThemeRoot } from './theme';
+import { isMacOS } from './utils/platform';
 import classes from './AgentApp.module.css';
 
 function AgentApp() {
@@ -21,7 +21,11 @@ function AgentApp() {
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [sending, setSending] = useState(false);
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
-  const [colorScheme, setColorScheme] = useState<ThemeOption>('auto');
+  const { colorScheme } = useConfigColorScheme();
+  const [sidebarOpened, setSidebarOpened] = useState(false);
+  const isOverlay = useMediaQuery('(max-width: 56.24em)', false, {
+    getInitialValueInEffect: false,
+  });
   const activeSessionIdRef = useRef<string | null>(null);
   const { user, loading: userLoading, signingIn, signInWithEmail, signIn, signOut } = useCurrentUser();
 
@@ -107,17 +111,6 @@ function AgentApp() {
   });
 
   useEffect(() => {
-    ConfigService.GetConfig()
-      .then((cfg) => {
-        const theme = (cfg.theme as ThemeOption) || 'auto';
-        setColorScheme(theme);
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  }, []);
-
-  useEffect(() => {
     void loadSessions();
   }, [loadSessions]);
 
@@ -145,9 +138,19 @@ function AgentApp() {
     return session.id;
   }, [activeSessionId, loadSessions]);
 
+  const closeSidebar = useCallback(() => {
+    setSidebarOpened(false);
+  }, []);
+
   const handleGoHome = () => {
     setActiveSessionId(null);
     setMessages([]);
+    closeSidebar();
+  };
+
+  const handleSelectSession = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+    closeSidebar();
   };
 
   const handleRenameSession = async (sessionId: string, title: string) => {
@@ -259,32 +262,56 @@ function AgentApp() {
   const isHomeView = activeSessionId === null;
   const isSudokuView = activeSession?.kind === 'sudoku';
 
-  return (
-    <MantineProvider
-      defaultColorScheme="auto"
-      forceColorScheme={colorScheme === 'auto' ? undefined : colorScheme}
-    >
-      <Notifications position="top-right" limit={5} />
-      <Box className={classes.app}>
-        <SessionSidebar
-          sessions={sessions}
-          activeSessionId={activeSessionId}
-          user={user}
-          onSelectSession={setActiveSessionId}
-          onNewChat={handleGoHome}
-          onRenameSession={handleRenameSession}
-          onDeleteSession={handleDeleteSession}
-          onOpenManagement={handleOpenManagement}
-          onSignOut={handleSignOut}
-        />
+  const sidebar = (
+    <SessionSidebar
+      sessions={sessions}
+      activeSessionId={activeSessionId}
+      user={user}
+      overlay={Boolean(isOverlay)}
+      onSelectSession={handleSelectSession}
+      onNewChat={handleGoHome}
+      onRenameSession={handleRenameSession}
+      onDeleteSession={handleDeleteSession}
+      onOpenManagement={handleOpenManagement}
+      onSignOut={handleSignOut}
+    />
+  );
 
-        <Box className={classes.main}>
+  const openSidebar = isOverlay ? () => setSidebarOpened(true) : undefined;
+
+  return (
+    <ThemeRoot colorScheme={colorScheme}>
+      <Box className={classes.app}>
+        {isOverlay ? (
+          <Drawer
+            opened={sidebarOpened}
+            onClose={closeSidebar}
+            padding={0}
+            size={260}
+            withCloseButton={false}
+            styles={{
+              content: { height: '100%' },
+              body: { height: '100%', padding: 0, display: 'flex' },
+            }}
+          >
+            {sidebar}
+          </Drawer>
+        ) : (
+          sidebar
+        )}
+
+        <Box
+          className={classes.main}
+          data-overlay={isOverlay || undefined}
+          data-platform={isMacOS ? 'darwin' : undefined}
+        >
           {isHomeView ? (
             <AgentHome
               user={user}
               userLoading={userLoading}
               signingIn={signingIn}
               sending={sending}
+              onOpenSidebar={openSidebar}
               onSend={handleSend}
               onCancel={streamingMessageId ? handleCancel : undefined}
               onSignInWithEmail={handleSignInWithEmail}
@@ -298,6 +325,7 @@ function AgentApp() {
               sessionId={activeSessionId}
               sessionTitle={activeSession?.title ?? null}
               onSessionUpdated={loadSessions}
+              onOpenSidebar={openSidebar}
             />
           ) : (
             <>
@@ -305,6 +333,7 @@ function AgentApp() {
                 messages={messages}
                 sessionTitle={activeSession?.title ?? null}
                 hasActiveSession
+                onOpenSidebar={openSidebar}
               />
               <ChatInput
                 disabled={false}
@@ -316,7 +345,7 @@ function AgentApp() {
           )}
         </Box>
       </Box>
-    </MantineProvider>
+    </ThemeRoot>
   );
 }
 

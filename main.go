@@ -81,6 +81,7 @@ func main() {
 	windowManager.CreateWindows()
 	services.WireSystemRuntime(systemSvc, app, windowManager)
 	services.WireChatRuntime(chatSvc, app, windowManager)
+	services.WireConfigRuntime(configSvc, app)
 
 	setupSystemTray(app, windowManager)
 

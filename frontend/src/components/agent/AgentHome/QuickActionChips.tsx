@@ -67,12 +67,12 @@ export function QuickActionChips({ disabled = false, onSelect }: QuickActionChip
             <Text size="xs" c="dimmed" ta="center">
               {label}
             </Text>
-            {actions.length > 4 ? (
+            {actions.length > 6 ? (
               <Marquee pauseOnHover reverse={index % 2 === 1} gap="sm" duration={25000}>
                 {chips}
               </Marquee>
             ) : (
-              <Group gap="sm" justify="center">
+              <Group gap="sm" justify="center" wrap="wrap" className={classes.chips}>
                 {chips}
               </Group>
             )}

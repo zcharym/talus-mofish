@@ -19,6 +19,7 @@ import { VocabularyPageResult } from "../../bindings/github.com/songwei.ma/talus
 import { VocabularyEditModal } from "../components/management/VocabularyEditModal";
 import { useDynamicScrollHeight } from "../hooks/useDynamicScrollHeight";
 import { notify } from "../services/notifications";
+import { useMediaQuery } from "@mantine/hooks";
 
 const PAGE_SIZE = 10;
 const SEARCH_LIMIT = 50;
@@ -31,6 +32,7 @@ export function VocabularyPage() {
   const [loading, setLoading] = useState(true);
   const [selectedVocabId, setSelectedVocabId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const isNarrow = useMediaQuery("(max-width: 48em)");
   const scrollAnchorRef = useRef<HTMLDivElement>(null);
   const scrollFooterRef = useRef<HTMLDivElement>(null);
   const searchAnchorRef = useRef<HTMLDivElement>(null);
@@ -147,7 +149,7 @@ export function VocabularyPage() {
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>Word</Table.Th>
-                    <Table.Th>Phonetic</Table.Th>
+                    {!isNarrow ? <Table.Th>Phonetic</Table.Th> : null}
                     <Table.Th>Definition</Table.Th>
                     <Table.Th>Source</Table.Th>
                   </Table.Tr>
@@ -155,7 +157,7 @@ export function VocabularyPage() {
                 <Table.Tbody>
                   {loading ? (
                     <Table.Tr>
-                      <Table.Td colSpan={4}>
+                      <Table.Td colSpan={isNarrow ? 3 : 4}>
                         <Center py="md">
                           <Loader size="sm" />
                         </Center>
@@ -170,12 +172,12 @@ export function VocabularyPage() {
                           cursor: "pointer",
                           backgroundColor:
                             selectedVocabId === row.id && modalOpen
-                              ? "var(--mantine-color-blue-light)"
+                              ? "var(--mantine-color-persimmon-light)"
                               : undefined,
                         }}
                       >
                         <Table.Td fw={500}>{row.word}</Table.Td>
-                        <Table.Td>{row.phonetic}</Table.Td>
+                        {!isNarrow ? <Table.Td>{row.phonetic}</Table.Td> : null}
                         <Table.Td>
                           <Text size="sm" lineClamp={2}>{row.definition}</Text>
                         </Table.Td>

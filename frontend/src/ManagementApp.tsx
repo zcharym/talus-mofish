@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import '@mantine/core/styles.css';
-import '@mantine/notifications/styles.css';
-import { AppShell, MantineProvider, Text, Title } from '@mantine/core';
-import { Notifications } from '@mantine/notifications';
+import { AppShell, Burger, Group, Text, Title } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { ConfigService } from '../bindings/github.com/songwei.ma/talus-mofish/backend/services';
 import { NavbarSegmented } from './components/management/NavbarSegmented';
+import { useConfigColorScheme } from './hooks/useConfigColorScheme';
 import {
   DEFAULT_MANAGEMENT_ROUTE,
   ManagementRoute,
@@ -18,7 +17,10 @@ import { ObsidianNotesPage } from './pages/ObsidianNotesPage';
 import { ObsidianSearchPage } from './pages/ObsidianSearchPage';
 import { ReadingPage } from './pages/ReadingPage';
 import { VocabularyPage } from './pages/VocabularyPage';
+import { ThemeRoot } from './theme';
 import type { ThemeOption } from './types/theme';
+import { isMacOS } from './utils/platform';
+import classes from './ManagementApp.module.css';
 
 function MainContent({
   activeItem,
@@ -35,84 +37,46 @@ function MainContent({
   onObsidianFocusConsumed: () => void;
   onOpenObsidianNote: (path: string) => void;
 }) {
-  const title = PAGE_TITLES[activeItem] ?? 'Talus Echo';
-
   if (activeItem === ManagementRoute.Config) {
-    return (
-      <>
-        <Title order={2}>{title}</Title>
-        <ConfigPage onThemeChange={onThemeChange} onDebugModeChange={onDebugModeChange} />
-      </>
-    );
+    return <ConfigPage onThemeChange={onThemeChange} onDebugModeChange={onDebugModeChange} />;
   }
 
   if (activeItem === ManagementRoute.Debug) {
-    return (
-      <>
-        <Title order={2}>{title}</Title>
-        <DebugPage />
-      </>
-    );
+    return <DebugPage />;
   }
 
   if (activeItem === ManagementRoute.EnglishImport) {
-    return (
-      <>
-        <Title order={2}>{title}</Title>
-        <ImportPage />
-      </>
-    );
+    return <ImportPage />;
   }
 
   if (activeItem === ManagementRoute.EnglishReading) {
-    return (
-      <>
-        <Title order={2}>{title}</Title>
-        <ReadingPage />
-      </>
-    );
+    return <ReadingPage />;
   }
 
   if (activeItem === ManagementRoute.EnglishVocabulary) {
-    return (
-      <>
-        <Title order={2}>{title}</Title>
-        <VocabularyPage />
-      </>
-    );
+    return <VocabularyPage />;
   }
 
   if (activeItem === ManagementRoute.ObsidianNotes) {
     return (
-      <>
-        <Title order={2}>{title}</Title>
-        <ObsidianNotesPage
-          focusPath={obsidianFocusPath}
-          onFocusConsumed={onObsidianFocusConsumed}
-        />
-      </>
+      <ObsidianNotesPage
+        focusPath={obsidianFocusPath}
+        onFocusConsumed={onObsidianFocusConsumed}
+      />
     );
   }
 
   if (activeItem === ManagementRoute.ObsidianSearch) {
-    return (
-      <>
-        <Title order={2}>{title}</Title>
-        <ObsidianSearchPage onOpenNote={onOpenObsidianNote} />
-      </>
-    );
+    return <ObsidianSearchPage onOpenNote={onOpenObsidianNote} />;
   }
 
   if (activeItem === ManagementRoute.About) {
     return (
-      <>
-        <Title order={2}>{title}</Title>
-        <Text c="dimmed" mt="sm">
-          Talus Echo — a chat-oriented desktop agent for multiple domains. English Learning is the
-          first domain: manage vocabulary, reading, and Anki imports here; use Agent Chat for
-          interactive sessions.
-        </Text>
-      </>
+      <Text c="dimmed" mt="sm">
+        Talus Echo — a chat-oriented desktop agent for multiple domains. English Learning is the
+        first domain: manage vocabulary, reading, and Anki imports here; use Agent Chat for
+        interactive sessions.
+      </Text>
     );
   }
 
@@ -121,13 +85,13 @@ function MainContent({
 
 function ManagementApp() {
   const [activeItem, setActiveItem] = useState<ManagementRouteId>(DEFAULT_MANAGEMENT_ROUTE);
-  const [colorScheme, setColorScheme] = useState<ThemeOption>('auto');
+  const { colorScheme, applyTheme } = useConfigColorScheme();
   const [debugMode, setDebugMode] = useState(false);
   const [obsidianFocusPath, setObsidianFocusPath] = useState<string | null>(null);
-
-  const applyTheme = useCallback((theme: ThemeOption) => {
-    setColorScheme(theme);
-  }, []);
+  const [navOpened, setNavOpened] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 48em)', false, {
+    getInitialValueInEffect: false,
+  });
 
   const applyDebugMode = useCallback((enabled: boolean) => {
     setDebugMode(enabled);
@@ -139,36 +103,63 @@ function ManagementApp() {
   const openObsidianNote = useCallback((path: string) => {
     setObsidianFocusPath(path);
     setActiveItem(ManagementRoute.ObsidianNotes);
+    setNavOpened(false);
   }, []);
 
   const consumeObsidianFocus = useCallback(() => {
     setObsidianFocusPath(null);
   }, []);
 
+  const handleActiveItemChange = useCallback((itemId: ManagementRouteId) => {
+    setActiveItem(itemId);
+    setNavOpened(false);
+  }, []);
+
   useEffect(() => {
     ConfigService.GetConfig()
       .then((cfg) => {
-        const theme = (cfg.theme as ThemeOption) || 'auto';
-        applyTheme(theme);
         applyDebugMode(cfg.debugMode ?? false);
       })
       .catch((err: unknown) => {
         console.error(err);
       });
-  }, [applyTheme, applyDebugMode]);
+  }, [applyDebugMode]);
+
+  const title = PAGE_TITLES[activeItem] ?? 'Talus Echo';
 
   return (
-    <MantineProvider
-      defaultColorScheme="auto"
-      forceColorScheme={colorScheme === 'auto' ? undefined : colorScheme}
-    >
-      <Notifications position="top-right" limit={5} />
-      <AppShell navbar={{ width: 300, breakpoint: 'sm' }} padding="md">
+    <ThemeRoot colorScheme={colorScheme}>
+      <AppShell
+        header={{ height: 52 }}
+        navbar={{
+          width: 280,
+          breakpoint: 'sm',
+          collapsed: { mobile: !navOpened },
+        }}
+        padding={{ base: 'sm', sm: 'md' }}
+        className={classes.shell}
+      >
+        <AppShell.Header className={classes.header} data-platform={isMacOS ? 'darwin' : undefined}>
+          <Group h="100%" px="md" gap="sm" wrap="nowrap">
+            {isMobile ? (
+              <Burger
+                opened={navOpened}
+                onClick={() => setNavOpened((opened) => !opened)}
+                size="sm"
+                aria-label="Toggle navigation"
+              />
+            ) : null}
+            <Title order={4} className={classes.headerTitle}>
+              {title}
+            </Title>
+          </Group>
+        </AppShell.Header>
+
         <AppShell.Navbar p={0}>
           <NavbarSegmented
             activeItem={activeItem}
             debugMode={debugMode}
-            onActiveItemChange={setActiveItem}
+            onActiveItemChange={handleActiveItemChange}
           />
         </AppShell.Navbar>
 
@@ -183,7 +174,7 @@ function ManagementApp() {
           />
         </AppShell.Main>
       </AppShell>
-    </MantineProvider>
+    </ThemeRoot>
   );
 }
 

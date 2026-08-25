@@ -45,7 +45,7 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
   return (
     <Stack maw={560} gap="md">
       <Tabs value={activeTab} onChange={setActiveTab}>
-        <Tabs.List>
+        <Tabs.List style={{ flexWrap: "wrap" }}>
           {CONFIG_TABS.map((tab) => (
             <Tabs.Tab
               key={tab.value}

@@ -1,0 +1,19 @@
+.shell {
+  background-color: var(--mantine-color-body, var(--talus-bg));
+}
+
+.header {
+  background-color: color-mix(in srgb, var(--talus-surface, var(--mantine-color-body)) 92%, transparent);
+  border-bottom: 1px solid var(--talus-hairline, light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4)));
+}
+
+.headerTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header[data-platform='darwin'] {
+  padding-left: 72px;
+}
