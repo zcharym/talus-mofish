@@ -18,6 +18,7 @@ type App struct {
 	OAuth            OAuth           `json:"oauth"`
 	Sudoku           Sudoku          `json:"sudoku"`
 	Obsidian         Obsidian        `json:"obsidian"`
+	Cloudflare       Cloudflare      `json:"cloudflare"`
 }
 
 // Auth holds settings for email magic-link authentication.
@@ -55,4 +56,23 @@ func (o Obsidian) Normalize() Obsidian {
 	}
 	o.APIKey = strings.TrimSpace(o.APIKey)
 	return o
+}
+
+// Cloudflare holds Account API credentials for the Agent dashboard.
+type Cloudflare struct {
+	AccountID string `json:"accountId"`
+	APIToken  string `json:"apiToken"`
+}
+
+// Normalize trims stored Cloudflare credentials.
+func (c Cloudflare) Normalize() Cloudflare {
+	c.AccountID = strings.TrimSpace(c.AccountID)
+	c.APIToken = strings.TrimSpace(c.APIToken)
+	return c
+}
+
+// Configured reports whether both an account ID and API token are set.
+func (c Cloudflare) Configured() bool {
+	c = c.Normalize()
+	return c.AccountID != "" && c.APIToken != ""
 }

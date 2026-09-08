@@ -98,5 +98,6 @@ func mergeDefaults(app, defaults types.App) types.App {
 	}
 	app.AI = app.AI.Normalize()
 	app.Obsidian = app.Obsidian.Normalize()
+	app.Cloudflare = app.Cloudflare.Normalize()
 	return app
 }

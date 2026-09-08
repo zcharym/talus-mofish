@@ -6,7 +6,7 @@ Talus Echo is a **multi-domain monorepo**. Bounded contexts are owned packages u
 
 ```
 backend/
-├── services/     # Wails-bound facades (System, Config, Auth, Chat, English, Sudoku, Obsidian)
+├── services/     # Wails-bound facades (System, Config, Auth, Chat, English, Sudoku, Obsidian, Cloudflare)
 ├── storage/      # SQLite + config.json + sqlc store
 ├── types/        # Shared Wails/JSON DTOs
 ├── utils/        # aiclient, autostart, env loader
@@ -16,6 +16,7 @@ backend/
 ├── english/      # English Learning domain (content importers)
 ├── sudoku/       # YouDoSudoku Agent window games
 ├── obsidian/     # Obsidian Local REST API vault client
+├── cloudflare/   # Cloudflare Agent dashboard client
 ├── watch/        # Echo Watch sidecar domain
 └── vdiupload/    # VDI upload sidecar domain
 ```
@@ -28,10 +29,12 @@ flowchart TB
     EN[english]
     SU[sudoku]
     OB[obsidian]
+    CF[cloudflare]
     SVC[services]
     EN --> SVC
     SU --> SVC
     OB --> SVC
+    CF --> SVC
   end
 
   subgraph sidecars["Side-car CLIs"]
@@ -51,6 +54,7 @@ flowchart TB
   EN -.->|uses| K
   SU -.->|uses| K
   OB -.->|uses| K
+  CF -.->|uses| K
   W --> K
   U --> K
   W --> CW
@@ -61,12 +65,13 @@ flowchart TB
 | [english](./english/) | desktop-agent | `backend/english/content`, `backend/storage/store`, `backend/services/english` | [README](./english/README.md), [design-and-plan](../design-and-plan.md) |
 | [sudoku](./sudoku/) | desktop-agent | `backend/sudoku`, `backend/services/sudoku.go`, `backend/storage` | [README](./sudoku/README.md) |
 | [obsidian](./obsidian/) | desktop-agent | `backend/obsidian`, `backend/services/obsidian.go` | [README](./obsidian/README.md) |
+| [cloudflare](./cloudflare/) | desktop-agent | `backend/cloudflare`, `backend/services/cloudflare.go` | [README](./cloudflare/README.md) |
 | [watch](./watch/) | sidecar | `backend/watch`, `cmd/echo-watch`, `cloud/echo-watch` | [README](./watch/README.md) |
 | [vdiupload](./vdiupload/) | sidecar | `backend/vdiupload`, `cmd/vdi-upload` | [DESIGN.md](./vdiupload/DESIGN.md) |
 
 ## Shared kernel
 
-Packages that multiple domains may use. **Rule:** kernel packages must not import `backend/watch`, `backend/vdiupload`, `backend/english`, or `backend/obsidian`.
+Packages that multiple domains may use. **Rule:** kernel packages must not import `backend/watch`, `backend/vdiupload`, `backend/english`, `backend/obsidian`, or `backend/cloudflare`.
 
 | Package | Role |
 |---------|------|

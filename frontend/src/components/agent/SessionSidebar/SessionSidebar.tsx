@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  IconCloud,
   IconDots,
   IconLayoutSidebar,
   IconLogout,
@@ -42,7 +43,10 @@ interface SessionSidebarProps {
   sessions: ChatSessionItem[];
   activeSessionId: string | null;
   user: UserProfile | null;
+  showCloudflareTab?: boolean;
+  cloudflareActive?: boolean;
   onSelectSession: (sessionId: string) => void;
+  onSelectCloudflare?: () => void;
   onNewChat: () => void;
   onRenameSession: (sessionId: string, title: string) => Promise<void>;
   onDeleteSession: (sessionId: string) => Promise<void>;
@@ -121,7 +125,10 @@ export function SessionSidebar({
   sessions,
   activeSessionId,
   user,
+  showCloudflareTab = false,
+  cloudflareActive = false,
   onSelectSession,
+  onSelectCloudflare,
   onNewChat,
   onRenameSession,
   onDeleteSession,
@@ -239,6 +246,8 @@ export function SessionSidebar({
   const hasPinned = pinnedSessions.length > 0;
   const hasRecents = recentSessions.length > 0;
   const isEmpty = sessions.length === 0;
+  const showPinnedSection = showCloudflareTab || hasPinned;
+  const showEmptyOnly = isEmpty && !showCloudflareTab;
 
   return (
     <Box
@@ -293,35 +302,52 @@ export function SessionSidebar({
 
       <ScrollArea className={classes.list} type="auto">
         <Stack gap={4} p="xs">
-          {isEmpty ? (
+          {showEmptyOnly ? (
             <Text c="dimmed" size="sm" p="sm">
               No conversations yet.
             </Text>
           ) : (
             <>
-              {hasPinned && (
+              {showPinnedSection && (
                 <Stack gap={4}>
                   <Text className={classes.sectionLabel} size="xs">
                     Pinned
                   </Text>
+                  {showCloudflareTab ? (
+                    <UnstyledButton
+                      className={classes.sessionButton}
+                      w="100%"
+                      data-active={cloudflareActive || undefined}
+                      onClick={onSelectCloudflare}
+                    >
+                      <Group gap={6} wrap="nowrap">
+                        <IconCloud size={14} />
+                        <Text size="sm" lineClamp={1}>
+                          Cloudflare
+                        </Text>
+                      </Group>
+                    </UnstyledButton>
+                  ) : null}
                   {pinnedSessions.map(renderSession)}
                 </Stack>
               )}
 
-              {hasPinned && hasRecents && <Divider my="xs" />}
+              {showPinnedSection && hasRecents && <Divider my="xs" />}
 
-              <Stack gap={4}>
-                <Text className={classes.sectionLabel} size="xs">
-                  Recents
-                </Text>
-                {hasRecents ? (
-                  recentSessions.map(renderSession)
-                ) : (
-                  <Text c="dimmed" size="sm" px="sm">
-                    No recent conversations.
+              {!isEmpty && (
+                <Stack gap={4}>
+                  <Text className={classes.sectionLabel} size="xs">
+                    Recents
                   </Text>
-                )}
-              </Stack>
+                  {hasRecents ? (
+                    recentSessions.map(renderSession)
+                  ) : (
+                    <Text c="dimmed" size="sm" px="sm">
+                      No recent conversations.
+                    </Text>
+                  )}
+                </Stack>
+              )}
             </>
           )}
         </Stack>

@@ -40,7 +40,7 @@ wails3 build GOOS=darwin
 |------|---------|
 | `main.go` | Wails app entry, registers backend services |
 | `frontend/` | React + TypeScript UI (Vite) |
-| `backend/services/` | Wails-bound API facades (`System`, `Config`, `Auth`, `Chat`, `English`, `Sudoku`, `Obsidian`) |
+| `backend/services/` | Wails-bound API facades (`System`, `Config`, `Auth`, `Chat`, `English`, `Sudoku`, `Obsidian`, `Cloudflare`) |
 | `backend/storage/` | SQLite open, schema, config.json, sqlc queries + store |
 | `backend/types/` | Shared Wails/JSON DTOs |
 | `backend/utils/` | Env loader, LLM client, autostart |
@@ -48,6 +48,7 @@ wails3 build GOOS=darwin
 | `backend/agent/`, `backend/auth/` | Chat orchestration and identity kernel |
 | `backend/english/content/` | English Learning importers (Anki APKG) |
 | `backend/obsidian/` | Obsidian Local REST API client |
+| `backend/cloudflare/` | Cloudflare Agent dashboard client ([cloudflare-go/v7](https://github.com/cloudflare/cloudflare-go)) |
 | `backend/watch/`, `backend/vdiupload/` | Sidecar domain packages |
 | `cmd/echo-watch/`, `cmd/vdi-upload/` | Sidecar CLIs |
 | `cloud/echo-watch/` | Cloudflare Worker + iOS PWA for watch alerts |
@@ -62,6 +63,7 @@ Talus Echo is multi-domain. See **[docs/domains/README.md](docs/domains/README.m
 |--------|------|-------|
 | English Learning | desktop-agent | Wails app (`english.*`) |
 | Obsidian | desktop-agent | Wails app (`obsidian.*`) — [docs](docs/domains/obsidian/README.md) |
+| Cloudflare | desktop-agent | Wails Agent dashboard — [docs](docs/domains/cloudflare/README.md) |
 | Echo Watch | sidecar | `task watch:build` / `cloud/echo-watch` |
 | VDI Upload | sidecar | `task vdiupload:build` — design: [DESIGN.md](docs/domains/vdiupload/DESIGN.md) |
 
@@ -107,6 +109,7 @@ Services are bound from `backend/services/` (Tiny RDM-style split):
 | `EnglishService` | Anki import, articles, vocabulary, SRS |
 | `SudokuService` | YouDoSudoku games in the Agent window |
 | `ObsidianService` | Vault browse, note edit, and search via Local REST API |
+| `CloudflareService` | Read-only Workers / D1 / KV dashboard in the Agent window |
 
 Bindings are generated under `frontend/bindings/` when running `wails3 dev` or `wails3 build`.
 

@@ -32,6 +32,33 @@ func TestLoadConfigCreatesDefaultConfig(t *testing.T) {
 	}
 }
 
+func TestCloudflareNormalizeAndConfigured(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	store, err := LoadConfig(path)
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+
+	updated := store.Get()
+	updated.Cloudflare = types.Cloudflare{AccountID: "  acc-1  ", APIToken: "  token  "}
+	if err := store.Update(updated); err != nil {
+		t.Fatalf("Update() error = %v", err)
+	}
+
+	reloaded, err := LoadConfig(path)
+	if err != nil {
+		t.Fatalf("LoadConfig() second error = %v", err)
+	}
+	if !reloaded.App.Cloudflare.Configured() {
+		t.Fatal("expected cloudflare to be configured")
+	}
+	if reloaded.App.Cloudflare.AccountID != "acc-1" || reloaded.App.Cloudflare.APIToken != "token" {
+		t.Fatalf("cloudflare = %+v", reloaded.App.Cloudflare)
+	}
+}
+
 func TestUpdatePersistsChanges(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")

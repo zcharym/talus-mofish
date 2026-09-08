@@ -53,8 +53,9 @@ func (s *ConfigService) SaveConfig(cfg types.App) error {
 	}
 	if s.wailsApp != nil {
 		s.wailsApp.Event.Emit("config:changed", map[string]any{
-			"theme":     cfg.Theme,
-			"debugMode": cfg.DebugMode,
+			"theme":                cfg.Theme,
+			"debugMode":            cfg.DebugMode,
+			"cloudflareConfigured": cfg.Cloudflare.Configured(),
 		})
 	}
 	return nil

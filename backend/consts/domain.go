@@ -28,10 +28,13 @@ const (
 
 	// Obsidian is the Local REST API vault browser in the Management window.
 	Obsidian = "obsidian"
+
+	// Cloudflare is the read-only Workers/D1/KV dashboard in the Agent window.
+	Cloudflare = "cloudflare"
 )
 
 // All lists known domain identifiers for discovery and tooling.
-var All = []string{English, Watch, VDIUpload, Sudoku, Obsidian}
+var All = []string{English, Watch, VDIUpload, Sudoku, Obsidian, Cloudflare}
 
 // Info describes a domain for docs and tooling.
 type Info struct {
@@ -85,6 +88,14 @@ func Catalog() []Info {
 			CodeRoot:    "backend/obsidian, backend/services/obsidian.go",
 			DocsRoot:    "docs/domains/obsidian",
 			Description: "Vault browse, note edit, and search via Obsidian Local REST API.",
+		},
+		{
+			ID:          Cloudflare,
+			Name:        "Cloudflare",
+			Kind:        "desktop-agent",
+			CodeRoot:    "backend/cloudflare, backend/services/cloudflare.go",
+			DocsRoot:    "docs/domains/cloudflare",
+			Description: "Read-only Agent dashboard for Workers, analytics, D1, and KV.",
 		},
 	}
 }

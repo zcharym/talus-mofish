@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, Code, Group, HoverCard, Stack, Tabs, Text } from "@mantine/core";
 import {
   IconBook,
+  IconCloud,
   IconGrid3x3,
   IconKey,
   IconMarkdown,
@@ -14,6 +15,7 @@ import { AITab } from "./config/AITab";
 import { EnglishLearningTab } from "./config/EnglishLearningTab";
 import { GeneralTab } from "./config/GeneralTab";
 import { OAuthTab } from "./config/OAuthTab";
+import { CloudflareTab } from "./config/CloudflareTab";
 import { ObsidianTab } from "./config/ObsidianTab";
 import { SudokuTab } from "./config/SudokuTab";
 
@@ -29,6 +31,7 @@ const CONFIG_TABS = [
   { value: "oauth", label: "OAuth", icon: IconKey },
   { value: "sudoku", label: "Sudoku", icon: IconGrid3x3 },
   { value: "obsidian", label: "Obsidian", icon: IconMarkdown },
+  { value: "cloudflare", label: "Cloudflare", icon: IconCloud },
 ] as const;
 
 export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps) {
@@ -102,6 +105,14 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
           <ObsidianTab
             obsidianBaseUrl={form.obsidianBaseUrl}
             obsidianAPIKey={form.obsidianAPIKey}
+            onChange={updateForm}
+          />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="cloudflare" pt="md">
+          <CloudflareTab
+            cloudflareAccountId={form.cloudflareAccountId}
+            cloudflareAPIToken={form.cloudflareAPIToken}
             onChange={updateForm}
           />
         </Tabs.Panel>

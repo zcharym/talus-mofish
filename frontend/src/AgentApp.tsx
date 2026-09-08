@@ -5,9 +5,11 @@ import { ChatService, SudokuService, SystemService } from '../bindings/github.co
 import { AgentHome, QuickActionId } from './components/agent/AgentHome';
 import { ChatInput } from './components/agent/ChatInput';
 import { ChatMessageItem, ChatThread } from './components/agent/ChatThread';
+import { CloudflareDashboard, canShowCloudflareTab } from './components/agent/CloudflareDashboard';
 import { ChatSessionItem, SessionSidebar } from './components/agent/SessionSidebar';
 import { SudokuBoard } from './components/agent/SudokuBoard';
 import { useAgentStream } from './hooks/useAgentStream';
+import { useCloudflareConfigured } from './hooks/useCloudflareConfigured';
 import { useConfigColorScheme } from './hooks/useConfigColorScheme';
 import { useCurrentUser } from './hooks/useCurrentUser';
 import { notify } from './services/notifications';
@@ -15,9 +17,12 @@ import { ThemeRoot } from './theme';
 import { isMacOS } from './utils/platform';
 import classes from './AgentApp.module.css';
 
+type AgentView = 'home' | 'cloudflare' | 'session';
+
 function AgentApp() {
   const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [view, setView] = useState<AgentView>('home');
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [sending, setSending] = useState(false);
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
@@ -28,6 +33,14 @@ function AgentApp() {
   });
   const activeSessionIdRef = useRef<string | null>(null);
   const { user, loading: userLoading, signingIn, signInWithEmail, signIn, signOut } = useCurrentUser();
+  const cloudflareConfigured = useCloudflareConfigured();
+  const showCloudflareTab = canShowCloudflareTab(user, cloudflareConfigured);
+
+  useEffect(() => {
+    if (view === 'cloudflare' && !showCloudflareTab) {
+      setView('home');
+    }
+  }, [view, showCloudflareTab]);
 
   useEffect(() => {
     activeSessionIdRef.current = activeSessionId;
@@ -127,28 +140,38 @@ function AgentApp() {
   }, [activeSessionId, activeSession?.kind, loadMessages]);
 
   const ensureActiveSession = useCallback(async (): Promise<string> => {
-    if (activeSessionId) {
+    if (activeSessionId && view === 'session') {
       return activeSessionId;
     }
 
     const session = (await ChatService.CreateChatSession('')) as ChatSessionItem;
+    setView('session');
     setActiveSessionId(session.id);
     setMessages([]);
     await loadSessions();
     return session.id;
-  }, [activeSessionId, loadSessions]);
+  }, [activeSessionId, loadSessions, view]);
 
   const closeSidebar = useCallback(() => {
     setSidebarOpened(false);
   }, []);
 
   const handleGoHome = () => {
+    setView('home');
+    setActiveSessionId(null);
+    setMessages([]);
+    closeSidebar();
+  };
+
+  const handleSelectCloudflare = () => {
+    setView('cloudflare');
     setActiveSessionId(null);
     setMessages([]);
     closeSidebar();
   };
 
   const handleSelectSession = (sessionId: string) => {
+    setView('session');
     setActiveSessionId(sessionId);
     closeSidebar();
   };
@@ -166,6 +189,7 @@ function AgentApp() {
     try {
       await ChatService.DeleteChatSession(sessionId);
       if (activeSessionId === sessionId) {
+        setView('home');
         setActiveSessionId(null);
         setMessages([]);
       }
@@ -201,6 +225,7 @@ function AgentApp() {
       try {
         const result = await SudokuService.NewSudokuGame('easy');
         await loadSessions();
+        setView('session');
         setActiveSessionId(result.session.id);
         setMessages([]);
       } catch (err) {
@@ -235,6 +260,7 @@ function AgentApp() {
   const handleSignOut = async () => {
     try {
       await signOut();
+      setView('home');
       setActiveSessionId(null);
       setMessages([]);
     } catch (err) {
@@ -259,16 +285,20 @@ function AgentApp() {
     });
   };
 
-  const isHomeView = activeSessionId === null;
-  const isSudokuView = activeSession?.kind === 'sudoku';
+  const isHomeView = view === 'home';
+  const isCloudflareView = view === 'cloudflare';
+  const isSudokuView = view === 'session' && activeSession?.kind === 'sudoku';
 
   const sidebar = (
     <SessionSidebar
       sessions={sessions}
-      activeSessionId={activeSessionId}
+      activeSessionId={isCloudflareView ? null : activeSessionId}
       user={user}
+      showCloudflareTab={showCloudflareTab}
+      cloudflareActive={isCloudflareView}
       overlay={Boolean(isOverlay)}
       onSelectSession={handleSelectSession}
+      onSelectCloudflare={handleSelectCloudflare}
       onNewChat={handleGoHome}
       onRenameSession={handleRenameSession}
       onDeleteSession={handleDeleteSession}
@@ -319,6 +349,12 @@ function AgentApp() {
               onQuickAction={(actionId, prompt, autoSend) => {
                 void handleQuickAction(actionId, prompt, autoSend);
               }}
+            />
+          ) : isCloudflareView ? (
+            <CloudflareDashboard
+              configured={cloudflareConfigured}
+              onOpenSidebar={openSidebar}
+              onOpenManagement={handleOpenManagement}
             />
           ) : isSudokuView && activeSessionId ? (
             <SudokuBoard

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ConfigService } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
-import { App as AppConfig, OAuth, Obsidian, Sudoku } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/types/models";
+import { App as AppConfig, Cloudflare, OAuth, Obsidian, Sudoku } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/types/models";
 import { Config as AIConfig, Provider } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/utils/aiclient/models";
 import { notify } from "../services/notifications";
 import type { ThemeOption } from "../types/theme";
@@ -22,6 +22,8 @@ export interface AppConfigForm {
   sudokuAPIKey: string;
   obsidianBaseUrl: string;
   obsidianAPIKey: string;
+  cloudflareAccountId: string;
+  cloudflareAPIToken: string;
 }
 
 const defaultForm: AppConfigForm = {
@@ -41,6 +43,8 @@ const defaultForm: AppConfigForm = {
   sudokuAPIKey: "",
   obsidianBaseUrl: "https://127.0.0.1:27124",
   obsidianAPIKey: "",
+  cloudflareAccountId: "",
+  cloudflareAPIToken: "",
 };
 
 export interface UseAppConfigOptions {
@@ -84,6 +88,8 @@ export function useAppConfig({ onThemeChange, onDebugModeChange }: UseAppConfigO
         sudokuAPIKey: cfg.sudoku?.apiKey || "",
         obsidianBaseUrl: cfg.obsidian?.baseUrl || "https://127.0.0.1:27124",
         obsidianAPIKey: cfg.obsidian?.apiKey || "",
+        cloudflareAccountId: cfg.cloudflare?.accountId || "",
+        cloudflareAPIToken: cfg.cloudflare?.apiToken || "",
       });
       setConfigPath(path);
       onThemeChange(nextTheme);
@@ -127,6 +133,10 @@ export function useAppConfig({ onThemeChange, onDebugModeChange }: UseAppConfigO
       obsidian: new Obsidian({
         baseUrl: form.obsidianBaseUrl,
         apiKey: form.obsidianAPIKey,
+      }),
+      cloudflare: new Cloudflare({
+        accountId: form.cloudflareAccountId,
+        apiToken: form.cloudflareAPIToken,
       }),
     });
 
