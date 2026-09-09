@@ -1,29 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
 import { Loader, Text, UnstyledButton } from "@mantine/core";
 import { IconChevronDown, IconChevronRight, IconFile, IconFileText, IconFolder } from "@tabler/icons-react";
-import { ObsidianService } from "../../../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
-import { FileEntry } from "../../../../bindings/github.com/songwei.ma/talus-mofish/backend/obsidian/models";
+import type { FileEntry } from "../../../utils/api";
+import { useVaultTree, VAULT_ROOT_KEY } from "../../../hooks/useVaultTree";
 import classes from "./VaultTree.module.css";
 
 export function isMarkdownPath(path: string): boolean {
   return path.toLowerCase().endsWith(".md");
-}
-
-function errorMessage(err: unknown): string {
-  if (typeof err === "string") {
-    return err;
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return String(err);
-}
-
-interface DirState {
-  expanded: boolean;
-  loading: boolean;
-  entries: FileEntry[] | null;
-  error: string | null;
 }
 
 interface VaultTreeProps {
@@ -32,87 +14,8 @@ interface VaultTreeProps {
   onSelectFile: (path: string, isMarkdown: boolean) => void;
 }
 
-const ROOT_KEY = "";
-
 export function VaultTree({ selectedPath, expandToPath, onSelectFile }: VaultTreeProps) {
-  const [dirs, setDirs] = useState<Record<string, DirState>>({});
-
-  const loadDir = useCallback(async (dirPath: string) => {
-    setDirs((prev) => ({
-      ...prev,
-      [dirPath]: {
-        expanded: true,
-        loading: true,
-        entries: prev[dirPath]?.entries ?? null,
-        error: null,
-      },
-    }));
-    try {
-      const entries = (await ObsidianService.ListDirectory(dirPath)) as FileEntry[];
-      setDirs((prev) => ({
-        ...prev,
-        [dirPath]: { expanded: true, loading: false, entries, error: null },
-      }));
-    } catch (err) {
-      setDirs((prev) => ({
-        ...prev,
-        [dirPath]: {
-          expanded: true,
-          loading: false,
-          entries: prev[dirPath]?.entries ?? null,
-          error: errorMessage(err),
-        },
-      }));
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadDir(ROOT_KEY);
-  }, [loadDir]);
-
-  useEffect(() => {
-    if (!expandToPath) {
-      return;
-    }
-    const parts = expandToPath.split("/").filter(Boolean);
-    let cancelled = false;
-
-    const expandParents = async () => {
-      await loadDir(ROOT_KEY);
-      let acc = "";
-      for (let i = 0; i < parts.length - 1; i += 1) {
-        if (cancelled) {
-          return;
-        }
-        acc = acc ? `${acc}/${parts[i]}` : parts[i];
-        await loadDir(acc);
-      }
-    };
-
-    void expandParents();
-    return () => {
-      cancelled = true;
-    };
-  }, [expandToPath, loadDir]);
-
-  const toggleDir = (dirPath: string) => {
-    const current = dirs[dirPath];
-    if (current?.expanded) {
-      setDirs((prev) => ({
-        ...prev,
-        [dirPath]: { ...current, expanded: false },
-      }));
-      return;
-    }
-    if (current?.entries) {
-      setDirs((prev) => ({
-        ...prev,
-        [dirPath]: { ...current, expanded: true },
-      }));
-      return;
-    }
-    void loadDir(dirPath);
-  };
+  const { dirs, toggleDir } = useVaultTree(expandToPath);
 
   const renderEntries = (dirPath: string, depth: number) => {
     const state = dirs[dirPath];
@@ -137,7 +40,7 @@ export function VaultTree({ selectedPath, expandToPath, onSelectFile }: VaultTre
       return null;
     }
 
-    return (state.entries ?? []).map((entry) => {
+    return (state.entries ?? []).map((entry: FileEntry) => {
       const childPath = entry.path;
       if (entry.isDir) {
         const child = dirs[childPath];
@@ -180,5 +83,5 @@ export function VaultTree({ selectedPath, expandToPath, onSelectFile }: VaultTre
     });
   };
 
-  return <div className={classes.tree}>{renderEntries(ROOT_KEY, 0)}</div>;
+  return <div className={classes.tree}>{renderEntries(VAULT_ROOT_KEY, 0)}</div>;
 }

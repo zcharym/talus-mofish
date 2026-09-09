@@ -2,9 +2,11 @@ package services
 
 import (
 	"fmt"
-	"path/filepath"
+	"net/url"
+	"runtime"
+	"strings"
 
-	"github.com/songwei.ma/talus-mofish/backend/english/content"
+	"github.com/songwei.ma/talus-mofish/backend/consts"
 	"github.com/songwei.ma/talus-mofish/backend/storage"
 	"github.com/songwei.ma/talus-mofish/backend/utils/autostart"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -29,6 +31,19 @@ func NewSystemService(db *storage.DB, autostartManager *autostart.Manager) *Syst
 // DatabasePath returns the on-disk SQLite database file path.
 func (s *SystemService) DatabasePath() string {
 	return s.db.Path
+}
+
+// Platform returns "mac" | "windows" | GOOS for native chrome decisions.
+func (s *SystemService) Platform() string {
+	if runtime.GOOS == "darwin" {
+		return "mac"
+	}
+	return runtime.GOOS
+}
+
+// Version returns the application version string.
+func (s *SystemService) Version() string {
+	return consts.AppVersion
 }
 
 // GetAutostartStatus returns the OS-level login autostart registration.
@@ -73,16 +88,29 @@ func (s *SystemService) PickAnkiAPKG() (string, error) {
 	return path, nil
 }
 
-// MediaRoot returns the directory where imported media files are stored.
-func (s *SystemService) MediaRoot() (string, error) {
-	return content.DefaultMediaDir()
+// ServiceShutdown closes SQLite after other services have stopped.
+func (s *SystemService) ServiceShutdown() error {
+	if s.db == nil {
+		return nil
+	}
+	if err := s.db.Close(); err != nil {
+		return fmt.Errorf("close database: %w", err)
+	}
+	return nil
 }
 
-// MediaFilePath resolves a stored media relative path to an absolute file path.
-func (s *SystemService) MediaFilePath(storedPath string) (string, error) {
-	root, err := content.DefaultMediaDir()
-	if err != nil {
-		return "", err
+// OpenURL opens an external URL in the system browser.
+func (s *SystemService) OpenURL(raw string) error {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return fmt.Errorf("url is required")
 	}
-	return filepath.Join(root, storedPath), nil
+	if s.wailsApp == nil {
+		return fmt.Errorf("browser unavailable")
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+		return fmt.Errorf("unsupported url")
+	}
+	return s.wailsApp.Browser.OpenURL(parsed.String())
 }

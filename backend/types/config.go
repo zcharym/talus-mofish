@@ -48,8 +48,8 @@ type Obsidian struct {
 	APIKey  string `json:"apiKey"`
 }
 
-// Normalize fills the default plugin URL when unset.
-func (o Obsidian) Normalize() Obsidian {
+// NormalizeObsidian fills the default plugin URL when unset.
+func NormalizeObsidian(o Obsidian) Obsidian {
 	o.BaseURL = strings.TrimSpace(o.BaseURL)
 	if o.BaseURL == "" {
 		o.BaseURL = DefaultObsidianBaseURL
@@ -64,15 +64,15 @@ type Cloudflare struct {
 	APIToken  string `json:"apiToken"`
 }
 
-// Normalize trims stored Cloudflare credentials.
-func (c Cloudflare) Normalize() Cloudflare {
+// NormalizeCloudflare trims stored Cloudflare credentials.
+func NormalizeCloudflare(c Cloudflare) Cloudflare {
 	c.AccountID = strings.TrimSpace(c.AccountID)
 	c.APIToken = strings.TrimSpace(c.APIToken)
 	return c
 }
 
-// Configured reports whether both an account ID and API token are set.
-func (c Cloudflare) Configured() bool {
-	c = c.Normalize()
+// CloudflareConfigured reports whether both an account ID and API token are set.
+func CloudflareConfigured(c Cloudflare) bool {
+	c = NormalizeCloudflare(c)
 	return c.AccountID != "" && c.APIToken != ""
 }

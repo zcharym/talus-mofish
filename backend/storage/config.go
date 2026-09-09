@@ -6,13 +6,17 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/songwei.ma/talus-mofish/backend/types"
 	"github.com/songwei.ma/talus-mofish/backend/utils/aiclient"
 )
 
 // ConfigStore loads and saves App settings at a fixed file path.
+// Product settings live in config.json; integration secrets are stored via SecretBackend
+// (OS keyring) and overlaid in memory. SQLite settings remain ephemeral/debug KV.
 type ConfigStore struct {
+	mu   sync.RWMutex
 	path string
 	App  types.App
 }
@@ -54,33 +58,82 @@ func LoadConfig(path string) (*ConfigStore, error) {
 	}
 
 	app = mergeDefaults(app, defaults)
-	return &ConfigStore{path: path, App: app}, nil
+	hadFileSecrets := configHasSecrets(app)
+	overlayConfigSecrets(
+		&app.AI.APIKey,
+		&app.OAuth.GitHubClientSecret,
+		&app.OAuth.GoogleClientSecret,
+		&app.Sudoku.APIKey,
+		&app.Obsidian.APIKey,
+		&app.Cloudflare.APIToken,
+	)
+	store := &ConfigStore{path: path, App: app}
+	if hadFileSecrets {
+		if err := store.Save(); err != nil {
+			return nil, err
+		}
+	}
+	return store, nil
 }
 
 // Path returns the on-disk config.json file path.
 func (s *ConfigStore) Path() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	return s.path
 }
 
-// Get returns the current in-memory settings.
+// Get returns the current in-memory settings (secrets included).
 func (s *ConfigStore) Get() types.App {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	return s.App
 }
 
 // Update replaces in-memory settings and persists them to disk.
 func (s *ConfigStore) Update(app types.App) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.App = mergeDefaults(app, DefaultApp())
-	return s.Save()
+	return s.saveLocked()
 }
 
-// Save writes the current settings to disk.
+// Save writes the current settings to disk with secrets stripped.
 func (s *ConfigStore) Save() error {
-	data, err := json.MarshalIndent(s.App, "", "  ")
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.saveLocked()
+}
+
+func (s *ConfigStore) saveLocked() error {
+	app := s.App
+	path := s.path
+
+	persistConfigSecrets(
+		app.AI.APIKey,
+		app.OAuth.GitHubClientSecret,
+		app.OAuth.GoogleClientSecret,
+		app.Sudoku.APIKey,
+		app.Obsidian.APIKey,
+		app.Cloudflare.APIToken,
+	)
+
+	disk := app
+	stripConfigSecretsForDisk(
+		&disk.AI.APIKey,
+		&disk.OAuth.GitHubClientSecret,
+		&disk.OAuth.GoogleClientSecret,
+		&disk.Sudoku.APIKey,
+		&disk.Obsidian.APIKey,
+		&disk.Cloudflare.APIToken,
+	)
+
+	data, err := json.MarshalIndent(disk, "", "  ")
 	if err != nil {
 		return fmt.Errorf("marshal config: %w", err)
 	}
 
-	if err := os.WriteFile(s.path, data, 0o644); err != nil {
+	if err := os.WriteFile(path, data, 0o644); err != nil {
 		return fmt.Errorf("write config: %w", err)
 	}
 	return nil
@@ -97,7 +150,16 @@ func mergeDefaults(app, defaults types.App) types.App {
 		app.WordsPerSession = defaults.WordsPerSession
 	}
 	app.AI = app.AI.Normalize()
-	app.Obsidian = app.Obsidian.Normalize()
-	app.Cloudflare = app.Cloudflare.Normalize()
+	app.Obsidian = types.NormalizeObsidian(app.Obsidian)
+	app.Cloudflare = types.NormalizeCloudflare(app.Cloudflare)
 	return app
+}
+
+func configHasSecrets(app types.App) bool {
+	return app.AI.APIKey != "" ||
+		app.OAuth.GitHubClientSecret != "" ||
+		app.OAuth.GoogleClientSecret != "" ||
+		app.Sudoku.APIKey != "" ||
+		app.Obsidian.APIKey != "" ||
+		app.Cloudflare.APIToken != ""
 }

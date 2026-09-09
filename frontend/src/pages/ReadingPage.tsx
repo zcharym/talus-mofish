@@ -11,13 +11,9 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { EnglishService } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
-import { Article } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/storage/store/models";
-import {
-  ArticlePageResult,
-  ArticleSummary,
-} from "../../bindings/github.com/songwei.ma/talus-mofish/backend/types/models";
+import { EnglishService, Article, ArticlePageResult, ArticleSummary, toApiError } from "../utils/api";
 import { FlipCard } from "../components/management/FlipCard";
+import { SafeHTML } from "../components/SafeHTML";
 import { useDynamicScrollHeight } from "../hooks/useDynamicScrollHeight";
 import { notify } from "../services/notifications";
 
@@ -42,7 +38,7 @@ export function ReadingPage() {
       setPage(result.page);
     } catch (err) {
       console.error(err);
-      notify.failed("Reading", "Failed to load articles.");
+      notify.failed("Reading", toApiError(err));
     } finally {
       setLoadingList(false);
     }
@@ -56,7 +52,7 @@ export function ReadingPage() {
       setModalOpen(true);
     } catch (err) {
       console.error(err);
-      notify.failed("Reading", "Failed to load article.");
+      notify.failed("Reading", toApiError(err));
       setSelectedArticle(null);
     } finally {
       setLoadingArticle(false);
@@ -169,11 +165,11 @@ export function ReadingPage() {
               </Group>
             }
             front={
-              <div className="card" dangerouslySetInnerHTML={{ __html: selectedArticle.content }} />
+              <SafeHTML className="card" html={selectedArticle.content} />
             }
             back={
               selectedArticle.translation ? (
-                <div dangerouslySetInnerHTML={{ __html: selectedArticle.translation }} />
+                <SafeHTML html={selectedArticle.translation} />
               ) : (
                 <Text c="dimmed" size="sm">No translation available.</Text>
               )

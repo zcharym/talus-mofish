@@ -13,15 +13,9 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { EnglishService } from "../../../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
-import {
-  Card,
-  Deck,
-  UpdateCardContentParams,
-  UpdateVocabularyParams,
-  Vocabulary,
-} from "../../../../bindings/github.com/songwei.ma/talus-mofish/backend/storage/store/models";
+import { EnglishService, Vocabulary, Card, Deck, VocabularyUpdate, CardContentUpdate, toApiError } from "../../../utils/api";
 import { FlipCard } from "../FlipCard";
+import { SafeHTML } from "../../SafeHTML";
 import { notify } from "../../../services/notifications";
 
 const LEVEL_OPTIONS = [
@@ -106,7 +100,7 @@ export function VocabularyEditModal({
       setMode("view");
       setDeleteCardsChecked(false);
     } catch (err) {
-      notify.failed("Vocabulary", "Failed to load entry.");
+      notify.failed("Vocabulary", toApiError(err));
       console.error(err);
       onClose();
     } finally {
@@ -137,7 +131,7 @@ export function VocabularyEditModal({
     setSaving(true);
     try {
       await EnglishService.UpdateVocabulary(
-        new UpdateVocabularyParams({
+        new VocabularyUpdate({
           id: vocab.id,
           word: vocab.word,
           phonetic: vocab.phonetic,
@@ -152,7 +146,7 @@ export function VocabularyEditModal({
 
       for (const card of cards) {
         await EnglishService.UpdateCardContent(
-          new UpdateCardContentParams({
+          new CardContentUpdate({
             id: card.id,
             front: card.front,
             back: card.back,
@@ -169,7 +163,7 @@ export function VocabularyEditModal({
       onSaved();
       await load();
     } catch (err) {
-      notify.failed("Save failed", String(err));
+      notify.failed("Save failed", toApiError(err));
       console.error(err);
     } finally {
       setSaving(false);
@@ -193,7 +187,7 @@ export function VocabularyEditModal({
       onDeleted();
       onClose();
     } catch (err) {
-      notify.failed("Delete failed", String(err));
+      notify.failed("Delete failed", toApiError(err));
       console.error(err);
     } finally {
       setSaving(false);
@@ -259,8 +253,8 @@ export function VocabularyEditModal({
                     key={card.id}
                     title={deckNames.get(card.deck_id) ?? "SRS Card"}
                     modelCss={card.model_css}
-                    front={<div dangerouslySetInnerHTML={{ __html: card.front }} />}
-                    back={<div dangerouslySetInnerHTML={{ __html: card.back }} />}
+                    front={<SafeHTML html={card.front} />}
+                    back={<SafeHTML html={card.back} />}
                   />
                 ))}
               </>
@@ -359,8 +353,8 @@ export function VocabularyEditModal({
                     <FlipCard
                       title="Preview"
                       modelCss={card.model_css}
-                      front={<div dangerouslySetInnerHTML={{ __html: card.front }} />}
-                      back={<div dangerouslySetInnerHTML={{ __html: card.back }} />}
+                      front={<SafeHTML html={card.front} />}
+                      back={<SafeHTML html={card.back} />}
                     />
                   </Stack>
                 ))}

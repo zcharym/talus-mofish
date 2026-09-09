@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useState } from 'react';
 import { IconCloud, IconRefresh } from '@tabler/icons-react';
 import {
   Alert,
@@ -15,25 +14,14 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import { CloudflareService } from '../../../../bindings/github.com/songwei.ma/talus-mofish/backend/services';
-import { notify } from '../../../services/notifications';
-import type { CloudflareDashboardSnapshot, CloudflareWorker } from './types';
+import { useCloudflareDashboard } from '../../../hooks/useCloudflareDashboard';
+import type { CloudflareWorker } from '../../../utils/api';
 import classes from './CloudflareDashboard.module.css';
 
 interface CloudflareDashboardProps {
   configured: boolean;
   onOpenSidebar?: () => void;
   onOpenManagement: () => void;
-}
-
-function errorMessage(err: unknown): string {
-  if (typeof err === 'string') {
-    return err;
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return String(err);
 }
 
 function formatCount(value: number | undefined): string {
@@ -74,40 +62,7 @@ export function CloudflareDashboard({
   onOpenSidebar,
   onOpenManagement,
 }: CloudflareDashboardProps) {
-  const [loading, setLoading] = useState(configured);
-  const [refreshing, setRefreshing] = useState(false);
-  const [snapshot, setSnapshot] = useState<CloudflareDashboardSnapshot | null>(null);
-  const [loadError, setLoadError] = useState('');
-
-  const loadDashboard = useCallback(async (isRefresh = false) => {
-    if (!configured) {
-      setSnapshot(null);
-      setLoadError('');
-      setLoading(false);
-      return;
-    }
-    if (isRefresh) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-    try {
-      const next = (await CloudflareService.GetDashboard()) as CloudflareDashboardSnapshot;
-      setSnapshot(next);
-      setLoadError('');
-    } catch (err) {
-      const message = errorMessage(err);
-      setLoadError(message);
-      notify.failed('Cloudflare', message);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [configured]);
-
-  useEffect(() => {
-    void loadDashboard();
-  }, [loadDashboard]);
+  const { loading, refreshing, snapshot, loadError, loadDashboard } = useCloudflareDashboard(configured);
 
   const header = (
     <Box className={classes.header}>

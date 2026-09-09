@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Badge, Group, Stack, Text, Title } from "@mantine/core";
 import { FlipCard } from "../../../components/management/FlipCard";
+import { SafeHTML } from "../../../components/SafeHTML";
 import { notify } from "../../../services/notifications";
 
 const sampleModelCss = `
@@ -53,20 +54,12 @@ export function FlipCardDemo() {
             </Group>
           }
           front={
-            <div
+            <SafeHTML
               className="card"
-              dangerouslySetInnerHTML={{
-                __html: "<p>The quick brown fox <b>jumps</b> over the lazy dog.</p>",
-              }}
+              html="<p>The quick brown fox <b>jumps</b> over the lazy dog.</p>"
             />
           }
-          back={
-            <div
-              dangerouslySetInnerHTML={{
-                __html: "<p>那只敏捷的棕色狐狸跳过了懒狗。</p>",
-              }}
-            />
-          }
+          back={<SafeHTML html="<p>那只敏捷的棕色狐狸跳过了懒狗。</p>" />}
         />
       </Stack>
 

@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/songwei.ma/talus-mofish/backend/english"
 	"github.com/songwei.ma/talus-mofish/backend/english/content/apkg"
 	"github.com/songwei.ma/talus-mofish/backend/storage"
 	"github.com/songwei.ma/talus-mofish/backend/storage/store"
@@ -306,8 +307,8 @@ func (im *Importer) importVocabularyDeck(
 			}
 
 			front, back := apkg.RenderCard(model, note.Fields, int(cardRow.Ord))
-			front = media.RewriteHTML(front)
-			back = media.RewriteHTML(back)
+			front = english.SanitizeHTML(media.RewriteHTML(front))
+			back = english.SanitizeHTML(media.RewriteHTML(back))
 
 			cardType := "vocabulary"
 			if model.Type == 1 {
@@ -393,8 +394,8 @@ func (im *Importer) importReadingDeck(
 		}
 		translation := apkg.FieldValueByName(note.Fields, cfg.FieldMapping, "translation")
 
-		content = media.RewriteHTML(content)
-		translation = media.RewriteHTML(translation)
+		content = english.SanitizeHTML(media.RewriteHTML(content))
+		translation = english.SanitizeHTML(media.RewriteHTML(translation))
 
 		rawFields, _ := json.Marshal(map[string]interface{}{
 			"fieldNames": modelFieldNames(model),

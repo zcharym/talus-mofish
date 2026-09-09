@@ -10,14 +10,15 @@ import (
 	"github.com/songwei.ma/talus-mofish/backend/storage/store"
 	"github.com/songwei.ma/talus-mofish/backend/types"
 	"github.com/songwei.ma/talus-mofish/backend/utils/autostart"
-	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // ConfigService exposes config.json and key/value settings APIs.
+// Product settings: config.json (plus OS keyring for integration secrets).
+// Ephemeral/debug KV: SQLite settings table.
 type ConfigService struct {
 	db        *storage.DB
 	config    *storage.ConfigStore
-	wailsApp  *application.App
+	emitter   AppEmitter
 	autostart *autostart.Manager
 }
 
@@ -51,11 +52,11 @@ func (s *ConfigService) SaveConfig(cfg types.App) error {
 	if err := s.autostart.Sync(cfg.AutoStart); err != nil {
 		return fmt.Errorf("apply autostart: %w", err)
 	}
-	if s.wailsApp != nil {
-		s.wailsApp.Event.Emit("config:changed", map[string]any{
-			"theme":                cfg.Theme,
-			"debugMode":            cfg.DebugMode,
-			"cloudflareConfigured": cfg.Cloudflare.Configured(),
+	if s.emitter != nil {
+		s.emitter.Emit(types.EventConfigChanged, types.ConfigChanged{
+			Theme:                cfg.Theme,
+			DebugMode:            cfg.DebugMode,
+			CloudflareConfigured: types.CloudflareConfigured(cfg.Cloudflare),
 		})
 	}
 	return nil

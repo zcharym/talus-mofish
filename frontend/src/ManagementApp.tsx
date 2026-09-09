@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AppShell, Burger, Group, Text, Title } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { ConfigService } from '../bindings/github.com/songwei.ma/talus-mofish/backend/services';
 import { NavbarSegmented } from './components/management/NavbarSegmented';
-import { useConfigColorScheme } from './hooks/useConfigColorScheme';
+import { useConfigFlags } from './hooks/useConfigFlags';
+import { isMacPlatform, usePlatform } from './hooks/usePlatform';
 import {
   DEFAULT_MANAGEMENT_ROUTE,
   ManagementRoute,
@@ -19,7 +19,6 @@ import { ReadingPage } from './pages/ReadingPage';
 import { VocabularyPage } from './pages/VocabularyPage';
 import { ThemeRoot } from './theme';
 import type { ThemeOption } from './types/theme';
-import { isMacOS } from './utils/platform';
 import classes from './ManagementApp.module.css';
 
 function MainContent({
@@ -85,8 +84,8 @@ function MainContent({
 
 function ManagementApp() {
   const [activeItem, setActiveItem] = useState<ManagementRouteId>(DEFAULT_MANAGEMENT_ROUTE);
-  const { colorScheme, applyTheme } = useConfigColorScheme();
-  const [debugMode, setDebugMode] = useState(false);
+  const { theme: colorScheme, debugMode, applyTheme } = useConfigFlags();
+  const platform = usePlatform();
   const [obsidianFocusPath, setObsidianFocusPath] = useState<string | null>(null);
   const [navOpened, setNavOpened] = useState(false);
   const isMobile = useMediaQuery('(max-width: 48em)', false, {
@@ -94,7 +93,6 @@ function ManagementApp() {
   });
 
   const applyDebugMode = useCallback((enabled: boolean) => {
-    setDebugMode(enabled);
     setActiveItem((current) =>
       current === ManagementRoute.Debug && !enabled ? DEFAULT_MANAGEMENT_ROUTE : current,
     );
@@ -116,14 +114,8 @@ function ManagementApp() {
   }, []);
 
   useEffect(() => {
-    ConfigService.GetConfig()
-      .then((cfg) => {
-        applyDebugMode(cfg.debugMode ?? false);
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-      });
-  }, [applyDebugMode]);
+    applyDebugMode(debugMode);
+  }, [debugMode, applyDebugMode]);
 
   const title = PAGE_TITLES[activeItem] ?? 'Talus Echo';
 
@@ -139,7 +131,7 @@ function ManagementApp() {
         padding={{ base: 'sm', sm: 'md' }}
         className={classes.shell}
       >
-        <AppShell.Header className={classes.header} data-platform={isMacOS ? 'darwin' : undefined}>
+        <AppShell.Header className={classes.header} data-platform={isMacPlatform(platform) ? 'darwin' : undefined}>
           <Group h="100%" px="md" gap="sm" wrap="nowrap">
             {isMobile ? (
               <Burger

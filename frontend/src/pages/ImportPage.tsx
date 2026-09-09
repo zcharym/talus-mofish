@@ -11,14 +11,7 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { EnglishService, SystemService } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
-import {
-  AnkiDeckPreview,
-  AnkiPreview,
-  ImportDeckConfig,
-  ImportResult,
-} from "../../bindings/github.com/songwei.ma/talus-mofish/backend/english/content/models";
-import { AnkiImport } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/storage/store/models";
+import { EnglishService, SystemService, AnkiDeckPreview, AnkiPreview, ImportDeckConfig, ImportResult, AnkiImportRecord, toApiError } from "../utils/api";
 import { notify } from "../services/notifications";
 
 type TargetType = "vocabulary" | "reading" | "skip";
@@ -57,7 +50,7 @@ export function ImportPage() {
   const [apkgPath, setApkgPath] = useState("");
   const [preview, setPreview] = useState<AnkiPreview | null>(null);
   const [deckConfigs, setDeckConfigs] = useState<Record<number, DeckConfigState>>({});
-  const [history, setHistory] = useState<AnkiImport[]>([]);
+  const [history, setHistory] = useState<AnkiImportRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [lastResult, setLastResult] = useState<ImportResult | null>(null);
@@ -100,7 +93,7 @@ export function ImportPage() {
       initDeckConfigs(data.decks ?? []);
     } catch (err) {
       console.error(err);
-      notify.failed("Import", "Failed to open or preview the APKG file.");
+      notify.failed("Import", toApiError(err));
     } finally {
       setLoading(false);
     }
@@ -158,7 +151,7 @@ export function ImportPage() {
       await loadHistory();
     } catch (err) {
       console.error(err);
-      notify.failed("Import", "Failed to import the APKG file.");
+      notify.failed("Import", toApiError(err));
     } finally {
       setImporting(false);
     }

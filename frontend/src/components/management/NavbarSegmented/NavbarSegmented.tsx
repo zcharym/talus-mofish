@@ -15,7 +15,7 @@ import {
   IconVocabulary,
 } from '@tabler/icons-react';
 import { Collapse, Text, UnstyledButton } from '@mantine/core';
-import { SystemService } from '../../../../bindings/github.com/songwei.ma/talus-mofish/backend/services';
+import { SystemService } from '../../../utils/api';
 import {
   isEnglishLearningRoute,
   isObsidianRoute,

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 
 	_ "modernc.org/sqlite"
 
@@ -24,6 +25,7 @@ type DB struct {
 	SQL     *sql.DB
 	Queries *store.Queries
 	Path    string
+	close   sync.Once
 }
 
 // Open opens (or creates) the database at path, applies schema, and returns a DB handle.
@@ -65,12 +67,16 @@ func OpenDefault() (*DB, error) {
 	return Open(path)
 }
 
-// Close closes the underlying database connection.
+// Close closes the underlying database connection. Safe to call more than once.
 func (db *DB) Close() error {
 	if db == nil || db.SQL == nil {
 		return nil
 	}
-	return db.SQL.Close()
+	var err error
+	db.close.Do(func() {
+		err = db.SQL.Close()
+	})
+	return err
 }
 
 func applySchema(sqlDB *sql.DB) error {

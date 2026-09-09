@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button, PasswordInput, Stack, Text, TextInput } from "@mantine/core";
-import { CloudflareService } from "../../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
+import { CloudflareService, toApiError } from "../../utils/api";
 import { notify } from "../../services/notifications";
 import type { AppConfigForm } from "../../hooks/useAppConfig";
 
@@ -8,16 +8,6 @@ interface CloudflareTabProps {
   cloudflareAccountId: string;
   cloudflareAPIToken: string;
   onChange: <K extends keyof AppConfigForm>(key: K, value: AppConfigForm[K]) => void;
-}
-
-function errorMessage(err: unknown): string {
-  if (typeof err === "string") {
-    return err;
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return String(err);
 }
 
 export function CloudflareTab({
@@ -34,7 +24,7 @@ export function CloudflareTab({
       const name = result.accountName || result.accountId || "account";
       notify.success("Cloudflare", `Connected to ${name}.`);
     } catch (err) {
-      notify.failed("Cloudflare", errorMessage(err));
+      notify.failed("Cloudflare", toApiError(err));
     } finally {
       setTesting(false);
     }
@@ -56,7 +46,7 @@ export function CloudflareTab({
       />
       <PasswordInput
         label="API token"
-        description="Create at Cloudflare dashboard → My Profile → API Tokens. The token is stored in config.json."
+        description="Create at Cloudflare dashboard → My Profile → API Tokens. The token is stored in the OS keyring."
         value={cloudflareAPIToken}
         onChange={(event) => onChange("cloudflareAPIToken", event.currentTarget.value)}
       />

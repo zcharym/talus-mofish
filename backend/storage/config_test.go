@@ -3,11 +3,17 @@ package storage
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/songwei.ma/talus-mofish/backend/types"
 	"github.com/songwei.ma/talus-mofish/backend/utils/aiclient"
 )
+
+func TestMain(m *testing.M) {
+	UseMemorySecrets()
+	os.Exit(m.Run())
+}
 
 func TestLoadConfigCreatesDefaultConfig(t *testing.T) {
 	dir := t.TempDir()
@@ -51,11 +57,18 @@ func TestCloudflareNormalizeAndConfigured(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadConfig() second error = %v", err)
 	}
-	if !reloaded.App.Cloudflare.Configured() {
+	if !types.CloudflareConfigured(reloaded.App.Cloudflare) {
 		t.Fatal("expected cloudflare to be configured")
 	}
 	if reloaded.App.Cloudflare.AccountID != "acc-1" || reloaded.App.Cloudflare.APIToken != "token" {
 		t.Fatalf("cloudflare = %+v", reloaded.App.Cloudflare)
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("ReadFile() error = %v", err)
+	}
+	if strings.Contains(string(data), "token") {
+		t.Fatalf("config.json still contains secret: %s", data)
 	}
 }
 

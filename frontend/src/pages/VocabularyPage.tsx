@@ -13,9 +13,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
-import { EnglishService } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
-import { Vocabulary } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/storage/store/models";
-import { VocabularyPageResult } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/types/models";
+import { EnglishService, Vocabulary, VocabularyPageResult, toApiError } from "../utils/api";
 import { VocabularyEditModal } from "../components/management/VocabularyEditModal";
 import { useDynamicScrollHeight } from "../hooks/useDynamicScrollHeight";
 import { notify } from "../services/notifications";
@@ -47,7 +45,7 @@ export function VocabularyPage() {
       setPage(result.page);
     } catch (err) {
       console.error(err);
-      notify.failed("Vocabulary", "Failed to load vocabulary.");
+      notify.failed("Vocabulary", toApiError(err));
     } finally {
       setLoading(false);
     }
@@ -65,7 +63,7 @@ export function VocabularyPage() {
       setSearchResults(results as Vocabulary[]);
     } catch (err) {
       console.error(err);
-      notify.failed("Vocabulary", "Search failed.");
+      notify.failed("Vocabulary", toApiError(err));
     } finally {
       setLoading(false);
     }

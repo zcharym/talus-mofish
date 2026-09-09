@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button, PasswordInput, Stack, Text, TextInput } from "@mantine/core";
-import { ObsidianService } from "../../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
+import { ObsidianService, toApiError } from "../../utils/api";
 import { notify } from "../../services/notifications";
 import type { AppConfigForm } from "../../hooks/useAppConfig";
 
@@ -8,16 +8,6 @@ interface ObsidianTabProps {
   obsidianBaseUrl: string;
   obsidianAPIKey: string;
   onChange: <K extends keyof AppConfigForm>(key: K, value: AppConfigForm[K]) => void;
-}
-
-function errorMessage(err: unknown): string {
-  if (typeof err === "string") {
-    return err;
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return String(err);
 }
 
 export function ObsidianTab({ obsidianBaseUrl, obsidianAPIKey, onChange }: ObsidianTabProps) {
@@ -37,7 +27,7 @@ export function ObsidianTab({ obsidianBaseUrl, obsidianAPIKey, onChange }: Obsid
         );
       }
     } catch (err) {
-      notify.failed("Obsidian", errorMessage(err));
+      notify.failed("Obsidian", toApiError(err));
     } finally {
       setTesting(false);
     }

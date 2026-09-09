@@ -12,22 +12,11 @@ import {
 } from "@mantine/core";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ObsidianService } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
-import { Note } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/obsidian/models";
+import { ObsidianService, Note, toApiError } from "../utils/api";
 import { VaultTree } from "../components/management/VaultTree";
 import { useDynamicScrollHeight } from "../hooks/useDynamicScrollHeight";
 import { notify } from "../services/notifications";
 import classes from "./ObsidianNotesPage.module.css";
-
-function errorMessage(err: unknown): string {
-  if (typeof err === "string") {
-    return err;
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return String(err);
-}
 
 export interface ObsidianNotesPageProps {
   focusPath?: string | null;
@@ -68,7 +57,7 @@ export function ObsidianNotesPage({ focusPath, onFocusConsumed }: ObsidianNotesP
       setDraft(loaded.content ?? "");
       setPreview("edit");
     } catch (err) {
-      notify.failed("Obsidian", errorMessage(err));
+      notify.failed("Obsidian", toApiError(err));
     } finally {
       setLoading(false);
     }
@@ -117,7 +106,7 @@ export function ObsidianNotesPage({ focusPath, onFocusConsumed }: ObsidianNotesP
       setNote({ ...note, content: draft });
       notify.success("Obsidian", "Note saved.");
     } catch (err) {
-      notify.failed("Obsidian", errorMessage(err));
+      notify.failed("Obsidian", toApiError(err));
     } finally {
       setSaving(false);
     }

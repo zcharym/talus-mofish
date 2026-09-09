@@ -7,6 +7,7 @@ import (
 
 	"github.com/songwei.ma/talus-mofish/backend/cloudflare"
 	"github.com/songwei.ma/talus-mofish/backend/storage"
+	"github.com/songwei.ma/talus-mofish/backend/types"
 )
 
 const dashboardTimeout = 25 * time.Second
@@ -32,7 +33,7 @@ func (s *CloudflareService) apiClient() *cloudflare.Client {
 
 // IsConfigured reports whether an account ID and API token are saved.
 func (s *CloudflareService) IsConfigured() bool {
-	return s.config.Get().Cloudflare.Configured()
+	return types.CloudflareConfigured(s.config.Get().Cloudflare)
 }
 
 // Ping verifies the saved token can read the configured account.

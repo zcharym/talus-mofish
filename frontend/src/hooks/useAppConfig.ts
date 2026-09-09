@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { ConfigService } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
-import { App as AppConfig, Cloudflare, OAuth, Obsidian, Sudoku } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/types/models";
-import { Config as AIConfig, Provider } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/utils/aiclient/models";
+import {
+  AIConfig,
+  AppConfig,
+  Cloudflare,
+  ConfigService,
+  OAuth,
+  Obsidian,
+  Provider,
+  Sudoku,
+  toApiError,
+} from "../utils/api";
 import { notify } from "../services/notifications";
 import type { ThemeOption } from "../types/theme";
 
@@ -96,7 +104,7 @@ export function useAppConfig({ onThemeChange, onDebugModeChange }: UseAppConfigO
       onDebugModeChange?.(nextDebugMode);
     } catch (err) {
       console.error(err);
-      notify.failed("Error", "Failed to load configuration.");
+      notify.failed("Error", toApiError(err));
     } finally {
       setLoading(false);
     }
@@ -144,10 +152,10 @@ export function useAppConfig({ onThemeChange, onDebugModeChange }: UseAppConfigO
       await ConfigService.SaveConfig(payload);
       onThemeChange(form.theme);
       onDebugModeChange?.(form.debugMode);
-      notify.success("Saved", "Configuration saved to config.json.");
+      notify.success("Saved", "Configuration saved.");
     } catch (err) {
       console.error(err);
-      notify.failed("Error", "Failed to save configuration.");
+      notify.failed("Error", toApiError(err));
     } finally {
       setSaving(false);
     }

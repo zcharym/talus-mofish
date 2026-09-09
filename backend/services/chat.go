@@ -65,20 +65,17 @@ func (c chatMessageStore) UpdateMessageContent(ctx context.Context, messageID, c
 }
 
 // ListChatSessions returns chat sessions ordered by most recently updated.
-func (s *ChatService) ListChatSessions() ([]store.ChatSession, error) {
+func (s *ChatService) ListChatSessions() ([]types.ChatSession, error) {
 	ctx := context.Background()
 	sessions, err := s.db.Queries.ListChatSessions(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("list chat sessions: %w", err)
 	}
-	if sessions == nil {
-		return []store.ChatSession{}, nil
-	}
-	return sessions, nil
+	return chatSessionsDTO(sessions), nil
 }
 
 // CreateChatSession inserts a new chat session.
-func (s *ChatService) CreateChatSession(title string) (store.ChatSession, error) {
+func (s *ChatService) CreateChatSession(title string) (types.ChatSession, error) {
 	ctx := context.Background()
 	title = strings.TrimSpace(title)
 	if title == "" {
@@ -94,14 +91,14 @@ func (s *ChatService) CreateChatSession(title string) (store.ChatSession, error)
 		Title: session.Title,
 		Kind:  "chat",
 	}); err != nil {
-		return store.ChatSession{}, fmt.Errorf("create chat session: %w", err)
+		return types.ChatSession{}, fmt.Errorf("create chat session: %w", err)
 	}
 
 	created, err := s.db.Queries.GetChatSession(ctx, session.ID)
 	if err != nil {
-		return store.ChatSession{}, fmt.Errorf("get created chat session: %w", err)
+		return types.ChatSession{}, fmt.Errorf("get created chat session: %w", err)
 	}
-	return created, nil
+	return chatSessionDTO(created), nil
 }
 
 // RenameChatSession updates a session title.
@@ -130,16 +127,13 @@ func (s *ChatService) DeleteChatSession(id string) error {
 }
 
 // ListChatMessages returns messages for a session in chronological order.
-func (s *ChatService) ListChatMessages(sessionID string) ([]store.ChatMessage, error) {
+func (s *ChatService) ListChatMessages(sessionID string) ([]types.ChatMessage, error) {
 	ctx := context.Background()
 	messages, err := s.db.Queries.ListChatMessages(ctx, sessionID)
 	if err != nil {
 		return nil, fmt.Errorf("list chat messages: %w", err)
 	}
-	if messages == nil {
-		return []store.ChatMessage{}, nil
-	}
-	return messages, nil
+	return chatMessagesDTO(messages), nil
 }
 
 // StartChatTurn persists the user message, creates an assistant placeholder, and begins streaming.
@@ -232,8 +226,8 @@ func (s *ChatService) StartChatTurn(sessionID, content string) (types.StartChatT
 	go s.orchestrator.RunTurn(parent, params)
 
 	return types.StartChatTurnResult{
-		UserMessage:      userMessage,
-		AssistantMessage: assistantMessage,
+		UserMessage:      chatMessageDTO(userMessage),
+		AssistantMessage: chatMessageDTO(assistantMessage),
 	}, nil
 }
 

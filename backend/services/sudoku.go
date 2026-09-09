@@ -76,7 +76,7 @@ func (s *SudokuService) reloadPublic(ctx context.Context, sessionID string) (typ
 		return types.SudokuSession{}, err
 	}
 	return types.SudokuSession{
-		Session: session,
+		Session: types.ChatSessionFromStore(session),
 		Game:    types.PublicSudokuGame(game),
 	}, nil
 }

@@ -1,235 +1,103 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Box, Drawer } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { ChatService, SudokuService, SystemService } from '../bindings/github.com/songwei.ma/talus-mofish/backend/services';
+import { SystemService, toApiError } from './utils/api';
 import { AgentHome, QuickActionId } from './components/agent/AgentHome';
 import { ChatInput } from './components/agent/ChatInput';
-import { ChatMessageItem, ChatThread } from './components/agent/ChatThread';
+import { ChatThread } from './components/agent/ChatThread';
 import { CloudflareDashboard, canShowCloudflareTab } from './components/agent/CloudflareDashboard';
-import { ChatSessionItem, SessionSidebar } from './components/agent/SessionSidebar';
+import { SessionSidebar } from './components/agent/SessionSidebar';
 import { SudokuBoard } from './components/agent/SudokuBoard';
-import { useAgentStream } from './hooks/useAgentStream';
-import { useCloudflareConfigured } from './hooks/useCloudflareConfigured';
-import { useConfigColorScheme } from './hooks/useConfigColorScheme';
+import { useAgentChat } from './hooks/useAgentChat';
+import { useAgentSessions } from './hooks/useAgentSessions';
+import { useConfigFlags } from './hooks/useConfigFlags';
 import { useCurrentUser } from './hooks/useCurrentUser';
+import { isMacPlatform, usePlatform } from './hooks/usePlatform';
 import { notify } from './services/notifications';
 import { ThemeRoot } from './theme';
-import { isMacOS } from './utils/platform';
 import classes from './AgentApp.module.css';
 
-type AgentView = 'home' | 'cloudflare' | 'session';
-
 function AgentApp() {
-  const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  const [view, setView] = useState<AgentView>('home');
-  const [messages, setMessages] = useState<ChatMessageItem[]>([]);
-  const [sending, setSending] = useState(false);
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
-  const { colorScheme } = useConfigColorScheme();
+  const {
+    sessions,
+    activeSessionId,
+    activeSession,
+    view,
+    loadSessions,
+    goHome,
+    selectCloudflare,
+    selectSession,
+    renameSession,
+    deleteSession,
+    startSudoku,
+    createChatSession,
+  } = useAgentSessions();
+  const {
+    messages,
+    sending,
+    setSending,
+    streamingMessageId,
+    send,
+    cancel,
+    clearMessages,
+  } = useAgentChat(activeSessionId, activeSession?.kind, loadSessions);
+  const { theme: colorScheme, cloudflareConfigured } = useConfigFlags();
+  const platform = usePlatform();
   const [sidebarOpened, setSidebarOpened] = useState(false);
   const isOverlay = useMediaQuery('(max-width: 56.24em)', false, {
     getInitialValueInEffect: false,
   });
-  const activeSessionIdRef = useRef<string | null>(null);
   const { user, loading: userLoading, signingIn, signInWithEmail, signIn, signOut } = useCurrentUser();
-  const cloudflareConfigured = useCloudflareConfigured();
   const showCloudflareTab = canShowCloudflareTab(user, cloudflareConfigured);
 
   useEffect(() => {
     if (view === 'cloudflare' && !showCloudflareTab) {
-      setView('home');
+      goHome();
     }
-  }, [view, showCloudflareTab]);
+  }, [view, showCloudflareTab, goHome]);
 
-  useEffect(() => {
-    activeSessionIdRef.current = activeSessionId;
-  }, [activeSessionId]);
+  const closeSidebar = useCallback(() => {
+    setSidebarOpened(false);
+  }, [setSidebarOpened]);
 
-  const activeSession = useMemo(
-    () => sessions.find((session) => session.id === activeSessionId) ?? null,
-    [sessions, activeSessionId],
-  );
+  const handleGoHome = () => {
+    goHome();
+    clearMessages();
+    closeSidebar();
+  };
 
-  const loadSessions = useCallback(async () => {
-    try {
-      const items = await ChatService.ListChatSessions();
-      setSessions(items as ChatSessionItem[]);
-    } catch (err) {
-      notify.failed('Failed to load chat sessions', String(err));
-    }
-  }, []);
+  const handleSelectCloudflare = () => {
+    selectCloudflare();
+    clearMessages();
+    closeSidebar();
+  };
 
-  const loadMessages = useCallback(async (sessionId: string) => {
-    try {
-      const items = await ChatService.ListChatMessages(sessionId);
-      setMessages(items as ChatMessageItem[]);
-    } catch (err) {
-      notify.failed('Failed to load messages', String(err));
-    }
-  }, []);
-
-  const updateAssistantMessage = useCallback((messageId: string, patch: Partial<ChatMessageItem>) => {
-    setMessages((current) =>
-      current.map((message) => (message.id === messageId ? { ...message, ...patch } : message)),
-    );
-  }, []);
-
-  useAgentStream({
-    onChunk: ({ sessionId, messageId, chunk }) => {
-      if (sessionId !== activeSessionIdRef.current || chunk.type !== 'text-delta' || !chunk.text) {
-        return;
-      }
-      setMessages((current) =>
-        current.map((message) =>
-          message.id === messageId
-            ? {
-                ...message,
-                content: message.content + chunk.text,
-                generating: true,
-              }
-            : message,
-        ),
-      );
-    },
-    onDone: ({ sessionId, messageId, content }) => {
-      if (sessionId !== activeSessionIdRef.current) {
-        return;
-      }
-      updateAssistantMessage(messageId, { content, generating: false });
-      setSending(false);
-      setStreamingMessageId(null);
-      void loadSessions();
-    },
-    onError: ({ sessionId, messageId, error }) => {
-      if (sessionId !== activeSessionIdRef.current) {
-        return;
-      }
-      updateAssistantMessage(messageId, {
-        content: error,
-        generating: false,
-      });
-      setSending(false);
-      setStreamingMessageId(null);
-      notify.failed('Agent error', error);
-    },
-    onCancelled: ({ sessionId, messageId, content }) => {
-      if (sessionId !== activeSessionIdRef.current) {
-        return;
-      }
-      updateAssistantMessage(messageId, { content, generating: false });
-      setSending(false);
-      setStreamingMessageId(null);
-    },
-  });
-
-  useEffect(() => {
-    void loadSessions();
-  }, [loadSessions]);
-
-  useEffect(() => {
-    if (!activeSessionId) {
-      setMessages([]);
-      return;
-    }
-    if (activeSession?.kind === 'sudoku') {
-      setMessages([]);
-      return;
-    }
-    void loadMessages(activeSessionId);
-  }, [activeSessionId, activeSession?.kind, loadMessages]);
+  const handleSelectSession = (sessionId: string) => {
+    selectSession(sessionId);
+    closeSidebar();
+  };
 
   const ensureActiveSession = useCallback(async (): Promise<string> => {
     if (activeSessionId && view === 'session') {
       return activeSessionId;
     }
-
-    const session = (await ChatService.CreateChatSession('')) as ChatSessionItem;
-    setView('session');
-    setActiveSessionId(session.id);
-    setMessages([]);
-    await loadSessions();
-    return session.id;
-  }, [activeSessionId, loadSessions, view]);
-
-  const closeSidebar = useCallback(() => {
-    setSidebarOpened(false);
-  }, []);
-
-  const handleGoHome = () => {
-    setView('home');
-    setActiveSessionId(null);
-    setMessages([]);
-    closeSidebar();
-  };
-
-  const handleSelectCloudflare = () => {
-    setView('cloudflare');
-    setActiveSessionId(null);
-    setMessages([]);
-    closeSidebar();
-  };
-
-  const handleSelectSession = (sessionId: string) => {
-    setView('session');
-    setActiveSessionId(sessionId);
-    closeSidebar();
-  };
-
-  const handleRenameSession = async (sessionId: string, title: string) => {
-    try {
-      await ChatService.RenameChatSession(sessionId, title);
-      await loadSessions();
-    } catch (err) {
-      notify.failed('Failed to rename chat', String(err));
-    }
-  };
-
-  const handleDeleteSession = async (sessionId: string) => {
-    try {
-      await ChatService.DeleteChatSession(sessionId);
-      if (activeSessionId === sessionId) {
-        setView('home');
-        setActiveSessionId(null);
-        setMessages([]);
-      }
-      await loadSessions();
-    } catch (err) {
-      notify.failed('Failed to delete chat', String(err));
-    }
-  };
+    clearMessages();
+    return createChatSession();
+  }, [activeSessionId, view, createChatSession, clearMessages]);
 
   const handleSend = async (content: string) => {
-    setSending(true);
-    try {
-      const sessionId = await ensureActiveSession();
-      const result = await ChatService.StartChatTurn(sessionId, content);
-      const userMessage = result.user_message as ChatMessageItem;
-      const assistantMessage = {
-        ...(result.assistant_message as ChatMessageItem),
-        generating: true,
-      };
-      setMessages((current) => [...current, userMessage, assistantMessage]);
-      setStreamingMessageId(assistantMessage.id);
-      await loadSessions();
-    } catch (err) {
-      notify.failed('Failed to send message', String(err));
-      setSending(false);
-      setStreamingMessageId(null);
-    }
+    const sessionId = await ensureActiveSession();
+    await send(content, sessionId);
   };
 
   const handleQuickAction = async (actionId: QuickActionId, prompt: string, autoSend: boolean) => {
     if (actionId === 'play_sudoku') {
       setSending(true);
       try {
-        const result = await SudokuService.NewSudokuGame('easy');
-        await loadSessions();
-        setView('session');
-        setActiveSessionId(result.session.id);
-        setMessages([]);
+        await startSudoku();
+        clearMessages();
       } catch (err) {
-        notify.failed('Could not start Sudoku', String(err));
+        notify.failed('Could not start Sudoku', toApiError(err));
       } finally {
         setSending(false);
       }
@@ -245,7 +113,7 @@ function AgentApp() {
     try {
       await signInWithEmail(email);
     } catch (err) {
-      notify.failed('Sign-in failed', String(err));
+      notify.failed('Sign-in failed', toApiError(err));
     }
   };
 
@@ -253,35 +121,23 @@ function AgentApp() {
     try {
       await signIn(provider);
     } catch (err) {
-      notify.failed('Sign-in failed', String(err));
+      notify.failed('Sign-in failed', toApiError(err));
     }
   };
 
   const handleSignOut = async () => {
     try {
       await signOut();
-      setView('home');
-      setActiveSessionId(null);
-      setMessages([]);
+      goHome();
+      clearMessages();
     } catch (err) {
-      notify.failed('Sign-out failed', String(err));
-    }
-  };
-
-  const handleCancel = async () => {
-    if (!activeSessionId || !streamingMessageId) {
-      return;
-    }
-    try {
-      await ChatService.CancelChatTurn(activeSessionId, streamingMessageId);
-    } catch (err) {
-      notify.failed('Failed to cancel response', String(err));
+      notify.failed('Sign-out failed', toApiError(err));
     }
   };
 
   const handleOpenManagement = () => {
     SystemService.ShowManagementWindow().catch((err: unknown) => {
-      notify.failed('Failed to open management', String(err));
+      notify.failed('Failed to open management', toApiError(err));
     });
   };
 
@@ -300,8 +156,13 @@ function AgentApp() {
       onSelectSession={handleSelectSession}
       onSelectCloudflare={handleSelectCloudflare}
       onNewChat={handleGoHome}
-      onRenameSession={handleRenameSession}
-      onDeleteSession={handleDeleteSession}
+      onRenameSession={renameSession}
+      onDeleteSession={async (sessionId) => {
+        await deleteSession(sessionId);
+        if (activeSessionId === sessionId) {
+          clearMessages();
+        }
+      }}
       onOpenManagement={handleOpenManagement}
       onSignOut={handleSignOut}
     />
@@ -333,7 +194,7 @@ function AgentApp() {
         <Box
           className={classes.main}
           data-overlay={isOverlay || undefined}
-          data-platform={isMacOS ? 'darwin' : undefined}
+          data-platform={isMacPlatform(platform) ? 'darwin' : undefined}
         >
           {isHomeView ? (
             <AgentHome
@@ -343,7 +204,7 @@ function AgentApp() {
               sending={sending}
               onOpenSidebar={openSidebar}
               onSend={handleSend}
-              onCancel={streamingMessageId ? handleCancel : undefined}
+              onCancel={streamingMessageId ? cancel : undefined}
               onSignInWithEmail={handleSignInWithEmail}
               onSignIn={handleSignIn}
               onQuickAction={(actionId, prompt, autoSend) => {
@@ -375,7 +236,7 @@ function AgentApp() {
                 disabled={false}
                 sending={sending}
                 onSend={handleSend}
-                onCancel={streamingMessageId ? handleCancel : undefined}
+                onCancel={streamingMessageId ? cancel : undefined}
               />
             </>
           )}

@@ -31,10 +31,10 @@ flowchart TB
     OB[obsidian]
     CF[cloudflare]
     SVC[services]
-    EN --> SVC
-    SU --> SVC
-    OB --> SVC
-    CF --> SVC
+    SVC --> EN
+    SVC --> SU
+    SVC --> OB
+    SVC --> CF
   end
 
   subgraph sidecars["Side-car CLIs"]
@@ -71,7 +71,7 @@ flowchart TB
 
 ## Shared kernel
 
-Packages that multiple domains may use. **Rule:** kernel packages must not import `backend/watch`, `backend/vdiupload`, `backend/english`, `backend/obsidian`, or `backend/cloudflare`.
+Packages that multiple domains may use. **Rule:** kernel packages other than `backend/services` must not import `backend/watch`, `backend/vdiupload`, `backend/english`, `backend/obsidian`, `backend/cloudflare`, or `backend/sudoku`. Wails façades in `backend/services` may import those domain packages.
 
 | Package | Role |
 |---------|------|
@@ -79,7 +79,7 @@ Packages that multiple domains may use. **Rule:** kernel packages must not impor
 | `backend/agent`, `backend/utils/aiclient` | Chat orchestration + LLM client |
 | `backend/auth`, `backend/storage`, `backend/utils/autostart` | Identity, persistence, OS login items |
 | `backend/storage/store` | sqlc-generated SQLite access |
-| `backend/types` | Shared DTOs for Wails bindings |
+| `backend/types` | Shared DTOs for Wails bindings. Product settings live in `config.json`; integration secrets overlay from the OS keyring; SQLite `settings` is ephemeral/debug KV. |
 | `backend/consts` | Domain catalog and constants |
 
 Planned shared extract (not yet moved):
@@ -90,7 +90,7 @@ Planned shared extract (not yet moved):
 
 ## Dependency rules
 
-1. **Domain → kernel** OK; **kernel → domain** forbidden.
+1. **Domain → kernel** OK except `backend/services` (domains do not import Wails façades). **Kernel → domain** forbidden except those façades.
 2. **Domain → domain** forbidden (no `watch` importing `vdiupload` or vice versa). Share via kernel or events/config only.
 3. **Delivery adapters** (`cmd/*`, `cloud/*`, Wails root) may wire domains; domains must not import `cmd/` or `main`.
 4. Windows-only code stays behind `//go:build windows` (and stubs elsewhere), matching `watch` today.

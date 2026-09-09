@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AuthService } from '../../bindings/github.com/songwei.ma/talus-mofish/backend/services';
+import { AuthService } from '../utils/api';
 import { UserProfile } from '../utils/userProfile';
 
 type OAuthProvider = 'github' | 'google';

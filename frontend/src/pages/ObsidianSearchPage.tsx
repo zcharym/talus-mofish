@@ -10,19 +10,8 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
-import { ObsidianService } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/services";
-import { SearchHit } from "../../bindings/github.com/songwei.ma/talus-mofish/backend/obsidian/models";
+import { ObsidianService, SearchHit, toApiError } from "../utils/api";
 import { notify } from "../services/notifications";
-
-function errorMessage(err: unknown): string {
-  if (typeof err === "string") {
-    return err;
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return String(err);
-}
 
 interface ObsidianSearchPageProps {
   onOpenNote: (path: string) => void;
@@ -44,7 +33,7 @@ export function ObsidianSearchPage({ onOpenNote }: ObsidianSearchPageProps) {
       const results = (await ObsidianService.SearchSimple(trimmed, 100)) as SearchHit[];
       setHits(results);
     } catch (err) {
-      notify.failed("Obsidian", errorMessage(err));
+      notify.failed("Obsidian", toApiError(err));
     } finally {
       setLoading(false);
     }

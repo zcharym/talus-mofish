@@ -1,20 +1,8 @@
-import { KeyboardEvent, useCallback, useEffect, useState } from 'react';
+import { KeyboardEvent } from 'react';
 import { IconCheck, IconEraser } from '@tabler/icons-react';
 import { Box, Burger, Button, Group, Loader, Select, Text, Title } from '@mantine/core';
-import { SudokuService } from '../../../../bindings/github.com/songwei.ma/talus-mofish/backend/services';
-import { notify } from '../../../services/notifications';
+import { useSudokuGame } from '../../../hooks/useSudokuGame';
 import classes from './SudokuBoard.module.css';
-
-export interface SudokuGameState {
-  id: string;
-  session_id: string;
-  difficulty: string;
-  puzzle: string;
-  board: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
 
 interface SudokuBoardProps {
   sessionId: string;
@@ -35,105 +23,20 @@ function isGiven(puzzle: string, index: number): boolean {
 }
 
 export function SudokuBoard({ sessionId, sessionTitle, onSessionUpdated, onOpenSidebar }: SudokuBoardProps) {
-  const [game, setGame] = useState<SudokuGameState | null>(null);
-  const [difficulty, setDifficulty] = useState('easy');
-  const [selected, setSelected] = useState<number | null>(null);
-  const [conflicts, setConflicts] = useState<number[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [statusText, setStatusText] = useState('');
-
-  const loadGame = useCallback(async () => {
-    setLoading(true);
-    setConflicts([]);
-    setStatusText('');
-    try {
-      const next = (await SudokuService.GetSudokuGame(sessionId)) as SudokuGameState;
-      setGame(next);
-      setDifficulty(next.difficulty || 'easy');
-    } catch (err) {
-      notify.failed('Failed to load Sudoku', String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, [sessionId]);
-
-  useEffect(() => {
-    void loadGame();
-  }, [loadGame]);
-
-  const applyGame = (next: SudokuGameState) => {
-    setGame(next);
-    setDifficulty(next.difficulty || difficulty);
-    if (next.status === 'solved') {
-      setConflicts([]);
-      setStatusText('Solved');
-    }
-  };
-
-  const setCell = async (index: number, value: number) => {
-    if (!game || game.status === 'solved' || isGiven(game.puzzle, index) || busy) {
-      return;
-    }
-    setBusy(true);
-    try {
-      const next = (await SudokuService.SetSudokuCell(sessionId, index, value)) as SudokuGameState;
-      applyGame(next);
-      setConflicts((current) => current.filter((item) => item !== index));
-      if (next.status === 'solved') {
-        await onSessionUpdated();
-      }
-    } catch (err) {
-      notify.failed('Could not update cell', String(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleCheck = async () => {
-    if (!game || busy) {
-      return;
-    }
-    setBusy(true);
-    try {
-      const result = await SudokuService.CheckSudokuGame(sessionId);
-      const nextGame = result.game as SudokuGameState;
-      applyGame(nextGame);
-      const nextConflicts = (result.conflicts ?? []) as number[];
-      setConflicts(nextConflicts);
-      if (result.solved) {
-        setStatusText('Solved');
-        await onSessionUpdated();
-      } else if (nextConflicts.length === 0) {
-        setStatusText('No mistakes yet — keep going');
-      } else {
-        setStatusText(`${nextConflicts.length} incorrect ${nextConflicts.length === 1 ? 'cell' : 'cells'}`);
-      }
-    } catch (err) {
-      notify.failed('Check failed', String(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleNewPuzzle = async () => {
-    if (busy) {
-      return;
-    }
-    setBusy(true);
-    setConflicts([]);
-    setStatusText('');
-    try {
-      const next = (await SudokuService.NewSudokuPuzzle(sessionId, difficulty)) as SudokuGameState;
-      applyGame(next);
-      setSelected(null);
-      await onSessionUpdated();
-    } catch (err) {
-      notify.failed('Could not fetch a new puzzle', String(err));
-    } finally {
-      setBusy(false);
-    }
-  };
+  const {
+    game,
+    difficulty,
+    setDifficulty,
+    selected,
+    setSelected,
+    conflicts,
+    loading,
+    busy,
+    statusText,
+    setCell,
+    checkGame,
+    newPuzzle,
+  } = useSudokuGame(sessionId, onSessionUpdated);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (selected === null || !game) {
@@ -141,12 +44,16 @@ export function SudokuBoard({ sessionId, sessionTitle, onSessionUpdated, onOpenS
     }
     if (event.key >= '1' && event.key <= '9') {
       event.preventDefault();
-      void setCell(selected, Number(event.key));
+      if (!isGiven(game.puzzle, selected) && game.status !== 'solved' && !busy) {
+        void setCell(selected, Number(event.key));
+      }
       return;
     }
     if (event.key === 'Backspace' || event.key === 'Delete' || event.key === '0') {
       event.preventDefault();
-      void setCell(selected, 0);
+      if (!isGiven(game.puzzle, selected) && game.status !== 'solved' && !busy) {
+        void setCell(selected, 0);
+      }
       return;
     }
     const row = Math.floor(selected / 9);
@@ -188,7 +95,7 @@ export function SudokuBoard({ sessionId, sessionTitle, onSessionUpdated, onOpenS
             allowDeselect={false}
             disabled={busy}
           />
-          <Button size="xs" variant="light" loading={busy} onClick={() => void handleNewPuzzle()}>
+          <Button size="xs" variant="light" loading={busy} onClick={() => void newPuzzle()}>
             New puzzle
           </Button>
         </Group>
@@ -238,7 +145,7 @@ export function SudokuBoard({ sessionId, sessionTitle, onSessionUpdated, onOpenS
                   size="sm"
                   w={36}
                   px={0}
-                  disabled={solved || selected === null || busy}
+                  disabled={solved || selected === null || busy || (selected !== null && isGiven(game.puzzle, selected))}
                   onClick={() => selected !== null && void setCell(selected, digit + 1)}
                 >
                   {digit + 1}
@@ -248,7 +155,7 @@ export function SudokuBoard({ sessionId, sessionTitle, onSessionUpdated, onOpenS
                 variant="default"
                 size="sm"
                 leftSection={<IconEraser size={14} />}
-                disabled={solved || selected === null || busy}
+                disabled={solved || selected === null || busy || (selected !== null && isGiven(game.puzzle, selected))}
                 onClick={() => selected !== null && void setCell(selected, 0)}
               >
                 Clear
@@ -257,7 +164,7 @@ export function SudokuBoard({ sessionId, sessionTitle, onSessionUpdated, onOpenS
                 size="sm"
                 leftSection={<IconCheck size={14} />}
                 disabled={solved || busy}
-                onClick={() => void handleCheck()}
+                onClick={() => void checkGame()}
               >
                 Check
               </Button>

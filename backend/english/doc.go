@@ -1,7 +1,7 @@
-// Package english documents the English Learning bounded context.
+// Package english is the English Learning bounded context.
 //
-// Physical code lives in backend/english/content, backend/storage/store, and
-// backend/services/english; this package anchors the domain ID for tooling.
+// Persistence lives in Repository; Anki import lives in content/; the Wails
+// façade is backend/services/english.go.
 //
 // See docs/domains/english/README.md.
 package english

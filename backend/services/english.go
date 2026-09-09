@@ -2,40 +2,24 @@ package services
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"strings"
+	"path/filepath"
 
-	"github.com/songwei.ma/talus-mofish/backend/consts"
+	"github.com/songwei.ma/talus-mofish/backend/english"
 	"github.com/songwei.ma/talus-mofish/backend/english/content"
 	"github.com/songwei.ma/talus-mofish/backend/storage"
-	"github.com/songwei.ma/talus-mofish/backend/storage/store"
 	"github.com/songwei.ma/talus-mofish/backend/types"
 )
 
-const defaultSearchLimit = 50
-
 // EnglishService exposes English Learning domain APIs.
 type EnglishService struct {
-	db *storage.DB
+	db   *storage.DB
+	repo *english.Repository
 }
 
 // NewEnglishService creates the English Learning Wails service.
 func NewEnglishService(db *storage.DB) *EnglishService {
-	return &EnglishService{db: db}
-}
-
-func normalizePageParams(page, pageSize int64) (int64, int64) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = consts.DefaultPageSize
-	}
-	if pageSize > 100 {
-		pageSize = 100
-	}
-	return page, pageSize
+	return &EnglishService{db: db, repo: english.NewRepository(db)}
 }
 
 // PreviewAnkiAPKG returns deck and model metadata for import configuration.
@@ -65,214 +49,85 @@ func (s *EnglishService) ImportAnkiAPKG(apkgPath string, configs []content.Impor
 }
 
 // ListAnkiImports returns past import sessions.
-func (s *EnglishService) ListAnkiImports() ([]store.AnkiImport, error) {
-	ctx := context.Background()
-	items, err := s.db.Queries.ListAnkiImports(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("list imports: %w", err)
-	}
-	if items == nil {
-		return []store.AnkiImport{}, nil
-	}
-	return items, nil
+func (s *EnglishService) ListAnkiImports() ([]types.AnkiImportRecord, error) {
+	return s.repo.ListAnkiImports(context.Background())
 }
 
 // ListArticlesPage returns a paginated list of article summaries.
 func (s *EnglishService) ListArticlesPage(page, pageSize int64) (types.ArticlePageResult, error) {
-	ctx := context.Background()
-	page, pageSize = normalizePageParams(page, pageSize)
-
-	total, err := s.db.Queries.CountArticles(ctx)
-	if err != nil {
-		return types.ArticlePageResult{}, fmt.Errorf("count articles: %w", err)
-	}
-
-	rows, err := s.db.Queries.ListArticlesPage(ctx, store.ListArticlesPageParams{
-		Limit:  pageSize,
-		Offset: (page - 1) * pageSize,
-	})
-	if err != nil {
-		return types.ArticlePageResult{}, fmt.Errorf("list articles page: %w", err)
-	}
-
-	items := make([]types.ArticleSummary, 0, len(rows))
-	for _, row := range rows {
-		items = append(items, types.ArticleSummary{
-			ID:        row.ID,
-			Title:     row.Title,
-			Source:    row.Source,
-			WordCount: row.WordCount,
-			CreatedAt: row.CreatedAt,
-		})
-	}
-
-	return types.ArticlePageResult{
-		Items:    items,
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
-	}, nil
+	return s.repo.ListArticlesPage(context.Background(), page, pageSize)
 }
 
 // GetArticle returns a single article by ID.
-func (s *EnglishService) GetArticle(id string) (store.Article, error) {
-	ctx := context.Background()
-	article, err := s.db.Queries.GetArticle(ctx, id)
-	if err != nil {
-		return store.Article{}, fmt.Errorf("get article: %w", err)
-	}
-	return article, nil
+func (s *EnglishService) GetArticle(id string) (types.Article, error) {
+	return s.repo.GetArticle(context.Background(), id)
 }
 
 // ListVocabularyPage returns a paginated list of vocabulary entries.
 func (s *EnglishService) ListVocabularyPage(page, pageSize int64) (types.VocabularyPageResult, error) {
-	ctx := context.Background()
-	page, pageSize = normalizePageParams(page, pageSize)
-
-	total, err := s.db.Queries.CountVocabulary(ctx)
-	if err != nil {
-		return types.VocabularyPageResult{}, fmt.Errorf("count vocabulary: %w", err)
-	}
-
-	items, err := s.db.Queries.ListVocabularyPage(ctx, store.ListVocabularyPageParams{
-		Limit:  pageSize,
-		Offset: (page - 1) * pageSize,
-	})
-	if err != nil {
-		return types.VocabularyPageResult{}, fmt.Errorf("list vocabulary page: %w", err)
-	}
-	if items == nil {
-		items = []store.Vocabulary{}
-	}
-
-	return types.VocabularyPageResult{
-		Items:    items,
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
-	}, nil
+	return s.repo.ListVocabularyPage(context.Background(), page, pageSize)
 }
 
 // GetVocabulary returns a single vocabulary entry by ID.
-func (s *EnglishService) GetVocabulary(id string) (store.Vocabulary, error) {
-	ctx := context.Background()
-	item, err := s.db.Queries.GetVocabulary(ctx, id)
-	if err != nil {
-		return store.Vocabulary{}, fmt.Errorf("get vocabulary: %w", err)
-	}
-	return item, nil
+func (s *EnglishService) GetVocabulary(id string) (types.Vocabulary, error) {
+	return s.repo.GetVocabulary(context.Background(), id)
 }
 
 // UpdateVocabulary saves vocabulary field changes.
-func (s *EnglishService) UpdateVocabulary(input store.UpdateVocabularyParams) error {
-	ctx := context.Background()
-	input.Word = strings.TrimSpace(input.Word)
-	if input.Word == "" {
-		return fmt.Errorf("word is required")
-	}
-	if err := s.db.Queries.UpdateVocabulary(ctx, input); err != nil {
-		return fmt.Errorf("update vocabulary: %w", err)
-	}
-	return nil
+func (s *EnglishService) UpdateVocabulary(input types.VocabularyUpdate) error {
+	return s.repo.UpdateVocabulary(context.Background(), input)
 }
 
 // DeleteVocabulary removes a vocabulary entry.
 func (s *EnglishService) DeleteVocabulary(id string) error {
-	ctx := context.Background()
-	if err := s.db.Queries.DeleteVocabulary(ctx, id); err != nil {
-		return fmt.Errorf("delete vocabulary: %w", err)
-	}
-	return nil
+	return s.repo.DeleteVocabulary(context.Background(), id)
 }
 
 // SearchVocabulary finds vocabulary entries matching a query string.
-func (s *EnglishService) SearchVocabulary(query string, limit int64) ([]store.Vocabulary, error) {
-	ctx := context.Background()
-	query = strings.TrimSpace(query)
-	if query == "" {
-		return []store.Vocabulary{}, nil
-	}
-	if limit <= 0 {
-		limit = defaultSearchLimit
-	}
-
-	items, err := s.db.Queries.SearchVocabulary(ctx, store.SearchVocabularyParams{
-		Column1: sql.NullString{String: query, Valid: true},
-		Column2: sql.NullString{String: query, Valid: true},
-		Limit:   limit,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("search vocabulary: %w", err)
-	}
-	if items == nil {
-		return []store.Vocabulary{}, nil
-	}
-	return items, nil
+func (s *EnglishService) SearchVocabulary(query string, limit int64) ([]types.Vocabulary, error) {
+	return s.repo.SearchVocabulary(context.Background(), query, limit)
 }
 
 // ListCardsForVocab returns SRS cards linked to a vocabulary entry.
-func (s *EnglishService) ListCardsForVocab(vocabID string) ([]store.Card, error) {
-	ctx := context.Background()
-	items, err := s.db.Queries.ListCardsForVocab(ctx, vocabID)
-	if err != nil {
-		return nil, fmt.Errorf("list cards for vocab: %w", err)
-	}
-	if items == nil {
-		return []store.Card{}, nil
-	}
-	return items, nil
+func (s *EnglishService) ListCardsForVocab(vocabID string) ([]types.Card, error) {
+	return s.repo.ListCardsForVocab(context.Background(), vocabID)
 }
 
 // ListDecks returns all SRS decks.
-func (s *EnglishService) ListDecks() ([]store.Deck, error) {
-	ctx := context.Background()
-	items, err := s.db.Queries.ListDecks(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("list decks: %w", err)
-	}
-	if items == nil {
-		return []store.Deck{}, nil
-	}
-	return items, nil
+func (s *EnglishService) ListDecks() ([]types.Deck, error) {
+	return s.repo.ListDecks(context.Background())
 }
 
 // ListCardsByDeck returns cards in a deck.
-func (s *EnglishService) ListCardsByDeck(deckID string) ([]store.Card, error) {
-	ctx := context.Background()
-	items, err := s.db.Queries.ListCardsByDeck(ctx, deckID)
-	if err != nil {
-		return nil, fmt.Errorf("list cards: %w", err)
-	}
-	if items == nil {
-		return []store.Card{}, nil
-	}
-	return items, nil
+func (s *EnglishService) ListCardsByDeck(deckID string) ([]types.Card, error) {
+	return s.repo.ListCardsByDeck(context.Background(), deckID)
 }
 
 // GetCard returns a single SRS card by ID.
-func (s *EnglishService) GetCard(id string) (store.Card, error) {
-	ctx := context.Background()
-	item, err := s.db.Queries.GetCard(ctx, id)
-	if err != nil {
-		return store.Card{}, fmt.Errorf("get card: %w", err)
-	}
-	return item, nil
+func (s *EnglishService) GetCard(id string) (types.Card, error) {
+	return s.repo.GetCard(context.Background(), id)
 }
 
 // UpdateCardContent saves editable card fields.
-func (s *EnglishService) UpdateCardContent(input store.UpdateCardContentParams) error {
-	ctx := context.Background()
-	if err := s.db.Queries.UpdateCardContent(ctx, input); err != nil {
-		return fmt.Errorf("update card content: %w", err)
-	}
-	return nil
+func (s *EnglishService) UpdateCardContent(input types.CardContentUpdate) error {
+	return s.repo.UpdateCardContent(context.Background(), input)
 }
 
 // DeleteCard removes an SRS card.
 func (s *EnglishService) DeleteCard(id string) error {
-	ctx := context.Background()
-	if err := s.db.Queries.DeleteCard(ctx, id); err != nil {
-		return fmt.Errorf("delete card: %w", err)
+	return s.repo.DeleteCard(context.Background(), id)
+}
+
+// MediaRoot returns the directory where imported media files are stored.
+func (s *EnglishService) MediaRoot() (string, error) {
+	return content.DefaultMediaDir()
+}
+
+// MediaFilePath resolves a stored media relative path to an absolute file path.
+func (s *EnglishService) MediaFilePath(storedPath string) (string, error) {
+	root, err := content.DefaultMediaDir()
+	if err != nil {
+		return "", err
 	}
-	return nil
+	return filepath.Join(root, storedPath), nil
 }

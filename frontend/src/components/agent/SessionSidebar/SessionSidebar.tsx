@@ -27,7 +27,7 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import { UserProfile } from '../../../utils/userProfile';
-import { isMacOS } from '../../../utils/platform';
+import { isMacPlatform, usePlatform } from '../../../hooks/usePlatform';
 import { loadPinnedSessionIds, savePinnedSessionIds } from './pinnedSessions';
 import classes from './SessionSidebar.module.css';
 
@@ -136,6 +136,7 @@ export function SessionSidebar({
   onSignOut,
   overlay = false,
 }: SessionSidebarProps) {
+  const platform = usePlatform();
   const [renameSessionId, setRenameSessionId] = useState<string | null>(null);
   const [renameTitle, setRenameTitle] = useState('');
   const [deleteSession, setDeleteSession] = useState<ChatSessionItem | null>(null);
@@ -252,7 +253,7 @@ export function SessionSidebar({
   return (
     <Box
       className={classes.sidebar}
-      data-platform={isMacOS ? 'darwin' : undefined}
+      data-platform={isMacPlatform(platform) ? 'darwin' : undefined}
       data-overlay={overlay || undefined}
     >
       <Box className={classes.header}>

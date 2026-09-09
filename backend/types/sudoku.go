@@ -16,8 +16,8 @@ type SudokuGame struct {
 
 // SudokuSession is a new or updated game plus its chat-like session row.
 type SudokuSession struct {
-	Session store.ChatSession `json:"session"`
-	Game    SudokuGame        `json:"game"`
+	Session ChatSession `json:"session"`
+	Game    SudokuGame  `json:"game"`
 }
 
 // SudokuCheckResult reports wrong cells after a Check action.
@@ -38,5 +38,16 @@ func PublicSudokuGame(row store.SudokuGame) SudokuGame {
 		Status:     row.Status,
 		CreatedAt:  row.CreatedAt,
 		UpdatedAt:  row.UpdatedAt,
+	}
+}
+
+// ChatSessionFromStore maps a sqlc session row onto the wire DTO.
+func ChatSessionFromStore(row store.ChatSession) ChatSession {
+	return ChatSession{
+		ID:        row.ID,
+		Title:     row.Title,
+		Kind:      row.Kind,
+		CreatedAt: row.CreatedAt,
+		UpdatedAt: row.UpdatedAt,
 	}
 }
