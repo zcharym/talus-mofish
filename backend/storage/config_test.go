@@ -72,6 +72,38 @@ func TestCloudflareNormalizeAndConfigured(t *testing.T) {
 	}
 }
 
+func TestFeedsSecretsStayOutOfConfigFile(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+
+	store, err := LoadConfig(path)
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+
+	updated := store.Get()
+	updated.Feeds = types.Feeds{YouTubeAPIKey: "yt-secret", BilibiliSESSDATA: "bili-sess"}
+	if err := store.Update(updated); err != nil {
+		t.Fatalf("Update() error = %v", err)
+	}
+
+	reloaded, err := LoadConfig(path)
+	if err != nil {
+		t.Fatalf("LoadConfig() second error = %v", err)
+	}
+	if reloaded.App.Feeds.YouTubeAPIKey != "yt-secret" || reloaded.App.Feeds.BilibiliSESSDATA != "bili-sess" {
+		t.Fatalf("feeds = %+v", reloaded.App.Feeds)
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("ReadFile() error = %v", err)
+	}
+	text := string(data)
+	if strings.Contains(text, "yt-secret") || strings.Contains(text, "bili-sess") {
+		t.Fatalf("config.json still contains feed secrets: %s", data)
+	}
+}
+
 func TestUpdatePersistsChanges(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")

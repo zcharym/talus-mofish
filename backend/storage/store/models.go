@@ -108,6 +108,34 @@ type Deck struct {
 	UpdatedAt   string         `json:"updated_at"`
 }
 
+type FeedItem struct {
+	ID           string `json:"id"`
+	SourceID     string `json:"source_id"`
+	ExternalID   string `json:"external_id"`
+	Title        string `json:"title"`
+	Url          string `json:"url"`
+	Author       string `json:"author"`
+	Summary      string `json:"summary"`
+	ThumbnailUrl string `json:"thumbnail_url"`
+	PublishedAt  string `json:"published_at"`
+	Saved        int64  `json:"saved"`
+	Read         int64  `json:"read"`
+	CreatedAt    string `json:"created_at"`
+}
+
+type FeedSource struct {
+	ID            string `json:"id"`
+	Kind          string `json:"kind"`
+	Title         string `json:"title"`
+	Url           string `json:"url"`
+	RemoteID      string `json:"remote_id"`
+	Enabled       int64  `json:"enabled"`
+	LastError     string `json:"last_error"`
+	LastFetchedAt string `json:"last_fetched_at"`
+	CreatedAt     string `json:"created_at"`
+	UpdatedAt     string `json:"updated_at"`
+}
+
 type MediaAsset struct {
 	ID               string `json:"id"`
 	OriginalFilename string `json:"original_filename"`

@@ -66,6 +66,8 @@ func LoadConfig(path string) (*ConfigStore, error) {
 		&app.Sudoku.APIKey,
 		&app.Obsidian.APIKey,
 		&app.Cloudflare.APIToken,
+		&app.Feeds.YouTubeAPIKey,
+		&app.Feeds.BilibiliSESSDATA,
 	)
 	store := &ConfigStore{path: path, App: app}
 	if hadFileSecrets {
@@ -116,6 +118,8 @@ func (s *ConfigStore) saveLocked() error {
 		app.Sudoku.APIKey,
 		app.Obsidian.APIKey,
 		app.Cloudflare.APIToken,
+		app.Feeds.YouTubeAPIKey,
+		app.Feeds.BilibiliSESSDATA,
 	)
 
 	disk := app
@@ -126,6 +130,8 @@ func (s *ConfigStore) saveLocked() error {
 		&disk.Sudoku.APIKey,
 		&disk.Obsidian.APIKey,
 		&disk.Cloudflare.APIToken,
+		&disk.Feeds.YouTubeAPIKey,
+		&disk.Feeds.BilibiliSESSDATA,
 	)
 
 	data, err := json.MarshalIndent(disk, "", "  ")
@@ -152,6 +158,7 @@ func mergeDefaults(app, defaults types.App) types.App {
 	app.AI = app.AI.Normalize()
 	app.Obsidian = types.NormalizeObsidian(app.Obsidian)
 	app.Cloudflare = types.NormalizeCloudflare(app.Cloudflare)
+	app.Feeds = types.NormalizeFeeds(app.Feeds)
 	return app
 }
 
@@ -161,5 +168,7 @@ func configHasSecrets(app types.App) bool {
 		app.OAuth.GoogleClientSecret != "" ||
 		app.Sudoku.APIKey != "" ||
 		app.Obsidian.APIKey != "" ||
-		app.Cloudflare.APIToken != ""
+		app.Cloudflare.APIToken != "" ||
+		app.Feeds.YouTubeAPIKey != "" ||
+		app.Feeds.BilibiliSESSDATA != ""
 }

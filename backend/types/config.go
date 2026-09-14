@@ -19,6 +19,7 @@ type App struct {
 	Sudoku           Sudoku          `json:"sudoku"`
 	Obsidian         Obsidian        `json:"obsidian"`
 	Cloudflare       Cloudflare      `json:"cloudflare"`
+	Feeds            Feeds           `json:"feeds"`
 }
 
 // Auth holds settings for email magic-link authentication.
@@ -75,4 +76,17 @@ func NormalizeCloudflare(c Cloudflare) Cloudflare {
 func CloudflareConfigured(c Cloudflare) bool {
 	c = NormalizeCloudflare(c)
 	return c.AccountID != "" && c.APIToken != ""
+}
+
+// Feeds holds optional credentials for YouTube Data API and Bilibili watch later.
+type Feeds struct {
+	YouTubeAPIKey    string `json:"youtubeApiKey"`
+	BilibiliSESSDATA string `json:"bilibiliSessdata"`
+}
+
+// NormalizeFeeds trims stored feed credentials.
+func NormalizeFeeds(f Feeds) Feeds {
+	f.YouTubeAPIKey = strings.TrimSpace(f.YouTubeAPIKey)
+	f.BilibiliSESSDATA = strings.TrimSpace(f.BilibiliSESSDATA)
+	return f
 }

@@ -6,6 +6,7 @@ import { AgentHome, QuickActionId } from './components/agent/AgentHome';
 import { ChatInput } from './components/agent/ChatInput';
 import { ChatThread } from './components/agent/ChatThread';
 import { CloudflareDashboard, canShowCloudflareTab } from './components/agent/CloudflareDashboard';
+import { FeedsInbox } from './components/agent/FeedsInbox';
 import { SessionSidebar } from './components/agent/SessionSidebar';
 import { SudokuBoard } from './components/agent/SudokuBoard';
 import { useAgentChat } from './hooks/useAgentChat';
@@ -26,6 +27,7 @@ function AgentApp() {
     loadSessions,
     goHome,
     selectCloudflare,
+    selectFeeds,
     selectSession,
     renameSession,
     deleteSession,
@@ -68,6 +70,12 @@ function AgentApp() {
 
   const handleSelectCloudflare = () => {
     selectCloudflare();
+    clearMessages();
+    closeSidebar();
+  };
+
+  const handleSelectFeeds = () => {
+    selectFeeds();
     clearMessages();
     closeSidebar();
   };
@@ -143,18 +151,21 @@ function AgentApp() {
 
   const isHomeView = view === 'home';
   const isCloudflareView = view === 'cloudflare';
+  const isFeedsView = view === 'feeds';
   const isSudokuView = view === 'session' && activeSession?.kind === 'sudoku';
 
   const sidebar = (
     <SessionSidebar
       sessions={sessions}
-      activeSessionId={isCloudflareView ? null : activeSessionId}
+      activeSessionId={isCloudflareView || isFeedsView ? null : activeSessionId}
       user={user}
       showCloudflareTab={showCloudflareTab}
       cloudflareActive={isCloudflareView}
+      feedsActive={isFeedsView}
       overlay={Boolean(isOverlay)}
       onSelectSession={handleSelectSession}
       onSelectCloudflare={handleSelectCloudflare}
+      onSelectFeeds={handleSelectFeeds}
       onNewChat={handleGoHome}
       onRenameSession={renameSession}
       onDeleteSession={async (sessionId) => {
@@ -217,6 +228,8 @@ function AgentApp() {
               onOpenSidebar={openSidebar}
               onOpenManagement={handleOpenManagement}
             />
+          ) : isFeedsView ? (
+            <FeedsInbox onOpenSidebar={openSidebar} onOpenManagement={handleOpenManagement} />
           ) : isSudokuView && activeSessionId ? (
             <SudokuBoard
               sessionId={activeSessionId}

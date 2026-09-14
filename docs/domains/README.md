@@ -6,7 +6,7 @@ Talus Echo is a **multi-domain monorepo**. Bounded contexts are owned packages u
 
 ```
 backend/
-├── services/     # Wails-bound facades (System, Config, Auth, Chat, English, Sudoku, Obsidian, Cloudflare)
+├── services/     # Wails-bound facades (System, Config, Auth, Chat, English, Sudoku, Obsidian, Cloudflare, Feeds)
 ├── storage/      # SQLite + config.json + sqlc store
 ├── types/        # Shared Wails/JSON DTOs
 ├── utils/        # aiclient, autostart, env loader
@@ -17,6 +17,7 @@ backend/
 ├── sudoku/       # YouDoSudoku Agent window games
 ├── obsidian/     # Obsidian Local REST API vault client
 ├── cloudflare/   # Cloudflare Agent dashboard client
+├── feeds/        # RSS / YouTube / Bilibili Agent inbox
 ├── watch/        # Echo Watch sidecar domain
 └── vdiupload/    # VDI upload sidecar domain
 ```
@@ -30,11 +31,13 @@ flowchart TB
     SU[sudoku]
     OB[obsidian]
     CF[cloudflare]
+    FD[feeds]
     SVC[services]
     SVC --> EN
     SVC --> SU
     SVC --> OB
     SVC --> CF
+    SVC --> FD
   end
 
   subgraph sidecars["Side-car CLIs"]
@@ -55,6 +58,7 @@ flowchart TB
   SU -.->|uses| K
   OB -.->|uses| K
   CF -.->|uses| K
+  FD -.->|uses| K
   W --> K
   U --> K
   W --> CW
@@ -66,12 +70,13 @@ flowchart TB
 | [sudoku](./sudoku/) | desktop-agent | `backend/sudoku`, `backend/services/sudoku.go`, `backend/storage` | [README](./sudoku/README.md) |
 | [obsidian](./obsidian/) | desktop-agent | `backend/obsidian`, `backend/services/obsidian.go` | [README](./obsidian/README.md) |
 | [cloudflare](./cloudflare/) | desktop-agent | `backend/cloudflare`, `backend/services/cloudflare.go` | [README](./cloudflare/README.md) |
+| [feeds](./feeds/) | desktop-agent | `backend/feeds`, `backend/services/feeds.go`, `backend/storage` | [README](./feeds/README.md) |
 | [watch](./watch/) | sidecar | `backend/watch`, `cmd/echo-watch`, `cloud/echo-watch` | [README](./watch/README.md) |
 | [vdiupload](./vdiupload/) | sidecar | `backend/vdiupload`, `cmd/vdi-upload` | [DESIGN.md](./vdiupload/DESIGN.md) |
 
 ## Shared kernel
 
-Packages that multiple domains may use. **Rule:** kernel packages other than `backend/services` must not import `backend/watch`, `backend/vdiupload`, `backend/english`, `backend/obsidian`, `backend/cloudflare`, or `backend/sudoku`. Wails façades in `backend/services` may import those domain packages.
+Packages that multiple domains may use. **Rule:** kernel packages other than `backend/services` must not import `backend/watch`, `backend/vdiupload`, `backend/english`, `backend/obsidian`, `backend/cloudflare`, `backend/feeds`, or `backend/sudoku`. Wails façades in `backend/services` may import those domain packages.
 
 | Package | Role |
 |---------|------|

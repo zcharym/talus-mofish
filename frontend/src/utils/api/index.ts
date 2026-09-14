@@ -4,6 +4,7 @@ export {
   CloudflareService,
   ConfigService,
   EnglishService,
+  FeedsService,
   ObsidianService,
   SudokuService,
   SystemService,
@@ -12,6 +13,7 @@ export {
 export {
   App as AppConfig,
   Cloudflare,
+  Feeds,
   OAuth,
   Obsidian,
   Sudoku,
@@ -46,6 +48,39 @@ export {
 } from '../../../bindings/github.com/songwei.ma/talus-mofish/backend/english/content/models';
 
 export type { Dashboard as CloudflareDashboardSnapshot, Worker as CloudflareWorker } from '../../../bindings/github.com/songwei.ma/talus-mofish/backend/cloudflare/models';
+
+export type FeedSource = {
+  id: string;
+  kind: string;
+  title: string;
+  url?: string;
+  remoteId?: string;
+  enabled?: boolean;
+  lastError?: string;
+  lastFetchedAt?: string;
+};
+
+export type FeedItem = {
+  id: string;
+  sourceId?: string;
+  sourceKind?: string;
+  sourceTitle?: string;
+  title: string;
+  url: string;
+  author?: string;
+  summary?: string;
+  thumbnailUrl?: string;
+  publishedAt?: string;
+  saved?: boolean;
+  read?: boolean;
+};
+
+export type FeedInbox = {
+  sources?: FeedSource[];
+  items?: FeedItem[];
+  filter?: string;
+  fetchedAt?: string;
+};
 
 export { toApiError, isRuntimeError } from './errors';
 export {

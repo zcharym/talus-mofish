@@ -62,6 +62,27 @@ func TestMigrateUserAccountProviderAddsEmailAndDebug(t *testing.T) {
 	}
 }
 
+func TestOpenCreatesFeedTables(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	db, err := Open(filepath.Join(dir, "test.db"))
+	if err != nil {
+		t.Fatalf("open database: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = db.Close()
+	})
+
+	var sources, items int
+	if err := db.SQL.QueryRow(`SELECT COUNT(*) FROM feed_sources`).Scan(&sources); err != nil {
+		t.Fatalf("feed_sources: %v", err)
+	}
+	if err := db.SQL.QueryRow(`SELECT COUNT(*) FROM feed_items`).Scan(&items); err != nil {
+		t.Fatalf("feed_items: %v", err)
+	}
+}
+
 func TestMigrateUserAccountProviderPreservesEmailWhenAddingDebug(t *testing.T) {
 	t.Parallel()
 

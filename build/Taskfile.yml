@@ -1,5 +1,8 @@
 version: '3'
 
+vars:
+  WAILS3: '{{.WAILS3 | default "go run github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.4"}}'
+
 tasks:
   go:mod:tidy:
     summary: Runs `go mod tidy`
@@ -58,7 +61,7 @@ tasks:
     generates:
       - frontend/bindings/**/*
     cmds:
-      - wails3 generate bindings -f '{{.BUILD_FLAGS}}' -clean=true -ts
+      - "{{.WAILS3}} generate bindings -f '{{.BUILD_FLAGS}}' -clean=true -ts"
 
   generate:icons:
     summary: Generates Windows `.ico` and Mac `.icns` files from an image
@@ -69,7 +72,7 @@ tasks:
       - "darwin/icons.icns"
       - "windows/icon.ico"
     cmds:
-      - wails3 generate icons -input ../assets/icon.png -macfilename darwin/icons.icns -windowsfilename windows/icon.ico
+      - "{{.WAILS3}} generate icons -input ../assets/icon.png -macfilename darwin/icons.icns -windowsfilename windows/icon.ico"
 
   dev:frontend:
     summary: Runs the frontend in development mode
@@ -83,4 +86,4 @@ tasks:
     summary: Updates the build assets
     dir: build
     cmds:
-      - wails3 update build-assets -name "{{.APP_NAME}}" -binaryname "{{.APP_NAME}}" -config config.yml -dir .
+      - "{{.WAILS3}} update build-assets -name '{{.APP_NAME}}' -binaryname '{{.APP_NAME}}' -config config.yml -dir ."

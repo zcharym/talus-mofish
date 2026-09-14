@@ -1,0 +1,1 @@
+export { FeedsInbox } from './FeedsInbox';

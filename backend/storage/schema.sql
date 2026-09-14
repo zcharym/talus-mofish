@@ -220,3 +220,42 @@ CREATE TABLE IF NOT EXISTS sudoku_games (
     created_at TEXT NOT NULL DEFAULT (datetime ('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime ('now'))
 );
+
+-- === Feeds / watch later / read later ===
+CREATE TABLE IF NOT EXISTS feed_sources (
+    id TEXT NOT NULL PRIMARY KEY,
+    kind TEXT NOT NULL CHECK (
+        kind IN ('rss', 'youtube', 'bilibili', 'readlater')
+    ),
+    title TEXT NOT NULL,
+    url TEXT NOT NULL DEFAULT '',
+    remote_id TEXT NOT NULL DEFAULT '',
+    enabled INTEGER NOT NULL DEFAULT 1,
+    last_error TEXT NOT NULL DEFAULT '',
+    last_fetched_at TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime ('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime ('now'))
+);
+
+CREATE TABLE IF NOT EXISTS feed_items (
+    id TEXT NOT NULL PRIMARY KEY,
+    source_id TEXT NOT NULL REFERENCES feed_sources (id) ON DELETE CASCADE,
+    external_id TEXT NOT NULL DEFAULT '',
+    title TEXT NOT NULL,
+    url TEXT NOT NULL DEFAULT '',
+    author TEXT NOT NULL DEFAULT '',
+    summary TEXT NOT NULL DEFAULT '',
+    thumbnail_url TEXT NOT NULL DEFAULT '',
+    published_at TEXT NOT NULL DEFAULT '',
+    saved INTEGER NOT NULL DEFAULT 0,
+    read INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime ('now'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_feed_items_source_external ON feed_items (source_id, external_id)
+WHERE
+    external_id != '';
+
+CREATE INDEX IF NOT EXISTS idx_feed_items_timeline ON feed_items (published_at DESC, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_feed_items_saved ON feed_items (saved, published_at DESC);

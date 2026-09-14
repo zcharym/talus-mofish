@@ -10,12 +10,14 @@ import (
 const configSecretService = "talus-mofish-config"
 
 const (
-	secretAIAPIKey             = "ai.apiKey"
-	secretGitHubClientSecret   = "oauth.githubClientSecret"
-	secretGoogleClientSecret   = "oauth.googleClientSecret"
-	secretSudokuAPIKey         = "sudoku.apiKey"
-	secretObsidianAPIKey       = "obsidian.apiKey"
-	secretCloudflareAPIToken   = "cloudflare.apiToken"
+	secretAIAPIKey           = "ai.apiKey"
+	secretGitHubClientSecret = "oauth.githubClientSecret"
+	secretGoogleClientSecret = "oauth.googleClientSecret"
+	secretSudokuAPIKey       = "sudoku.apiKey"
+	secretObsidianAPIKey     = "obsidian.apiKey"
+	secretCloudflareAPIToken = "cloudflare.apiToken"
+	secretYouTubeAPIKey      = "feeds.youtubeApiKey"
+	secretBilibiliSESSDATA   = "feeds.bilibiliSessdata"
 )
 
 // SecretBackend stores config secrets outside config.json.
@@ -100,7 +102,7 @@ func UseMemorySecrets() {
 	secretsEnabled = true
 }
 
-func persistConfigSecrets(aiKey, githubSecret, googleSecret, sudokuKey, obsidianKey, cloudflareToken string) {
+func persistConfigSecrets(aiKey, githubSecret, googleSecret, sudokuKey, obsidianKey, cloudflareToken, youtubeKey, biliSess string) {
 	secretsMu.Lock()
 	backend := secretBackend
 	enabled := secretsEnabled
@@ -119,6 +121,8 @@ func persistConfigSecrets(aiKey, githubSecret, googleSecret, sudokuKey, obsidian
 		{secretSudokuAPIKey, sudokuKey},
 		{secretObsidianAPIKey, obsidianKey},
 		{secretCloudflareAPIToken, cloudflareToken},
+		{secretYouTubeAPIKey, youtubeKey},
+		{secretBilibiliSESSDATA, biliSess},
 	}
 	for _, pair := range pairs {
 		if err := backend.Set(pair.key, pair.value); err != nil {
@@ -150,7 +154,7 @@ func loadConfigSecret(key string) string {
 	return value
 }
 
-func overlayConfigSecrets(aiKey, githubSecret, googleSecret, sudokuKey, obsidianKey, cloudflareToken *string) {
+func overlayConfigSecrets(aiKey, githubSecret, googleSecret, sudokuKey, obsidianKey, cloudflareToken, youtubeKey, biliSess *string) {
 	if overlay := loadConfigSecret(secretAIAPIKey); overlay != "" {
 		*aiKey = overlay
 	}
@@ -169,13 +173,21 @@ func overlayConfigSecrets(aiKey, githubSecret, googleSecret, sudokuKey, obsidian
 	if overlay := loadConfigSecret(secretCloudflareAPIToken); overlay != "" {
 		*cloudflareToken = overlay
 	}
+	if overlay := loadConfigSecret(secretYouTubeAPIKey); overlay != "" {
+		*youtubeKey = overlay
+	}
+	if overlay := loadConfigSecret(secretBilibiliSESSDATA); overlay != "" {
+		*biliSess = overlay
+	}
 }
 
-func stripConfigSecretsForDisk(aiKey, githubSecret, googleSecret, sudokuKey, obsidianKey, cloudflareToken *string) {
+func stripConfigSecretsForDisk(aiKey, githubSecret, googleSecret, sudokuKey, obsidianKey, cloudflareToken, youtubeKey, biliSess *string) {
 	*aiKey = ""
 	*githubSecret = ""
 	*googleSecret = ""
 	*sudokuKey = ""
 	*obsidianKey = ""
 	*cloudflareToken = ""
+	*youtubeKey = ""
+	*biliSess = ""
 }

@@ -10,6 +10,8 @@ vars:
   APP_NAME: "talus-mofish"
   BIN_DIR: "bin"
   VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
+  # go run avoids GOPATH/bin/wails3.exe, which Windows Smart App Control blocks when unsigned.
+  WAILS3: '{{.WAILS3 | default "go run github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.4"}}'
 
 env:
   WAILS_MCP: "1"
@@ -34,7 +36,7 @@ tasks:
   dev:
     summary: Runs the application in development mode with MCP at http://127.0.0.1:9099/mcp
     cmds:
-      - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
+      - "{{.WAILS3}} dev -config ./build/config.yml -port {{.VITE_PORT}}"
 
   sqlc:
     summary: Regenerate type-safe queries from backend/storage/schema.sql and backend/storage/queries

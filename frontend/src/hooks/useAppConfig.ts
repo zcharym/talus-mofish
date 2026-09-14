@@ -4,6 +4,7 @@ import {
   AppConfig,
   Cloudflare,
   ConfigService,
+  Feeds,
   OAuth,
   Obsidian,
   Provider,
@@ -32,6 +33,8 @@ export interface AppConfigForm {
   obsidianAPIKey: string;
   cloudflareAccountId: string;
   cloudflareAPIToken: string;
+  youtubeApiKey: string;
+  bilibiliSessdata: string;
 }
 
 const defaultForm: AppConfigForm = {
@@ -53,6 +56,8 @@ const defaultForm: AppConfigForm = {
   obsidianAPIKey: "",
   cloudflareAccountId: "",
   cloudflareAPIToken: "",
+  youtubeApiKey: "",
+  bilibiliSessdata: "",
 };
 
 export interface UseAppConfigOptions {
@@ -98,6 +103,8 @@ export function useAppConfig({ onThemeChange, onDebugModeChange }: UseAppConfigO
         obsidianAPIKey: cfg.obsidian?.apiKey || "",
         cloudflareAccountId: cfg.cloudflare?.accountId || "",
         cloudflareAPIToken: cfg.cloudflare?.apiToken || "",
+        youtubeApiKey: cfg.feeds?.youtubeApiKey || "",
+        bilibiliSessdata: cfg.feeds?.bilibiliSessdata || "",
       });
       setConfigPath(path);
       onThemeChange(nextTheme);
@@ -145,6 +152,10 @@ export function useAppConfig({ onThemeChange, onDebugModeChange }: UseAppConfigO
       cloudflare: new Cloudflare({
         accountId: form.cloudflareAccountId,
         apiToken: form.cloudflareAPIToken,
+      }),
+      feeds: new Feeds({
+        youtubeApiKey: form.youtubeApiKey,
+        bilibiliSessdata: form.bilibiliSessdata,
       }),
     });
 

@@ -7,31 +7,35 @@ Talus Echo is **chat-oriented**: the Agent window is the primary surface for int
 ## Prerequisites
 
 - Go 1.27+ (this project uses `toolchain go1.27.0` for Wails v3 beta.4)
-- [Wails v3 CLI](https://v3.wails.io/quick-start/installation/): `go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.4`
+- [Wails v3 CLI](https://v3.wails.io/quick-start/installation/) is invoked via `go run` from the Taskfile (keep in sync with `v3.0.0-beta.4`). A global `go install` binary is optional; Windows Smart App Control often blocks unsigned `%USERPROFILE%\go\bin\wails3.exe`.
 - Pin `@wailsio/runtime` to `3.0.0-beta.1` in `frontend/package.json` (latest published runtime; keep near the Go Wails module version)
 - Node.js (for the React frontend)
 - Optional: [sqlc](https://docs.sqlc.dev/en/latest/overview/install.html) for regenerating query code
 
-Run `wails3 doctor` to verify your environment.
+Verify the environment with:
+
+```bash
+go run github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.4 doctor
+```
 
 ## Quick start
 
 ```bash
 cd frontend && npm install && cd ..
-wails3 dev
+task dev
 ```
 
 Production build:
 
 ```bash
-wails3 build
+task build
 ```
 
 Cross-compile (from macOS or Windows with toolchains installed):
 
 ```bash
-wails3 build GOOS=windows
-wails3 build GOOS=darwin
+go run github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.4 build GOOS=windows
+go run github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.4 build GOOS=darwin
 ```
 
 ## Project layout
@@ -40,7 +44,7 @@ wails3 build GOOS=darwin
 |------|---------|
 | `main.go` | Wails app entry, registers backend services |
 | `frontend/` | React + TypeScript UI (Vite) |
-| `backend/services/` | Wails-bound API facades (`System`, `Config`, `Auth`, `Chat`, `English`, `Sudoku`, `Obsidian`, `Cloudflare`) |
+| `backend/services/` | Wails-bound API facades (`System`, `Config`, `Auth`, `Chat`, `English`, `Sudoku`, `Obsidian`, `Cloudflare`, `Feeds`) |
 | `backend/storage/` | SQLite open, schema, config.json, sqlc queries + store |
 | `backend/types/` | Shared Wails/JSON DTOs |
 | `backend/utils/` | Env loader, LLM client, autostart |
@@ -49,6 +53,7 @@ wails3 build GOOS=darwin
 | `backend/english/content/` | English Learning importers (Anki APKG) |
 | `backend/obsidian/` | Obsidian Local REST API client |
 | `backend/cloudflare/` | Cloudflare Agent dashboard client ([cloudflare-go/v7](https://github.com/cloudflare/cloudflare-go)) |
+| `backend/feeds/` | RSS / YouTube / Bilibili inbox ([gofeed](https://github.com/mmcdole/gofeed), [youtube/v3](https://pkg.go.dev/google.golang.org/api/youtube/v3)) |
 | `backend/watch/`, `backend/vdiupload/` | Sidecar domain packages |
 | `cmd/echo-watch/`, `cmd/vdi-upload/` | Sidecar CLIs |
 | `cloud/echo-watch/` | Cloudflare Worker + iOS PWA for watch alerts |
@@ -64,6 +69,7 @@ Talus Echo is multi-domain. See **[docs/domains/README.md](docs/domains/README.m
 | English Learning | desktop-agent | Wails app (`english.*`) |
 | Obsidian | desktop-agent | Wails app (`obsidian.*`) — [docs](docs/domains/obsidian/README.md) |
 | Cloudflare | desktop-agent | Wails Agent dashboard — [docs](docs/domains/cloudflare/README.md) |
+| Feeds | desktop-agent | Wails Agent inbox — [docs](docs/domains/feeds/README.md) |
 | Echo Watch | sidecar | `task watch:build` / `cloud/echo-watch` |
 | VDI Upload | sidecar | `task vdiupload:build` — design: [DESIGN.md](docs/domains/vdiupload/DESIGN.md) |
 
@@ -110,8 +116,9 @@ Services are bound from `backend/services/` (Tiny RDM-style split):
 | `SudokuService` | YouDoSudoku games in the Agent window |
 | `ObsidianService` | Vault browse, note edit, and search via Local REST API |
 | `CloudflareService` | Read-only Workers / D1 / KV dashboard in the Agent window |
+| `FeedsService` | RSS, YouTube, Bilibili watch later, and read-later inbox in the Agent window |
 
-Bindings are generated under `frontend/bindings/` when running `wails3 dev` or `wails3 build`.
+Bindings are generated under `frontend/bindings/` when running `task dev` or `task build`.
 
 ## LLM Control (MCP)
 

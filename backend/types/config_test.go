@@ -21,3 +21,10 @@ func TestNormalizeObsidianDefaultURL(t *testing.T) {
 		t.Fatalf("BaseURL = %q", got.BaseURL)
 	}
 }
+
+func TestNormalizeFeeds(t *testing.T) {
+	got := NormalizeFeeds(Feeds{YouTubeAPIKey: "  yt  ", BilibiliSESSDATA: "  sess  "})
+	if got.YouTubeAPIKey != "yt" || got.BilibiliSESSDATA != "sess" {
+		t.Fatalf("NormalizeFeeds = %+v", got)
+	}
+}

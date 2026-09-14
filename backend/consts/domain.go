@@ -31,10 +31,13 @@ const (
 
 	// Cloudflare is the read-only Workers/D1/KV dashboard in the Agent window.
 	Cloudflare = "cloudflare"
+
+	// Feeds is the Agent pinned inbox for RSS, YouTube, Bilibili watch later, and read-later.
+	Feeds = "feeds"
 )
 
 // All lists known domain identifiers for discovery and tooling.
-var All = []string{English, Watch, VDIUpload, Sudoku, Obsidian, Cloudflare}
+var All = []string{English, Watch, VDIUpload, Sudoku, Obsidian, Cloudflare, Feeds}
 
 // Info describes a domain for docs and tooling.
 type Info struct {
@@ -96,6 +99,14 @@ func Catalog() []Info {
 			CodeRoot:    "backend/cloudflare, backend/services/cloudflare.go",
 			DocsRoot:    "docs/domains/cloudflare",
 			Description: "Read-only Agent dashboard for Workers, analytics, D1, and KV.",
+		},
+		{
+			ID:          Feeds,
+			Name:        "Feeds",
+			Kind:        "desktop-agent",
+			CodeRoot:    "backend/feeds, backend/services/feeds.go, backend/storage",
+			DocsRoot:    "docs/domains/feeds",
+			Description: "RSS, YouTube, and Bilibili watch-later inbox with local read-later in the Agent window.",
 		},
 	}
 }

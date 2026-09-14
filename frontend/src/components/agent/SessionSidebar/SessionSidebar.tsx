@@ -9,6 +9,7 @@ import {
   IconPinned,
   IconPencil,
   IconGrid3x3,
+  IconRss,
   IconTrash,
 } from '@tabler/icons-react';
 import {
@@ -45,8 +46,10 @@ interface SessionSidebarProps {
   user: UserProfile | null;
   showCloudflareTab?: boolean;
   cloudflareActive?: boolean;
+  feedsActive?: boolean;
   onSelectSession: (sessionId: string) => void;
   onSelectCloudflare?: () => void;
+  onSelectFeeds?: () => void;
   onNewChat: () => void;
   onRenameSession: (sessionId: string, title: string) => Promise<void>;
   onDeleteSession: (sessionId: string) => Promise<void>;
@@ -127,8 +130,10 @@ export function SessionSidebar({
   user,
   showCloudflareTab = false,
   cloudflareActive = false,
+  feedsActive = false,
   onSelectSession,
   onSelectCloudflare,
+  onSelectFeeds,
   onNewChat,
   onRenameSession,
   onDeleteSession,
@@ -244,11 +249,10 @@ export function SessionSidebar({
     />
   );
 
-  const hasPinned = pinnedSessions.length > 0;
   const hasRecents = recentSessions.length > 0;
   const isEmpty = sessions.length === 0;
-  const showPinnedSection = showCloudflareTab || hasPinned;
-  const showEmptyOnly = isEmpty && !showCloudflareTab;
+  const showPinnedSection = true;
+  const showEmptyOnly = false;
 
   return (
     <Box
@@ -314,6 +318,19 @@ export function SessionSidebar({
                   <Text className={classes.sectionLabel} size="xs">
                     Pinned
                   </Text>
+                  <UnstyledButton
+                    className={classes.sessionButton}
+                    w="100%"
+                    data-active={feedsActive || undefined}
+                    onClick={onSelectFeeds}
+                  >
+                    <Group gap={6} wrap="nowrap">
+                      <IconRss size={14} />
+                      <Text size="sm" lineClamp={1}>
+                        Feeds
+                      </Text>
+                    </Group>
+                  </UnstyledButton>
                   {showCloudflareTab ? (
                     <UnstyledButton
                       className={classes.sessionButton}

@@ -7,6 +7,7 @@ import {
   IconKey,
   IconMarkdown,
   IconRobot,
+  IconRss,
   IconSettings,
 } from "@tabler/icons-react";
 import { useAppConfig } from "../hooks/useAppConfig";
@@ -16,6 +17,7 @@ import { EnglishLearningTab } from "./config/EnglishLearningTab";
 import { GeneralTab } from "./config/GeneralTab";
 import { OAuthTab } from "./config/OAuthTab";
 import { CloudflareTab } from "./config/CloudflareTab";
+import { FeedsTab } from "./config/FeedsTab";
 import { ObsidianTab } from "./config/ObsidianTab";
 import { SudokuTab } from "./config/SudokuTab";
 
@@ -32,6 +34,7 @@ const CONFIG_TABS = [
   { value: "sudoku", label: "Sudoku", icon: IconGrid3x3 },
   { value: "obsidian", label: "Obsidian", icon: IconMarkdown },
   { value: "cloudflare", label: "Cloudflare", icon: IconCloud },
+  { value: "feeds", label: "Feeds", icon: IconRss },
 ] as const;
 
 export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps) {
@@ -113,6 +116,14 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
           <CloudflareTab
             cloudflareAccountId={form.cloudflareAccountId}
             cloudflareAPIToken={form.cloudflareAPIToken}
+            onChange={updateForm}
+          />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="feeds" pt="md">
+          <FeedsTab
+            youtubeApiKey={form.youtubeApiKey}
+            bilibiliSessdata={form.bilibiliSessdata}
             onChange={updateForm}
           />
         </Tabs.Panel>

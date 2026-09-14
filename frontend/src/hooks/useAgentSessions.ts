@@ -3,7 +3,7 @@ import { ChatService, SudokuService, toApiError } from '../utils/api';
 import type { ChatSessionItem } from '../components/agent/SessionSidebar';
 import { notify } from '../services/notifications';
 
-export type AgentView = 'home' | 'cloudflare' | 'session';
+export type AgentView = 'home' | 'cloudflare' | 'feeds' | 'session';
 
 export function useAgentSessions() {
   const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
@@ -36,6 +36,11 @@ export function useAgentSessions() {
 
   const selectCloudflare = useCallback(() => {
     setView('cloudflare');
+    setActiveSessionId(null);
+  }, []);
+
+  const selectFeeds = useCallback(() => {
+    setView('feeds');
     setActiveSessionId(null);
   }, []);
 
@@ -99,6 +104,7 @@ export function useAgentSessions() {
     loadSessions,
     goHome,
     selectCloudflare,
+    selectFeeds,
     selectSession,
     renameSession,
     deleteSession,
