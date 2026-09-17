@@ -80,6 +80,18 @@
       color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
     }
   }
+
+  &[data-active] {
+    &,
+    &:hover {
+      background-color: var(--mantine-color-blue-light);
+      color: var(--mantine-color-blue-light-color);
+
+      & .linkIcon {
+        color: var(--mantine-color-blue-light-color);
+      }
+    }
+  }
 }
 
 .sectionLabel {
