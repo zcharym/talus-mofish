@@ -6,6 +6,7 @@ import { useConfigFlags } from './hooks/useConfigFlags';
 import { isMacPlatform, usePlatform } from './hooks/usePlatform';
 import {
   DEFAULT_MANAGEMENT_ROUTE,
+  isDebugRoute,
   ManagementRoute,
   PAGE_TITLES,
   type ManagementRouteId,
@@ -40,7 +41,7 @@ function MainContent({
     return <ConfigPage onThemeChange={onThemeChange} onDebugModeChange={onDebugModeChange} />;
   }
 
-  if (activeItem === ManagementRoute.Debug) {
+  if (activeItem === ManagementRoute.DebugPlayground) {
     return <DebugPage />;
   }
 
@@ -94,7 +95,7 @@ function ManagementApp() {
 
   const applyDebugMode = useCallback((enabled: boolean) => {
     setActiveItem((current) =>
-      current === ManagementRoute.Debug && !enabled ? DEFAULT_MANAGEMENT_ROUTE : current,
+      isDebugRoute(current) && !enabled ? DEFAULT_MANAGEMENT_ROUTE : current,
     );
   }, []);
 

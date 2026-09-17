@@ -5,6 +5,7 @@ import {
   IconBug,
   IconChevronDown,
   IconChevronRight,
+  IconComponents,
   IconFileText,
   IconInfoCircle,
   IconLanguage,
@@ -41,6 +42,10 @@ const obsidianItems: NavItem[] = [
   { id: ManagementRoute.ObsidianSearch, label: 'Search', icon: IconSearch },
 ];
 
+const debugItems: NavItem[] = [
+  { id: ManagementRoute.DebugPlayground, label: 'Component playground', icon: IconComponents },
+];
+
 interface NavbarSegmentedProps {
   activeItem: string;
   debugMode: boolean;
@@ -52,6 +57,7 @@ export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: N
     () => isEnglishLearningRoute(activeItem) || activeItem === '',
   );
   const [obsidianExpanded, setObsidianExpanded] = useState(() => isObsidianRoute(activeItem));
+  const [debugExpanded, setDebugExpanded] = useState(true);
 
   const renderLink = (item: NavItem, nested = false) => (
     <a
@@ -119,15 +125,26 @@ export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: N
           </Collapse>
 
           {debugMode && (
-            <UnstyledButton
-              className={classes.sectionHeader}
-              data-active={activeItem === ManagementRoute.Debug || undefined}
-              onClick={() => onActiveItemChange(ManagementRoute.Debug)}
-            >
-              <IconBug className={classes.linkIcon} stroke={1.5} />
-              <span className={classes.sectionLabel}>Debug</span>
-              <IconChevronRight className={classes.chevron} size={16} />
-            </UnstyledButton>
+            <>
+              <UnstyledButton
+                className={classes.sectionHeader}
+                onClick={() => setDebugExpanded((expanded) => !expanded)}
+              >
+                <IconBug className={classes.linkIcon} stroke={1.5} />
+                <span className={classes.sectionLabel}>Debug</span>
+                {debugExpanded ? (
+                  <IconChevronDown className={classes.chevron} size={16} />
+                ) : (
+                  <IconChevronRight className={classes.chevron} size={16} />
+                )}
+              </UnstyledButton>
+
+              <Collapse expanded={debugExpanded}>
+                <div className={classes.nestedLinks}>
+                  {debugItems.map((item) => renderLink(item, true))}
+                </div>
+              </Collapse>
+            </>
           )}
         </div>
       </div>

@@ -33,7 +33,7 @@ export function GeneralTab({ theme, autoStart, debugMode, onChange }: GeneralTab
 
       <Switch
         label="Debug mode"
-        description="Show a Debug tab in the management sidebar for component previews"
+        description="Show a Debug section in the management sidebar for component previews"
         checked={debugMode}
         onChange={(event) => onChange("debugMode", event.currentTarget.checked)}
       />

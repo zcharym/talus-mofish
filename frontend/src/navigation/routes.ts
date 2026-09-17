@@ -6,7 +6,7 @@ export const ManagementRoute = {
   ObsidianNotes: 'obsidian.notes',
   ObsidianSearch: 'obsidian.search',
   Config: 'config',
-  Debug: 'debug',
+  DebugPlayground: 'debug.playground',
   About: 'about',
 } as const;
 
@@ -31,6 +31,12 @@ export function isObsidianRoute(routeId: string): boolean {
   return (OBSIDIAN_ROUTES as readonly string[]).includes(routeId);
 }
 
+export const DEBUG_ROUTES: readonly ManagementRouteId[] = [ManagementRoute.DebugPlayground];
+
+export function isDebugRoute(routeId: string): boolean {
+  return (DEBUG_ROUTES as readonly string[]).includes(routeId);
+}
+
 export const PAGE_TITLES: Record<ManagementRouteId, string> = {
   [ManagementRoute.EnglishImport]: 'Import',
   [ManagementRoute.EnglishReading]: 'Reading',
@@ -38,7 +44,7 @@ export const PAGE_TITLES: Record<ManagementRouteId, string> = {
   [ManagementRoute.ObsidianNotes]: 'Notes',
   [ManagementRoute.ObsidianSearch]: 'Search',
   [ManagementRoute.Config]: 'Configuration',
-  [ManagementRoute.Debug]: 'Debug',
+  [ManagementRoute.DebugPlayground]: 'Component playground',
   [ManagementRoute.About]: 'About',
 };
 

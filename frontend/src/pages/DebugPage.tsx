@@ -11,8 +11,8 @@ export function DebugPage() {
   return (
     <Stack gap="md" maw={720}>
       <Text c="dimmed" size="sm">
-        Component playground — each tab loads an isolated demo module. Enable debug mode in
-        Configuration to show this page in the sidebar.
+        Isolated demo modules for UI components. Enable debug mode in Configuration to show
+        this page under Debug in the sidebar.
       </Text>
 
       <Tabs value={activeDemo} onChange={(value) => setActiveDemo(value ?? activeDemo)}>
