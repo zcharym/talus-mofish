@@ -40,12 +40,13 @@ func (wm *WindowManager) createWindow(
 	width, height, minWidth, minHeight int,
 ) *application.WebviewWindow {
 	window := wm.app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Name:      name,
-		Title:     title,
-		Width:     width,
-		Height:    height,
-		MinWidth:  minWidth,
-		MinHeight: minHeight,
+		Name:       name,
+		Title:      title,
+		Width:      width,
+		Height:     height,
+		MinWidth:   minWidth,
+		MinHeight:  minHeight,
+		StartState: application.WindowStateMaximised,
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:                application.MacBackdropTranslucent,
