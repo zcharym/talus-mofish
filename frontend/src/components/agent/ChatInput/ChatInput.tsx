@@ -6,11 +6,22 @@ import classes from './ChatInput.module.css';
 interface ChatInputProps {
   disabled: boolean;
   sending: boolean;
+  placeholder?: string;
+  autoFocus?: boolean;
+  compact?: boolean;
   onSend: (content: string) => Promise<void>;
   onCancel?: () => Promise<void>;
 }
 
-export function ChatInput({ disabled, sending, onSend, onCancel }: ChatInputProps) {
+export function ChatInput({
+  disabled,
+  sending,
+  placeholder,
+  autoFocus = false,
+  compact = false,
+  onSend,
+  onCancel,
+}: ChatInputProps) {
   const [value, setValue] = useState('');
 
   const handleSend = async () => {
@@ -23,18 +34,22 @@ export function ChatInput({ disabled, sending, onSend, onCancel }: ChatInputProp
     await onSend(content);
   };
 
+  const resolvedPlaceholder =
+    placeholder ?? (disabled ? 'Select or create a chat to begin' : 'Message Talus Agent…');
+
   return (
-    <Box className={classes.wrapper}>
+    <Box className={classes.wrapper} data-compact={compact || undefined}>
       <Group align="flex-end" gap="sm" className={classes.inputRow}>
         <Textarea
           className={classes.textarea}
-          placeholder={disabled ? 'Select or create a chat to begin' : 'Message Talus Agent…'}
+          placeholder={resolvedPlaceholder}
           value={value}
           onChange={(event) => setValue(event.currentTarget.value)}
           disabled={disabled || sending}
           autosize
           minRows={1}
           maxRows={8}
+          data-autofocus={autoFocus || undefined}
           onKeyDown={(event) => {
             if (event.key === 'Enter' && !event.shiftKey) {
               event.preventDefault();

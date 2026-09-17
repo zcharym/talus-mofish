@@ -3,8 +3,8 @@ package agent
 import (
 	"strings"
 
-	"github.com/songwei.ma/talus-mofish/backend/utils/aiclient"
 	"github.com/songwei.ma/talus-mofish/backend/storage/store"
+	"github.com/songwei.ma/talus-mofish/backend/utils/aiclient"
 )
 
 const (
@@ -16,11 +16,17 @@ If the user writes in Chinese, you may reply in Chinese for explanations but inc
 )
 
 // BuildMessages assembles provider messages from history plus the new user turn.
-func BuildMessages(history []store.ChatMessage, userContent string) []aiclient.Message {
+// Non-empty domainContext is appended to the system prompt so overlay domains can
+// inject snapshot facts without stuffing them into the visible user bubble.
+func BuildMessages(history []store.ChatMessage, userContent, domainContext string) []aiclient.Message {
 	msgs := make([]aiclient.Message, 0, len(history)+2)
+	system := defaultSystemPrompt
+	if extra := strings.TrimSpace(domainContext); extra != "" {
+		system = defaultSystemPrompt + "\n\n" + extra
+	}
 	msgs = append(msgs, aiclient.Message{
 		Role:    aiclient.RoleSystem,
-		Content: defaultSystemPrompt,
+		Content: system,
 	})
 
 	start := 0

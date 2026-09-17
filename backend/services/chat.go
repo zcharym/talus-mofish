@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/songwei.ma/talus-mofish/backend/agent"
@@ -20,12 +21,13 @@ const (
 
 // ChatService exposes chat session and streaming turn APIs.
 type ChatService struct {
-	db           *storage.DB
-	config       *storage.ConfigStore
-	wailsApp     *application.App
-	windows      WindowManager
-	turnRegistry *agent.TurnRegistry
-	orchestrator *agent.Orchestrator
+	db                  *storage.DB
+	config              *storage.ConfigStore
+	wailsApp            *application.App
+	windows             WindowManager
+	turnRegistry        *agent.TurnRegistry
+	orchestrator        *agent.Orchestrator
+	overlayOrchestrator *agent.Orchestrator
 }
 
 // NewChatService creates the chat Wails service.
@@ -36,8 +38,16 @@ func NewChatService(db *storage.DB, cfg *storage.ConfigStore) *ChatService {
 		config:       cfg,
 		turnRegistry: registry,
 	}
-	s.orchestrator = agent.NewOrchestrator(chatEventEmitter{s}, registry, chatMessageStore{s})
+	emitter := chatEventEmitter{s}
+	s.orchestrator = agent.NewOrchestrator(emitter, registry, chatMessageStore{s})
+	s.overlayOrchestrator = agent.NewOrchestrator(emitter, registry, noopMessageStore{})
 	return s
+}
+
+type noopMessageStore struct{}
+
+func (noopMessageStore) UpdateMessageContent(context.Context, string, string) error {
+	return nil
 }
 
 type chatEventEmitter struct {
@@ -211,7 +221,7 @@ func (s *ChatService) StartChatTurn(sessionID, content string) (types.StartChatT
 	}
 
 	aiCfg := s.config.Get().AI
-	history := agent.BuildMessages(priorMessages, content)
+	history := agent.BuildMessages(priorMessages, content, "")
 	params := agent.RunTurnParams{
 		SessionID: sessionID,
 		MessageID: assistantMessage.ID,
@@ -229,6 +239,67 @@ func (s *ChatService) StartChatTurn(sessionID, content string) (types.StartChatT
 		UserMessage:      chatMessageDTO(userMessage),
 		AssistantMessage: chatMessageDTO(assistantMessage),
 	}, nil
+}
+
+// StartOverlayChatTurn streams a turn without creating a sidebar session or SQLite messages.
+func (s *ChatService) StartOverlayChatTurn(req types.OverlayChatTurnRequest) (types.StartChatTurnResult, error) {
+	conversationID := strings.TrimSpace(req.ConversationID)
+	content := strings.TrimSpace(req.Content)
+	if conversationID == "" {
+		return types.StartChatTurnResult{}, fmt.Errorf("conversation id is required")
+	}
+	if content == "" {
+		return types.StartChatTurnResult{}, fmt.Errorf("message content is required")
+	}
+
+	createdAt := time.Now().UTC().Format(time.RFC3339)
+	userMessage := types.ChatMessage{
+		ID:        uuid.NewString(),
+		SessionID: conversationID,
+		Role:      "user",
+		Content:   content,
+		CreatedAt: createdAt,
+	}
+	assistantMessage := types.ChatMessage{
+		ID:        uuid.NewString(),
+		SessionID: conversationID,
+		Role:      "assistant",
+		Content:   "",
+		CreatedAt: createdAt,
+	}
+
+	history := agent.BuildMessages(overlayHistory(req.History), content, req.DomainContext)
+	params := agent.RunTurnParams{
+		SessionID: conversationID,
+		MessageID: assistantMessage.ID,
+		History:   history,
+		AI:        s.config.Get().AI,
+	}
+
+	parent := context.Background()
+	if s.wailsApp != nil {
+		parent = s.wailsApp.Context()
+	}
+	go s.overlayOrchestrator.RunTurn(parent, params)
+
+	return types.StartChatTurnResult{
+		UserMessage:      userMessage,
+		AssistantMessage: assistantMessage,
+	}, nil
+}
+
+func overlayHistory(rows []types.ChatMessage) []store.ChatMessage {
+	out := make([]store.ChatMessage, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, store.ChatMessage{
+			ID:        row.ID,
+			SessionID: row.SessionID,
+			Role:      row.Role,
+			Content:   row.Content,
+			CreatedAt: row.CreatedAt,
+		})
+	}
+	return out
 }
 
 // CancelChatTurn aborts an in-flight assistant response.

@@ -4,6 +4,10 @@
   background-color: color-mix(in srgb, var(--talus-surface, var(--mantine-color-body)) 92%, transparent);
 }
 
+.wrapper[data-compact] {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md) var(--mantine-spacing-sm);
+}
+
 .inputRow {
   align-items: flex-end;
 }

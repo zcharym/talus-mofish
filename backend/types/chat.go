@@ -23,3 +23,11 @@ type StartChatTurnResult struct {
 	UserMessage      ChatMessage `json:"user_message"`
 	AssistantMessage ChatMessage `json:"assistant_message"`
 }
+
+// OverlayChatTurnRequest starts an in-memory overlay turn (no sidebar session).
+type OverlayChatTurnRequest struct {
+	ConversationID string        `json:"conversation_id"`
+	Content        string        `json:"content"`
+	DomainContext  string        `json:"domain_context"`
+	History        []ChatMessage `json:"history"`
+}

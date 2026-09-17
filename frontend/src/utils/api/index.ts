@@ -29,6 +29,7 @@ export {
   VocabularyPageResult,
   ChatSession,
   ChatMessage,
+  OverlayChatTurnRequest,
   StartChatTurnResult,
   SudokuGame,
   SudokuCheckResult,

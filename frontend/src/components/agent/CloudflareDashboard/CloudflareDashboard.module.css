@@ -51,3 +51,7 @@
   gap: var(--mantine-spacing-md);
   padding: clamp(1rem, 3vw, 2rem);
 }
+
+.chatFab {
+  --wails-draggable: no-drag;
+}

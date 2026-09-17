@@ -1,5 +1,7 @@
-import { IconCloud, IconRefresh } from '@tabler/icons-react';
+import { IconCloud, IconMessageCircle, IconRefresh } from '@tabler/icons-react';
 import {
+  ActionIcon,
+  Affix,
   Alert,
   Badge,
   Box,
@@ -14,8 +16,10 @@ import {
   Text,
   Title,
 } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import { useCloudflareDashboard } from '../../../hooks/useCloudflareDashboard';
 import type { CloudflareWorker } from '../../../utils/api';
+import { CloudflareFloatingChat } from './CloudflareFloatingChat';
 import classes from './CloudflareDashboard.module.css';
 
 interface CloudflareDashboardProps {
@@ -63,6 +67,7 @@ export function CloudflareDashboard({
   onOpenManagement,
 }: CloudflareDashboardProps) {
   const { loading, refreshing, snapshot, loadError, loadDashboard } = useCloudflareDashboard(configured);
+  const [chatOpened, { open: openChat, close: closeChat }] = useDisclosure(false);
 
   const header = (
     <Box className={classes.header}>
@@ -94,6 +99,32 @@ export function CloudflareDashboard({
     </Box>
   );
 
+  const chatControls = (
+    <>
+      {chatOpened ? null : (
+        <Affix position={{ bottom: 20, right: 20 }} zIndex={150}>
+          <ActionIcon
+            className={classes.chatFab}
+            size="xl"
+            radius="xl"
+            variant="filled"
+            aria-label="Ask about this dashboard"
+            onClick={openChat}
+          >
+            <IconMessageCircle size={22} />
+          </ActionIcon>
+        </Affix>
+      )}
+      <CloudflareFloatingChat
+        opened={chatOpened}
+        onClose={closeChat}
+        configured={configured}
+        snapshot={snapshot}
+        loadError={loadError}
+      />
+    </>
+  );
+
   if (!configured) {
     return (
       <Box className={classes.page}>
@@ -106,6 +137,7 @@ export function CloudflareDashboard({
           </Text>
           <Button onClick={onOpenManagement}>Open Management</Button>
         </Box>
+        {chatControls}
       </Box>
     );
   }
@@ -117,6 +149,7 @@ export function CloudflareDashboard({
         <Box className={classes.empty}>
           <Loader size="sm" />
         </Box>
+        {chatControls}
       </Box>
     );
   }
@@ -133,6 +166,7 @@ export function CloudflareDashboard({
             Try again
           </Button>
         </Box>
+        {chatControls}
       </Box>
     );
   }
@@ -306,6 +340,7 @@ export function CloudflareDashboard({
           </section>
         </Stack>
       </ScrollArea>
+      {chatControls}
     </Box>
   );
 }

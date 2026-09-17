@@ -1,0 +1,35 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.thread {
+  flex: 1;
+  min-height: 0;
+}
+
+.messageList {
+  padding: var(--mantine-spacing-md);
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+  padding: var(--mantine-spacing-md);
+  text-align: center;
+}
+
+.suggestions {
+  flex-shrink: 0;
+  padding: 0 var(--mantine-spacing-md) var(--mantine-spacing-xs);
+}
+
+.composer {
+  flex-shrink: 0;
+}
