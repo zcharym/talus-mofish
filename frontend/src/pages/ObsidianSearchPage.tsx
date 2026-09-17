@@ -2,10 +2,11 @@ import { useCallback, useState } from "react";
 import {
   Badge,
   Button,
+  EmptyState,
   Group,
+  Highlight,
   Paper,
   Stack,
-  Text,
   TextInput,
   UnstyledButton,
 } from "@mantine/core";
@@ -21,17 +22,20 @@ export function ObsidianSearchPage({ onOpenNote }: ObsidianSearchPageProps) {
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<SearchHit[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [submittedQuery, setSubmittedQuery] = useState("");
 
   const runSearch = useCallback(async () => {
     const trimmed = query.trim();
     if (!trimmed) {
       setHits(null);
+      setSubmittedQuery("");
       return;
     }
     setLoading(true);
     try {
       const results = (await ObsidianService.SearchSimple(trimmed, 100)) as SearchHit[];
       setHits(results);
+      setSubmittedQuery(trimmed);
     } catch (err) {
       notify.failed("Obsidian", toApiError(err));
     } finally {
@@ -62,16 +66,22 @@ export function ObsidianSearchPage({ onOpenNote }: ObsidianSearchPageProps) {
       </Group>
 
       {hits && hits.length === 0 ? (
-        <Text c="dimmed">No matching notes.</Text>
+        <EmptyState
+          align="left"
+          withIndicatorBackground
+          icon={<IconSearch size={28} />}
+          title="No matching notes"
+          description="Try different keywords or check that Obsidian is running."
+        />
       ) : null}
 
       {hits?.map((hit) => (
         <UnstyledButton key={hit.filename} onClick={() => onOpenNote(hit.filename)} w="100%">
           <Paper withBorder p="sm">
             <Group justify="space-between" mb={4}>
-              <Text fw={600} size="sm">
+              <Highlight highlight={submittedQuery} fw={600} size="sm">
                 {hit.filename}
-              </Text>
+              </Highlight>
               {typeof hit.score === "number" ? (
                 <Badge size="sm" variant="light">
                   {hit.score.toFixed(2)}
@@ -79,9 +89,15 @@ export function ObsidianSearchPage({ onOpenNote }: ObsidianSearchPageProps) {
               ) : null}
             </Group>
             {(hit.matches ?? []).slice(0, 3).map((match, index) => (
-              <Text key={`${hit.filename}-${index}`} size="sm" c="dimmed" lineClamp={2}>
+              <Highlight
+                key={`${hit.filename}-${index}`}
+                highlight={submittedQuery}
+                size="sm"
+                c="dimmed"
+                lineClamp={2}
+              >
                 {match.context}
-              </Text>
+              </Highlight>
             ))}
           </Paper>
         </UnstyledButton>

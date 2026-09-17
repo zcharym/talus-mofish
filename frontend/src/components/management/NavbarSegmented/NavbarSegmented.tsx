@@ -3,8 +3,6 @@ import {
   IconAdjustments,
   IconBook,
   IconBug,
-  IconChevronDown,
-  IconChevronRight,
   IconComponents,
   IconFileText,
   IconInfoCircle,
@@ -15,7 +13,7 @@ import {
   IconUpload,
   IconVocabulary,
 } from '@tabler/icons-react';
-import { Collapse, Text, UnstyledButton } from '@mantine/core';
+import { NavLink, Stack, Text } from '@mantine/core';
 import { SystemService } from '../../../utils/api';
 import {
   isEnglishLearningRoute,
@@ -59,20 +57,17 @@ export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: N
   const [obsidianExpanded, setObsidianExpanded] = useState(() => isObsidianRoute(activeItem));
   const [debugExpanded, setDebugExpanded] = useState(true);
 
-  const renderLink = (item: NavItem, nested = false) => (
-    <a
-      className={nested ? classes.nestedLink : classes.link}
-      data-active={item.id === activeItem || undefined}
-      href="#"
+  const renderLink = (item: NavItem) => (
+    <NavLink
       key={item.id}
-      onClick={(event) => {
-        event.preventDefault();
-        onActiveItemChange(item.id);
-      }}
-    >
-      <item.icon className={classes.linkIcon} stroke={1.5} />
-      <span>{item.label}</span>
-    </a>
+      component="button"
+      type="button"
+      className={classes.link}
+      label={item.label}
+      leftSection={<item.icon size={18} stroke={1.5} />}
+      active={item.id === activeItem}
+      onClick={() => onActiveItemChange(item.id)}
+    />
   );
 
   return (
@@ -85,111 +80,84 @@ export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: N
           Manage
         </Text>
 
-        <div className={classes.links}>
-          <UnstyledButton
+        <Stack gap={4} className={classes.links}>
+          <NavLink
+            component="button"
+            type="button"
             className={classes.sectionHeader}
-            onClick={() => setEnglishExpanded((expanded) => !expanded)}
+            label="English Learning"
+            leftSection={<IconLanguage size={18} stroke={1.5} />}
+            opened={englishExpanded}
+            onChange={setEnglishExpanded}
+            childrenOffset={16}
           >
-            <IconLanguage className={classes.linkIcon} stroke={1.5} />
-            <span className={classes.sectionLabel}>English Learning</span>
-            {englishExpanded ? (
-              <IconChevronDown className={classes.chevron} size={16} />
-            ) : (
-              <IconChevronRight className={classes.chevron} size={16} />
-            )}
-          </UnstyledButton>
+            {englishLearningItems.map((item) => renderLink(item))}
+          </NavLink>
 
-          <Collapse expanded={englishExpanded}>
-            <div className={classes.nestedLinks}>
-              {englishLearningItems.map((item) => renderLink(item, true))}
-            </div>
-          </Collapse>
-
-          <UnstyledButton
+          <NavLink
+            component="button"
+            type="button"
             className={classes.sectionHeader}
-            onClick={() => setObsidianExpanded((expanded) => !expanded)}
+            label="Obsidian"
+            leftSection={<IconMarkdown size={18} stroke={1.5} />}
+            opened={obsidianExpanded}
+            onChange={setObsidianExpanded}
+            childrenOffset={16}
           >
-            <IconMarkdown className={classes.linkIcon} stroke={1.5} />
-            <span className={classes.sectionLabel}>Obsidian</span>
-            {obsidianExpanded ? (
-              <IconChevronDown className={classes.chevron} size={16} />
-            ) : (
-              <IconChevronRight className={classes.chevron} size={16} />
-            )}
-          </UnstyledButton>
-
-          <Collapse expanded={obsidianExpanded}>
-            <div className={classes.nestedLinks}>
-              {obsidianItems.map((item) => renderLink(item, true))}
-            </div>
-          </Collapse>
+            {obsidianItems.map((item) => renderLink(item))}
+          </NavLink>
 
           {debugMode && (
-            <>
-              <UnstyledButton
-                className={classes.sectionHeader}
-                onClick={() => setDebugExpanded((expanded) => !expanded)}
-              >
-                <IconBug className={classes.linkIcon} stroke={1.5} />
-                <span className={classes.sectionLabel}>Debug</span>
-                {debugExpanded ? (
-                  <IconChevronDown className={classes.chevron} size={16} />
-                ) : (
-                  <IconChevronRight className={classes.chevron} size={16} />
-                )}
-              </UnstyledButton>
-
-              <Collapse expanded={debugExpanded}>
-                <div className={classes.nestedLinks}>
-                  {debugItems.map((item) => renderLink(item, true))}
-                </div>
-              </Collapse>
-            </>
+            <NavLink
+              component="button"
+              type="button"
+              className={classes.sectionHeader}
+              label="Debug"
+              leftSection={<IconBug size={18} stroke={1.5} />}
+              opened={debugExpanded}
+              onChange={setDebugExpanded}
+              childrenOffset={16}
+            >
+              {debugItems.map((item) => renderLink(item))}
+            </NavLink>
           )}
-        </div>
+        </Stack>
       </div>
 
-      <div className={classes.footer}>
-        <a
-          href="#"
+      <Stack gap={4} className={classes.footer}>
+        <NavLink
+          component="button"
+          type="button"
           className={classes.link}
-          onClick={(event) => {
-            event.preventDefault();
+          label="Agent Chat"
+          leftSection={<IconMessageChatbot size={18} stroke={1.5} />}
+          onClick={() => {
             SystemService.ShowAgentWindow().catch((err: unknown) => {
               console.error(err);
             });
           }}
-        >
-          <IconMessageChatbot className={classes.linkIcon} stroke={1.5} />
-          <span>Agent Chat</span>
-        </a>
+        />
 
-        <a
-          href="#"
+        <NavLink
+          component="button"
+          type="button"
           className={classes.link}
-          data-active={activeItem === ManagementRoute.Config || undefined}
-          onClick={(event) => {
-            event.preventDefault();
-            onActiveItemChange(ManagementRoute.Config);
-          }}
-        >
-          <IconAdjustments className={classes.linkIcon} stroke={1.5} />
-          <span>Config</span>
-        </a>
+          label="Config"
+          leftSection={<IconAdjustments size={18} stroke={1.5} />}
+          active={activeItem === ManagementRoute.Config}
+          onClick={() => onActiveItemChange(ManagementRoute.Config)}
+        />
 
-        <a
-          href="#"
+        <NavLink
+          component="button"
+          type="button"
           className={classes.link}
-          data-active={activeItem === ManagementRoute.About || undefined}
-          onClick={(event) => {
-            event.preventDefault();
-            onActiveItemChange(ManagementRoute.About);
-          }}
-        >
-          <IconInfoCircle className={classes.linkIcon} stroke={1.5} />
-          <span>About</span>
-        </a>
-      </div>
+          label="About"
+          leftSection={<IconInfoCircle size={18} stroke={1.5} />}
+          active={activeItem === ManagementRoute.About}
+          onClick={() => onActiveItemChange(ManagementRoute.About)}
+        />
+      </Stack>
     </nav>
   );
 }

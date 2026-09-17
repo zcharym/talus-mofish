@@ -1,4 +1,4 @@
-import { Code, PasswordInput, Stack, Text, TextInput } from "@mantine/core";
+import { Code, Fieldset, PasswordInput, Stack, Text, TextInput } from "@mantine/core";
 import type { AppConfigForm } from "../../hooks/useAppConfig";
 
 interface OAuthTabProps {
@@ -24,33 +24,41 @@ export function OAuthTab({
         local port at runtime.
       </Text>
 
-      <TextInput
-        label="GitHub client ID"
-        value={githubClientId}
-        onChange={(event) => onChange("githubClientId", event.currentTarget.value)}
-        placeholder="Ov23li..."
-      />
+      <Fieldset legend="GitHub">
+        <Stack gap="sm">
+          <TextInput
+            label="GitHub client ID"
+            value={githubClientId}
+            onChange={(event) => onChange("githubClientId", event.currentTarget.value)}
+            placeholder="Ov23li..."
+          />
 
-      <PasswordInput
-        label="GitHub client secret"
-        description="Required by GitHub when exchanging the authorization code for an access token"
-        value={githubClientSecret}
-        onChange={(event) => onChange("githubClientSecret", event.currentTarget.value)}
-      />
+          <PasswordInput
+            label="GitHub client secret"
+            description="Required by GitHub when exchanging the authorization code for an access token"
+            value={githubClientSecret}
+            onChange={(event) => onChange("githubClientSecret", event.currentTarget.value)}
+          />
+        </Stack>
+      </Fieldset>
 
-      <TextInput
-        label="Google client ID"
-        value={googleClientId}
-        onChange={(event) => onChange("googleClientId", event.currentTarget.value)}
-        placeholder="1234567890-abc.apps.googleusercontent.com"
-      />
+      <Fieldset legend="Google">
+        <Stack gap="sm">
+          <TextInput
+            label="Google client ID"
+            value={googleClientId}
+            onChange={(event) => onChange("googleClientId", event.currentTarget.value)}
+            placeholder="1234567890-abc.apps.googleusercontent.com"
+          />
 
-      <PasswordInput
-        label="Google client secret"
-        description="Use a Desktop OAuth client in Google Cloud Console"
-        value={googleClientSecret}
-        onChange={(event) => onChange("googleClientSecret", event.currentTarget.value)}
-      />
+          <PasswordInput
+            label="Google client secret"
+            description="Use a Desktop OAuth client in Google Cloud Console"
+            value={googleClientSecret}
+            onChange={(event) => onChange("googleClientSecret", event.currentTarget.value)}
+          />
+        </Stack>
+      </Fieldset>
     </Stack>
   );
 }

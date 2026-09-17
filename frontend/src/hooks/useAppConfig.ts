@@ -35,6 +35,7 @@ export interface AppConfigForm {
   cloudflareAPIToken: string;
   youtubeApiKey: string;
   bilibiliSessdata: string;
+  feedsProxyUrl: string;
 }
 
 const defaultForm: AppConfigForm = {
@@ -58,6 +59,7 @@ const defaultForm: AppConfigForm = {
   cloudflareAPIToken: "",
   youtubeApiKey: "",
   bilibiliSessdata: "",
+  feedsProxyUrl: "",
 };
 
 export interface UseAppConfigOptions {
@@ -105,6 +107,7 @@ export function useAppConfig({ onThemeChange, onDebugModeChange }: UseAppConfigO
         cloudflareAPIToken: cfg.cloudflare?.apiToken || "",
         youtubeApiKey: cfg.feeds?.youtubeApiKey || "",
         bilibiliSessdata: cfg.feeds?.bilibiliSessdata || "",
+        feedsProxyUrl: cfg.feeds?.proxyUrl || "",
       });
       setConfigPath(path);
       onThemeChange(nextTheme);
@@ -156,6 +159,7 @@ export function useAppConfig({ onThemeChange, onDebugModeChange }: UseAppConfigO
       feeds: new Feeds({
         youtubeApiKey: form.youtubeApiKey,
         bilibiliSessdata: form.bilibiliSessdata,
+        proxyUrl: form.feedsProxyUrl,
       }),
     });
 

@@ -1,29 +1,34 @@
 import { useState } from 'react';
 import {
+  IconAlertTriangle,
   IconBookmark,
   IconBookmarkFilled,
   IconExternalLink,
   IconPlus,
   IconRefresh,
   IconRss,
-  IconTrash,
 } from '@tabler/icons-react';
 import {
   ActionIcon,
-  Alert,
   Badge,
   Box,
   Burger,
   Button,
+  EmptyState,
   Group,
-  Loader,
+  Indicator,
+  LoadingOverlay,
   Modal,
   Paper,
+  Pill,
   ScrollArea,
   SegmentedControl,
+  Skeleton,
+  Spoiler,
   Stack,
   Text,
   TextInput,
+  ThemeIcon,
   Title,
 } from '@mantine/core';
 import { useFeedsInbox, type FeedsFilter } from '../../../hooks/useFeedsInbox';
@@ -60,7 +65,9 @@ export function FeedsInbox({ onOpenSidebar, onOpenManagement }: FeedsInboxProps)
         {onOpenSidebar ? (
           <Burger opened={false} onClick={onOpenSidebar} size="sm" aria-label="Open chats" />
         ) : null}
-        <IconRss size={20} />
+        <ThemeIcon variant="light" size="md" radius="md">
+          <IconRss size={16} />
+        </ThemeIcon>
         <Title order={4}>Feeds</Title>
       </Group>
       <Group gap="sm" wrap="wrap">
@@ -107,17 +114,35 @@ export function FeedsInbox({ onOpenSidebar, onOpenManagement }: FeedsInboxProps)
     <Box className={classes.page}>
       {header}
       {inbox.loading ? (
-        <Box className={classes.empty}>
-          <Loader size="sm" />
+        <Box className={classes.scrollInner}>
+          <Stack gap="md">
+            <Skeleton height={36} radius="md" />
+            <Group gap="xs">
+              <Skeleton height={28} width={120} radius="xl" />
+              <Skeleton height={28} width={100} radius="xl" />
+              <Skeleton height={28} width={140} radius="xl" />
+            </Group>
+            <FeedCardSkeleton />
+            <FeedCardSkeleton />
+            <FeedCardSkeleton />
+          </Stack>
         </Box>
       ) : inbox.loadError && inbox.items.length === 0 && inbox.sources.length === 0 ? (
         <Box className={classes.empty}>
-          <Alert color="red" title="Could not load feeds">
-            {inbox.loadError}
-          </Alert>
-          <Button variant="light" onClick={() => void inbox.loadInbox()}>
-            Try again
-          </Button>
+          <EmptyState
+            align="left"
+            variant="light"
+            color="red"
+            icon={<IconAlertTriangle size={28} />}
+            title="Could not load feeds"
+            description={inbox.loadError}
+          >
+            <EmptyState.Actions>
+              <Button variant="light" onClick={() => void inbox.loadInbox()}>
+                Try again
+              </Button>
+            </EmptyState.Actions>
+          </EmptyState>
         </Box>
       ) : (
         <ScrollArea className={classes.body} type="auto">
@@ -129,7 +154,7 @@ export function FeedsInbox({ onOpenSidebar, onOpenManagement }: FeedsInboxProps)
             />
 
             {inbox.sources.length > 0 ? (
-              <Box className={classes.sources}>
+              <Pill.Group className={classes.sources}>
                 {inbox.sources.map((source) => (
                   <SourceChip
                     key={source.id}
@@ -141,22 +166,51 @@ export function FeedsInbox({ onOpenSidebar, onOpenManagement }: FeedsInboxProps)
                     }}
                   />
                 ))}
-              </Box>
+              </Pill.Group>
             ) : (
-              <Alert color="gray" title="No subscriptions yet">
-                Add an RSS URL, a YouTube channel or playlist, a Bilibili space / favorites URL, or type
-                稍后再看 for Bilibili watch later. Optional API keys live in Management → Configuration →
-                Feeds.
-                <Button size="compact-xs" variant="subtle" ml="xs" onClick={onOpenManagement}>
-                  Open config
-                </Button>
-              </Alert>
+              <EmptyState
+                align="left"
+                size="sm"
+                withIndicatorBackground
+                icon={<IconRss size={22} />}
+                title="No subscriptions yet"
+                description="Add an RSS URL, a YouTube channel or playlist, a Bilibili space / favorites URL, or type 稍后再看 for Bilibili watch later. Optional API keys live in Management → Configuration → Feeds."
+              >
+                <EmptyState.Actions>
+                  <Button size="compact-sm" variant="light" onClick={() => setAddOpened(true)}>
+                    Add source
+                  </Button>
+                  <Button size="compact-sm" variant="subtle" onClick={onOpenManagement}>
+                    Open config
+                  </Button>
+                </EmptyState.Actions>
+              </EmptyState>
             )}
 
             {inbox.items.length === 0 ? (
-              <Text size="sm" c="dimmed">
-                Nothing in this view. Refresh after adding a source, or save a link for later.
-              </Text>
+              <EmptyState
+                align="left"
+                size="sm"
+                withIndicatorBackground
+                icon={<IconRss size={22} />}
+                title="Nothing in this view"
+                description="Refresh after adding a source, or save a link for later."
+              >
+                <EmptyState.Actions>
+                  <Button size="compact-sm" variant="light" onClick={() => setAddOpened(true)}>
+                    Add
+                  </Button>
+                  <Button
+                    size="compact-sm"
+                    variant="subtle"
+                    leftSection={<IconRefresh size={14} />}
+                    loading={inbox.refreshing}
+                    onClick={() => void inbox.refresh()}
+                  >
+                    Refresh
+                  </Button>
+                </EmptyState.Actions>
+              </EmptyState>
             ) : (
               <Stack gap="sm">
                 {inbox.items.map((item) => (
@@ -188,63 +242,81 @@ export function FeedsInbox({ onOpenSidebar, onOpenManagement }: FeedsInboxProps)
         title="Add to Feeds"
         centered
       >
-        <Stack>
-          <SegmentedControl
-            value={addMode}
-            onChange={(value) => setAddMode(value as 'subscribe' | 'save')}
-            data={[
-              { value: 'subscribe', label: 'Subscribe' },
-              { value: 'save', label: 'Save link' },
-            ]}
-          />
-          {addMode === 'save' ? (
-            <TextInput
-              label="Title"
-              placeholder="Optional"
-              value={addTitle}
-              onChange={(event) => setAddTitle(event.currentTarget.value)}
+        <Box pos="relative">
+          <LoadingOverlay visible={adding} zIndex={10} overlayProps={{ radius: 'sm', blur: 1 }} />
+          <Stack>
+            <SegmentedControl
+              value={addMode}
+              onChange={(value) => setAddMode(value as 'subscribe' | 'save')}
+              data={[
+                { value: 'subscribe', label: 'Subscribe' },
+                { value: 'save', label: 'Save link' },
+              ]}
             />
-          ) : null}
-          <TextInput
-            label={addMode === 'save' ? 'URL' : 'Feed, channel, playlist, or shortcut'}
-            description="Examples: RSS URL, youtube.com/@handle, space.bilibili.com/uid, 稍后再看"
-            placeholder="https://"
-            value={addInput}
-            onChange={(event) => setAddInput(event.currentTarget.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                void submitAdd();
-              }
-            }}
-          />
-          <Group justify="flex-end">
-            <Button variant="default" onClick={() => setAddOpened(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => void submitAdd()} loading={adding} disabled={!addInput.trim()}>
-              {addMode === 'save' ? 'Save' : 'Subscribe'}
-            </Button>
-          </Group>
-        </Stack>
+            {addMode === 'save' ? (
+              <TextInput
+                label="Title"
+                placeholder="Optional"
+                value={addTitle}
+                onChange={(event) => setAddTitle(event.currentTarget.value)}
+              />
+            ) : null}
+            <TextInput
+              label={addMode === 'save' ? 'URL' : 'Feed, channel, playlist, or shortcut'}
+              description="Examples: RSS URL, youtube.com/@handle, space.bilibili.com/uid, 稍后再看"
+              placeholder="https://"
+              value={addInput}
+              onChange={(event) => setAddInput(event.currentTarget.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  void submitAdd();
+                }
+              }}
+            />
+            <Group justify="flex-end">
+              <Button variant="default" onClick={() => setAddOpened(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => void submitAdd()} loading={adding} disabled={!addInput.trim()}>
+                {addMode === 'save' ? 'Save' : 'Subscribe'}
+              </Button>
+            </Group>
+          </Stack>
+        </Box>
       </Modal>
     </Box>
   );
 }
 
+function FeedCardSkeleton() {
+  return (
+    <Paper withBorder p="sm" className={classes.itemCard}>
+      <Skeleton height={72} radius="sm" />
+      <Stack gap={8}>
+        <Skeleton height={16} width="80%" radius="sm" />
+        <Skeleton height={12} width="50%" radius="sm" />
+        <Skeleton height={12} width="90%" radius="sm" />
+      </Stack>
+    </Paper>
+  );
+}
+
 function SourceChip({ source, onDelete }: { source: FeedSource; onDelete: () => void }) {
   return (
-    <Badge
-      variant="light"
-      rightSection={
-        <ActionIcon size="xs" variant="transparent" aria-label={`Remove ${source.title}`} onClick={onDelete}>
-          <IconTrash size={10} />
-        </ActionIcon>
+    <Pill
+      withRemoveButton
+      onRemove={onDelete}
+      removeButtonProps={{ 'aria-label': `Remove ${source.title}` }}
+      style={
+        source.lastError
+          ? { border: '1px solid var(--mantine-color-red-6)' }
+          : undefined
       }
     >
       {sourceKindLabel(source.kind)} · {source.title}
       {source.lastError ? ' · error' : ''}
-    </Badge>
+    </Pill>
   );
 }
 
@@ -260,55 +332,66 @@ function FeedCard({
   onMarkRead: () => void;
 }) {
   return (
-    <Paper withBorder p="sm" className={classes.itemCard} opacity={item.read ? 0.72 : 1}>
-      {item.thumbnailUrl ? (
-        <img className={classes.thumb} src={item.thumbnailUrl} alt="" />
-      ) : (
-        <Box className={classes.thumbFallback}>
-          <IconRss size={18} />
-        </Box>
-      )}
-      <Stack gap={4}>
-        <Group justify="space-between" wrap="nowrap" gap="xs">
-          <Text fw={600} size="sm" lineClamp={2}>
-            {item.title}
-          </Text>
-          <Group gap={4} wrap="nowrap">
-            <ActionIcon variant="subtle" aria-label={item.saved ? 'Remove from read later' : 'Save for later'} onClick={onToggleSaved}>
-              {item.saved ? <IconBookmarkFilled size={16} /> : <IconBookmark size={16} />}
-            </ActionIcon>
-            <ActionIcon variant="subtle" aria-label="Open" onClick={onOpen}>
-              <IconExternalLink size={16} />
-            </ActionIcon>
+    <Indicator
+      disabled={!!item.read}
+      color="persimmon"
+      size={8}
+      offset={6}
+      position="top-start"
+      processing={!item.read}
+    >
+      <Paper withBorder p="sm" className={classes.itemCard} opacity={item.read ? 0.72 : 1}>
+        {item.thumbnailUrl ? (
+          <img className={classes.thumb} src={item.thumbnailUrl} alt="" />
+        ) : (
+          <Box className={classes.thumbFallback}>
+            <IconRss size={18} />
+          </Box>
+        )}
+        <Stack gap={4}>
+          <Group justify="space-between" wrap="nowrap" gap="xs">
+            <Text fw={600} size="sm" lineClamp={2}>
+              {item.title}
+            </Text>
+            <Group gap={4} wrap="nowrap">
+              <ActionIcon variant="subtle" aria-label={item.saved ? 'Remove from read later' : 'Save for later'} onClick={onToggleSaved}>
+                {item.saved ? <IconBookmarkFilled size={16} /> : <IconBookmark size={16} />}
+              </ActionIcon>
+              <ActionIcon variant="subtle" aria-label="Open" onClick={onOpen}>
+                <IconExternalLink size={16} />
+              </ActionIcon>
+            </Group>
           </Group>
-        </Group>
-        <Group gap={6}>
-          <Badge size="xs" variant="light">
-            {sourceKindLabel(item.sourceKind)}
-          </Badge>
-          {item.sourceTitle ? (
-            <Text size="xs" c="dimmed" lineClamp={1}>
-              {item.sourceTitle}
-            </Text>
+          <Group gap={6}>
+            <Badge size="xs" variant="light">
+              {sourceKindLabel(item.sourceKind)}
+            </Badge>
+            {item.sourceTitle ? (
+              <Text size="xs" c="dimmed" lineClamp={1}>
+                {item.sourceTitle}
+              </Text>
+            ) : null}
+            {item.publishedAt ? (
+              <Text size="xs" c="dimmed">
+                {formatTimestamp(item.publishedAt)}
+              </Text>
+            ) : null}
+          </Group>
+          {item.summary ? (
+            <Spoiler maxHeight={40} showLabel="More" hideLabel="Less" transitionDuration={200}>
+              <Text size="xs" c="dimmed">
+                {item.summary}
+              </Text>
+            </Spoiler>
           ) : null}
-          {item.publishedAt ? (
-            <Text size="xs" c="dimmed">
-              {formatTimestamp(item.publishedAt)}
-            </Text>
+          {!item.read ? (
+            <Button size="compact-xs" variant="subtle" onClick={onMarkRead}>
+              Mark read
+            </Button>
           ) : null}
-        </Group>
-        {item.summary ? (
-          <Text size="xs" c="dimmed" lineClamp={2}>
-            {item.summary}
-          </Text>
-        ) : null}
-        {!item.read ? (
-          <Button size="compact-xs" variant="subtle" onClick={onMarkRead}>
-            Mark read
-          </Button>
-        ) : null}
-      </Stack>
-    </Paper>
+        </Stack>
+      </Paper>
+    </Indicator>
   );
 }
 

@@ -1,15 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Badge,
+  Box,
   Button,
+  EmptyState,
   Group,
+  LoadingOverlay,
   Paper,
   ScrollArea,
   SegmentedControl,
+  Splitter,
   Stack,
   Text,
   Textarea,
 } from "@mantine/core";
+import { IconFileText } from "@tabler/icons-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ObsidianService, Note, toApiError } from "../utils/api";
@@ -115,81 +120,89 @@ export function ObsidianNotesPage({ focusPath, onFocusConsumed }: ObsidianNotesP
   return (
     <>
       <div ref={editorAnchorRef} />
-      <Group align="stretch" gap="md" className={classes.layout}>
-        <Paper withBorder p="xs" className={classes.vault}>
-          <Text size="xs" c="dimmed" mb="xs">
-            Vault
-          </Text>
-          <ScrollArea h={editorHeight} offsetScrollbars>
-            <VaultTree
-              selectedPath={selectedPath}
-              expandToPath={treeFocus}
-              onSelectFile={handleSelectFile}
-            />
-          </ScrollArea>
-        </Paper>
+      <Splitter className={classes.layout} h={editorHeight + 48}>
+        <Splitter.Pane defaultSize="280px" min="200px" max="50%" className={classes.vaultPane}>
+          <Paper withBorder p="xs" className={classes.vault}>
+            <Text size="xs" c="dimmed" mb="xs">
+              Vault
+            </Text>
+            <ScrollArea h={editorHeight} offsetScrollbars>
+              <VaultTree
+                selectedPath={selectedPath}
+                expandToPath={treeFocus}
+                onSelectFile={handleSelectFile}
+              />
+            </ScrollArea>
+          </Paper>
+        </Splitter.Pane>
 
-        <Stack gap="sm" className={classes.editor}>
-          {selectedPath ? (
-            <>
-              <Group justify="space-between" align="flex-start">
-                <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
-                  <Text fw={600} lineClamp={1}>
-                    {selectedPath}
-                  </Text>
-                  {note?.tags && note.tags.length > 0 ? (
-                    <Group gap={4}>
-                      {note.tags.map((tag) => (
-                        <Badge key={tag} size="sm" variant="light">
-                          #{tag}
-                        </Badge>
-                      ))}
+        <Splitter.Pane defaultSize={100} min="40%" className={classes.editorPane}>
+          <Box pos="relative" className={classes.editor}>
+            <LoadingOverlay visible={loading || saving} zIndex={10} overlayProps={{ radius: "sm", blur: 1 }} />
+            {selectedPath ? (
+              <Stack gap="sm">
+                <Group justify="space-between" align="flex-start">
+                  <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
+                    <Text fw={600} lineClamp={1}>
+                      {selectedPath}
+                    </Text>
+                    {note?.tags && note.tags.length > 0 ? (
+                      <Group gap={4}>
+                        {note.tags.map((tag) => (
+                          <Badge key={tag} size="sm" variant="light">
+                            #{tag}
+                          </Badge>
+                        ))}
+                      </Group>
+                    ) : null}
+                  </Stack>
+                  {!notMarkdown ? (
+                    <Group gap="xs">
+                      <SegmentedControl
+                        size="xs"
+                        value={preview}
+                        onChange={(value) => setPreview(value as "edit" | "preview")}
+                        data={[
+                          { label: "Edit", value: "edit" },
+                          { label: "Preview", value: "preview" },
+                        ]}
+                      />
+                      <Button size="xs" onClick={() => void save()} loading={saving} disabled={!dirty}>
+                        Save
+                      </Button>
                     </Group>
                   ) : null}
-                </Stack>
-                {!notMarkdown ? (
-                  <Group gap="xs">
-                    <SegmentedControl
-                      size="xs"
-                      value={preview}
-                      onChange={(value) => setPreview(value as "edit" | "preview")}
-                      data={[
-                        { label: "Edit", value: "edit" },
-                        { label: "Preview", value: "preview" },
-                      ]}
-                    />
-                    <Button size="xs" onClick={() => void save()} loading={saving} disabled={!dirty}>
-                      Save
-                    </Button>
-                  </Group>
-                ) : null}
-              </Group>
-              {notMarkdown ? (
-                <Text c="dimmed">This file is not a markdown note.</Text>
-              ) : loading ? (
-                <Text c="dimmed">Loading note…</Text>
-              ) : preview === "preview" ? (
-                <Paper withBorder p="md" h={editorHeight} style={{ overflow: "auto" }}>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{draft || "_Empty note_"}</ReactMarkdown>
-                </Paper>
-              ) : (
-                <Textarea
-                  autosize={false}
-                  minRows={12}
-                  styles={{ input: { height: editorHeight, fontFamily: "var(--mantine-font-family-monospace)" } }}
-                  value={draft}
-                  onChange={(event) => setDraft(event.currentTarget.value)}
-                />
-              )}
-            </>
-          ) : (
-            <Text c="dimmed" mt="sm">
-              Select a markdown note from the vault. Empty folders are hidden by the Local REST API.
-              Obsidian must be running.
-            </Text>
-          )}
-        </Stack>
-      </Group>
+                </Group>
+                {notMarkdown ? (
+                  <Text c="dimmed">This file is not a markdown note.</Text>
+                ) : preview === "preview" ? (
+                  <Paper withBorder p="md" h={editorHeight} style={{ overflow: "auto" }}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{draft || "_Empty note_"}</ReactMarkdown>
+                  </Paper>
+                ) : (
+                  <Textarea
+                    autosize={false}
+                    minRows={12}
+                    styles={{ input: { height: editorHeight, fontFamily: "var(--mantine-font-family-monospace)" } }}
+                    value={draft}
+                    onChange={(event) => setDraft(event.currentTarget.value)}
+                  />
+                )}
+              </Stack>
+            ) : (
+              <EmptyState
+                mt="sm"
+                align="left"
+                withIndicatorBackground
+                icon={<IconFileText size={28} />}
+                title="Select a note"
+                description="Pick a markdown note from the vault. Empty folders are hidden by the Local REST API. Obsidian must be running."
+              />
+            )}
+          </Box>
+        </Splitter.Pane>
+      </Splitter>
+      <div ref={editorFooterRef} />
     </>
   );
 }

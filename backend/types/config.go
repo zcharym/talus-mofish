@@ -78,15 +78,19 @@ func CloudflareConfigured(c Cloudflare) bool {
 	return c.AccountID != "" && c.APIToken != ""
 }
 
-// Feeds holds optional credentials for YouTube Data API and Bilibili watch later.
+// Feeds holds optional credentials and HTTP proxy for YouTube / Bilibili / RSS.
 type Feeds struct {
 	YouTubeAPIKey    string `json:"youtubeApiKey"`
 	BilibiliSESSDATA string `json:"bilibiliSessdata"`
+	// ProxyURL is an optional HTTP(S) proxy for all Feeds fetches (YouTube, RSS, Bilibili).
+	// Empty means use the OS/system proxy (Windows Internet Options / env). Example: http://127.0.0.1:7890
+	ProxyURL string `json:"proxyUrl"`
 }
 
-// NormalizeFeeds trims stored feed credentials.
+// NormalizeFeeds trims stored feed credentials and proxy URL.
 func NormalizeFeeds(f Feeds) Feeds {
 	f.YouTubeAPIKey = strings.TrimSpace(f.YouTubeAPIKey)
 	f.BilibiliSESSDATA = strings.TrimSpace(f.BilibiliSESSDATA)
+	f.ProxyURL = strings.TrimSpace(f.ProxyURL)
 	return f
 }

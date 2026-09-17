@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Badge,
-  Center,
+  Box,
+  EmptyState,
   Group,
-  Loader,
+  LoadingOverlay,
   Modal,
   Pagination,
   Paper,
   ScrollArea,
+  Skeleton,
   Stack,
   Text,
 } from "@mantine/core";
+import { IconBook } from "@tabler/icons-react";
 import { EnglishService, Article, ArticlePageResult, ArticleSummary, toApiError } from "../utils/api";
 import { FlipCard } from "../components/management/FlipCard";
 import { SafeHTML } from "../components/SafeHTML";
@@ -89,14 +92,25 @@ export function ReadingPage() {
   ]);
 
   if (loadingList && !pageResult) {
-    return <Text c="dimmed" mt="md">Loading articles…</Text>;
+    return (
+      <Stack mt="md" gap="sm">
+        <Skeleton height={56} radius="md" />
+        <Skeleton height={56} radius="md" />
+        <Skeleton height={56} radius="md" />
+      </Stack>
+    );
   }
 
   if (pageResult?.total === 0) {
     return (
-      <Text c="dimmed" mt="md">
-        No articles yet. Import reading material from an Anki deck on the Import tab.
-      </Text>
+      <EmptyState
+        mt="md"
+        align="left"
+        withIndicatorBackground
+        icon={<IconBook size={28} />}
+        title="No articles yet"
+        description="Import reading material from an Anki deck on the Import tab."
+      />
     );
   }
 
@@ -106,9 +120,11 @@ export function ReadingPage() {
         <ScrollArea h={scrollHeight} type="auto">
           <Stack gap="xs">
             {loadingList ? (
-              <Center py="md">
-                <Loader size="sm" />
-              </Center>
+              <>
+                <Skeleton height={56} radius="md" />
+                <Skeleton height={56} radius="md" />
+                <Skeleton height={56} radius="md" />
+              </>
             ) : (
               items.map((article) => (
                 <Paper
@@ -147,35 +163,34 @@ export function ReadingPage() {
       </div>
 
       <Modal opened={modalOpen} onClose={handleClose} size="lg" title={null} padding="md">
-        {loadingArticle ? (
-          <Center py="xl">
-            <Loader size="sm" />
-          </Center>
-        ) : selectedArticle ? (
-          <FlipCard
-            key={selectedArticle.id}
-            title={selectedArticle.title}
-            modelCss={selectedArticle.model_css}
-            headerExtra={
-              <Group gap="xs">
-                {selectedArticle.source === "import:anki" && (
-                  <Badge size="sm" variant="light">Anki</Badge>
-                )}
-                <Text size="xs" c="dimmed">{selectedArticle.word_count} words</Text>
-              </Group>
-            }
-            front={
-              <SafeHTML className="card" html={selectedArticle.content} />
-            }
-            back={
-              selectedArticle.translation ? (
-                <SafeHTML html={selectedArticle.translation} />
-              ) : (
-                <Text c="dimmed" size="sm">No translation available.</Text>
-              )
-            }
-          />
-        ) : null}
+        <Box pos="relative" mih={120}>
+          <LoadingOverlay visible={loadingArticle} zIndex={10} overlayProps={{ radius: "sm", blur: 1 }} />
+          {selectedArticle ? (
+            <FlipCard
+              key={selectedArticle.id}
+              title={selectedArticle.title}
+              modelCss={selectedArticle.model_css}
+              headerExtra={
+                <Group gap="xs">
+                  {selectedArticle.source === "import:anki" && (
+                    <Badge size="sm" variant="light">Anki</Badge>
+                  )}
+                  <Text size="xs" c="dimmed">{selectedArticle.word_count} words</Text>
+                </Group>
+              }
+              front={
+                <SafeHTML className="card" html={selectedArticle.content} />
+              }
+              back={
+                selectedArticle.translation ? (
+                  <SafeHTML html={selectedArticle.translation} />
+                ) : (
+                  <Text c="dimmed" size="sm">No translation available.</Text>
+                )
+              }
+            />
+          ) : null}
+        </Box>
       </Modal>
     </Stack>
   );

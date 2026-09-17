@@ -23,8 +23,12 @@ func TestNormalizeObsidianDefaultURL(t *testing.T) {
 }
 
 func TestNormalizeFeeds(t *testing.T) {
-	got := NormalizeFeeds(Feeds{YouTubeAPIKey: "  yt  ", BilibiliSESSDATA: "  sess  "})
-	if got.YouTubeAPIKey != "yt" || got.BilibiliSESSDATA != "sess" {
+	got := NormalizeFeeds(Feeds{
+		YouTubeAPIKey:    "  yt  ",
+		BilibiliSESSDATA: "  sess  ",
+		ProxyURL:         "  http://127.0.0.1:7890  ",
+	})
+	if got.YouTubeAPIKey != "yt" || got.BilibiliSESSDATA != "sess" || got.ProxyURL != "http://127.0.0.1:7890" {
 		t.Fatalf("NormalizeFeeds = %+v", got)
 	}
 }

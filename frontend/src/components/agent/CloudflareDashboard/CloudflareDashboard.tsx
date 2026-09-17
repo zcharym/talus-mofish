@@ -1,4 +1,4 @@
-import { IconCloud, IconMessageCircle, IconRefresh } from '@tabler/icons-react';
+import { IconAlertTriangle, IconCloud, IconMessageCircle, IconRefresh } from '@tabler/icons-react';
 import {
   ActionIcon,
   Affix,
@@ -7,13 +7,15 @@ import {
   Box,
   Burger,
   Button,
+  EmptyState,
   Group,
-  Loader,
   Paper,
   ScrollArea,
+  Skeleton,
   Stack,
   Table,
   Text,
+  ThemeIcon,
   Title,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -75,7 +77,9 @@ export function CloudflareDashboard({
         {onOpenSidebar ? (
           <Burger opened={false} onClick={onOpenSidebar} size="sm" aria-label="Open chats" />
         ) : null}
-        <IconCloud size={20} />
+        <ThemeIcon variant="light" size="md" radius="md">
+          <IconCloud size={16} />
+        </ThemeIcon>
         <Title order={4}>Cloudflare</Title>
       </Group>
       {configured ? (
@@ -130,12 +134,17 @@ export function CloudflareDashboard({
       <Box className={classes.page}>
         {header}
         <Box className={classes.empty}>
-          <Title order={4}>Connect a Cloudflare account</Title>
-          <Text size="sm" c="dimmed" maw={420}>
-            Add an account ID and API token in Management → Configuration → Cloudflare to monitor
-            Workers, 24h traffic, D1, and KV.
-          </Text>
-          <Button onClick={onOpenManagement}>Open Management</Button>
+          <EmptyState
+            align="left"
+            withIndicatorBackground
+            icon={<IconCloud size={28} />}
+            title="Connect a Cloudflare account"
+            description="Add an account ID and API token in Management → Configuration → Cloudflare to monitor Workers, 24h traffic, D1, and KV."
+          >
+            <EmptyState.Actions>
+              <Button onClick={onOpenManagement}>Open Management</Button>
+            </EmptyState.Actions>
+          </EmptyState>
         </Box>
         {chatControls}
       </Box>
@@ -146,8 +155,18 @@ export function CloudflareDashboard({
     return (
       <Box className={classes.page}>
         {header}
-        <Box className={classes.empty}>
-          <Loader size="sm" />
+        <Box className={classes.scrollInner}>
+          <Stack gap="md">
+            <Skeleton height={24} width={220} radius="sm" />
+            <Box className={classes.kpiGrid}>
+              <Skeleton height={72} radius="md" />
+              <Skeleton height={72} radius="md" />
+              <Skeleton height={72} radius="md" />
+              <Skeleton height={72} radius="md" />
+            </Box>
+            <Skeleton height={120} radius="md" />
+            <Skeleton height={160} radius="md" />
+          </Stack>
         </Box>
         {chatControls}
       </Box>
@@ -159,12 +178,20 @@ export function CloudflareDashboard({
       <Box className={classes.page}>
         {header}
         <Box className={classes.empty}>
-          <Alert color="red" title="Could not load dashboard">
-            {loadError}
-          </Alert>
-          <Button variant="light" onClick={() => void loadDashboard()}>
-            Try again
-          </Button>
+          <EmptyState
+            align="left"
+            variant="light"
+            color="red"
+            icon={<IconAlertTriangle size={28} />}
+            title="Could not load dashboard"
+            description={loadError}
+          >
+            <EmptyState.Actions>
+              <Button variant="light" onClick={() => void loadDashboard()}>
+                Try again
+              </Button>
+            </EmptyState.Actions>
+          </EmptyState>
         </Box>
         {chatControls}
       </Box>
@@ -255,9 +282,14 @@ export function CloudflareDashboard({
                 {errors.workers}
               </Alert>
             ) : workers.length === 0 ? (
-              <Text size="sm" c="dimmed">
-                No Workers scripts on this account.
-              </Text>
+              <EmptyState
+                align="left"
+                size="sm"
+                withIndicatorBackground
+                icon={<IconCloud size={20} />}
+                title="No Workers scripts"
+                description="No Workers scripts on this account."
+              />
             ) : (
               <Box className={classes.tableWrap}>
                 <Table striped highlightOnHover withTableBorder>

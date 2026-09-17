@@ -14,11 +14,20 @@ The tab is always visible. Credentials are optional:
 
 YouTube’s private Watch Later playlist (`WL`) is not available without user OAuth; add a public playlist or use Bilibili watch later instead.
 
+## Proxy
+
+YouTube / Google APIs are often unreachable without a proxy. Feeds HTTP uses:
+
+1. **`feeds.proxyUrl`** when set (e.g. `http://127.0.0.1:7890` for Clash / V2Ray HTTP port), or
+2. the **OS system proxy** when empty (Windows Internet Options via `ieproxy`, same as OAuth / Sudoku).
+
+Configure under **Management → Configuration → Feeds**. The proxy applies to YouTube Data API, YouTube Atom/RSS, channel page resolve, and Bilibili fetches.
+
 ## Setup
 
 1. Open the Agent window → **Feeds** → **Add**.
 2. Paste an RSS URL, `https://www.youtube.com/@handle`, a playlist URL, `https://space.bilibili.com/<uid>`, a favorites URL with `fid=`, or type `稍后再看`.
-3. Optional: **Management → Configuration → Feeds** for a YouTube Data API key and Bilibili `SESSDATA`. Save, then Test.
+3. Optional: **Management → Configuration → Feeds** for HTTP proxy, YouTube Data API key, and Bilibili `SESSDATA`. Save, then Test.
 
 ## Code ownership
 
@@ -27,7 +36,7 @@ YouTube’s private Watch Later playlist (`WL`) is not available without user OA
 | Fetch + URL resolve ([gofeed](https://github.com/mmcdole/gofeed), [youtube/v3](https://pkg.go.dev/google.golang.org/api/youtube/v3)) | `backend/feeds` |
 | Wails API | `backend/services/feeds.go` |
 | Persistence | `backend/storage/schema.sql`, `backend/storage/queries/feeds.sql` |
-| Config | `config.json` (`feeds.youtubeApiKey`, `feeds.bilibiliSessdata`) in the OS keyring |
+| Config | `config.json` (`feeds.proxyUrl`, `feeds.youtubeApiKey`, `feeds.bilibiliSessdata`; secrets in the OS keyring) |
 | Agent UI | `frontend/src/components/agent/FeedsInbox` |
 | Config UI | `frontend/src/pages/config/FeedsTab.tsx` |
 

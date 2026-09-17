@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Code, Group, HoverCard, Stack, Tabs, Text } from "@mantine/core";
+import { Box, Button, Code, Group, HoverCard, LoadingOverlay, Stack, Tabs, Text, ThemeIcon } from "@mantine/core";
 import {
   IconBook,
   IconCloud,
@@ -49,106 +49,114 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
   }
 
   return (
-    <Stack maw={560} gap="md">
-      <Tabs value={activeTab} onChange={setActiveTab}>
-        <Tabs.List style={{ flexWrap: "wrap" }}>
-          {CONFIG_TABS.map((tab) => (
-            <Tabs.Tab
-              key={tab.value}
-              value={tab.value}
-              leftSection={<tab.icon size={14} stroke={1.5} />}
-            >
-              {tab.label}
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
+    <Box pos="relative" maw={560}>
+      <LoadingOverlay visible={saving} zIndex={10} overlayProps={{ radius: "sm", blur: 1 }} />
+      <Stack gap="md">
+        <Tabs value={activeTab} onChange={setActiveTab}>
+          <Tabs.List style={{ flexWrap: "wrap" }}>
+            {CONFIG_TABS.map((tab) => (
+              <Tabs.Tab
+                key={tab.value}
+                value={tab.value}
+                leftSection={
+                  <ThemeIcon size={22} variant="light" radius="sm">
+                    <tab.icon size={14} stroke={1.5} />
+                  </ThemeIcon>
+                }
+              >
+                {tab.label}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
 
-        <Tabs.Panel value="general" pt="md">
-          <GeneralTab
-            theme={form.theme}
-            autoStart={form.autoStart}
-            debugMode={form.debugMode}
-            onChange={updateForm}
-          />
-        </Tabs.Panel>
+          <Tabs.Panel value="general" pt="md">
+            <GeneralTab
+              theme={form.theme}
+              autoStart={form.autoStart}
+              debugMode={form.debugMode}
+              onChange={updateForm}
+            />
+          </Tabs.Panel>
 
-        <Tabs.Panel value="english" pt="md">
-          <EnglishLearningTab
-            dailyGoalMinutes={form.dailyGoalMinutes}
-            wordsPerSession={form.wordsPerSession}
-            onChange={updateForm}
-          />
-        </Tabs.Panel>
+          <Tabs.Panel value="english" pt="md">
+            <EnglishLearningTab
+              dailyGoalMinutes={form.dailyGoalMinutes}
+              wordsPerSession={form.wordsPerSession}
+              onChange={updateForm}
+            />
+          </Tabs.Panel>
 
-        <Tabs.Panel value="ai" pt="md">
-          <AITab
-            aiProvider={form.aiProvider}
-            aiModel={form.aiModel}
-            aiAPIKey={form.aiAPIKey}
-            aiBaseURL={form.aiBaseURL}
-            onChange={updateForm}
-          />
-        </Tabs.Panel>
+          <Tabs.Panel value="ai" pt="md">
+            <AITab
+              aiProvider={form.aiProvider}
+              aiModel={form.aiModel}
+              aiAPIKey={form.aiAPIKey}
+              aiBaseURL={form.aiBaseURL}
+              onChange={updateForm}
+            />
+          </Tabs.Panel>
 
-        <Tabs.Panel value="oauth" pt="md">
-          <OAuthTab
-            githubClientId={form.githubClientId}
-            githubClientSecret={form.githubClientSecret}
-            googleClientId={form.googleClientId}
-            googleClientSecret={form.googleClientSecret}
-            onChange={updateForm}
-          />
-        </Tabs.Panel>
+          <Tabs.Panel value="oauth" pt="md">
+            <OAuthTab
+              githubClientId={form.githubClientId}
+              githubClientSecret={form.githubClientSecret}
+              googleClientId={form.googleClientId}
+              googleClientSecret={form.googleClientSecret}
+              onChange={updateForm}
+            />
+          </Tabs.Panel>
 
-        <Tabs.Panel value="sudoku" pt="md">
-          <SudokuTab sudokuAPIKey={form.sudokuAPIKey} onChange={updateForm} />
-        </Tabs.Panel>
+          <Tabs.Panel value="sudoku" pt="md">
+            <SudokuTab sudokuAPIKey={form.sudokuAPIKey} onChange={updateForm} />
+          </Tabs.Panel>
 
-        <Tabs.Panel value="obsidian" pt="md">
-          <ObsidianTab
-            obsidianBaseUrl={form.obsidianBaseUrl}
-            obsidianAPIKey={form.obsidianAPIKey}
-            onChange={updateForm}
-          />
-        </Tabs.Panel>
+          <Tabs.Panel value="obsidian" pt="md">
+            <ObsidianTab
+              obsidianBaseUrl={form.obsidianBaseUrl}
+              obsidianAPIKey={form.obsidianAPIKey}
+              onChange={updateForm}
+            />
+          </Tabs.Panel>
 
-        <Tabs.Panel value="cloudflare" pt="md">
-          <CloudflareTab
-            cloudflareAccountId={form.cloudflareAccountId}
-            cloudflareAPIToken={form.cloudflareAPIToken}
-            onChange={updateForm}
-          />
-        </Tabs.Panel>
+          <Tabs.Panel value="cloudflare" pt="md">
+            <CloudflareTab
+              cloudflareAccountId={form.cloudflareAccountId}
+              cloudflareAPIToken={form.cloudflareAPIToken}
+              onChange={updateForm}
+            />
+          </Tabs.Panel>
 
-        <Tabs.Panel value="feeds" pt="md">
-          <FeedsTab
-            youtubeApiKey={form.youtubeApiKey}
-            bilibiliSessdata={form.bilibiliSessdata}
-            onChange={updateForm}
-          />
-        </Tabs.Panel>
-      </Tabs>
+          <Tabs.Panel value="feeds" pt="md">
+            <FeedsTab
+              youtubeApiKey={form.youtubeApiKey}
+              bilibiliSessdata={form.bilibiliSessdata}
+              feedsProxyUrl={form.feedsProxyUrl}
+              onChange={updateForm}
+            />
+          </Tabs.Panel>
+        </Tabs>
 
-      <Group>
-        {configPath ? (
-          <HoverCard width={320} shadow="md" withArrow openDelay={200}>
-            <HoverCard.Target>
-              <Button onClick={() => void save()} loading={saving}>
-                Save configuration
-              </Button>
-            </HoverCard.Target>
-            <HoverCard.Dropdown>
-              <Text size="sm">
-                Config file: <Code>{configPath}</Code>
-              </Text>
-            </HoverCard.Dropdown>
-          </HoverCard>
-        ) : (
-          <Button onClick={() => void save()} loading={saving}>
-            Save configuration
-          </Button>
-        )}
-      </Group>
-    </Stack>
+        <Group>
+          {configPath ? (
+            <HoverCard width={320} shadow="md" withArrow openDelay={200}>
+              <HoverCard.Target>
+                <Button onClick={() => void save()} loading={saving}>
+                  Save configuration
+                </Button>
+              </HoverCard.Target>
+              <HoverCard.Dropdown>
+                <Text size="sm">
+                  Config file: <Code>{configPath}</Code>
+                </Text>
+              </HoverCard.Dropdown>
+            </HoverCard>
+          ) : (
+            <Button onClick={() => void save()} loading={saving}>
+              Save configuration
+            </Button>
+          )}
+        </Group>
+      </Stack>
+    </Box>
   );
 }

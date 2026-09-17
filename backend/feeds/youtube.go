@@ -57,10 +57,25 @@ func (c *Client) resolveYouTubeChannelID(ctx context.Context, spec Spec, apiKey 
 	return c.youtubeChannelIDFromPage(ctx, spec.URL)
 }
 
-func (c *Client) youtubeChannelIDFromAPI(ctx context.Context, spec Spec, apiKey string) (string, error) {
-	svc, err := youtube.NewService(ctx, option.WithAPIKey(apiKey), option.WithHTTPClient(c.http))
+func (c *Client) youtubeService(ctx context.Context, apiKey string) (*youtube.Service, error) {
+	apiKey = strings.TrimSpace(apiKey)
+	if apiKey == "" {
+		return nil, fmt.Errorf("YouTube Data API key is not set")
+	}
+	// WithHTTPClient disables googleapi's built-in API-key injection, so attach
+	// the key on the RoundTripper before handing the client to youtube.NewService.
+	httpClient := withAPIKey(c.http, apiKey)
+	svc, err := youtube.NewService(ctx, option.WithHTTPClient(httpClient))
 	if err != nil {
-		return "", fmt.Errorf("youtube api: %w", err)
+		return nil, fmt.Errorf("youtube api: %w", err)
+	}
+	return svc, nil
+}
+
+func (c *Client) youtubeChannelIDFromAPI(ctx context.Context, spec Spec, apiKey string) (string, error) {
+	svc, err := c.youtubeService(ctx, apiKey)
+	if err != nil {
+		return "", err
 	}
 	handle := strings.TrimPrefix(strings.TrimPrefix(spec.Title, "@"), "@")
 	if strings.Contains(spec.URL, "/@") {
@@ -126,10 +141,7 @@ func (c *Client) youtubeChannelIDFromPage(ctx context.Context, pageURL string) (
 }
 
 func (c *Client) pingYouTube(ctx context.Context, apiKey string) (PingResult, error) {
-	if strings.TrimSpace(apiKey) == "" {
-		return PingResult{}, fmt.Errorf("YouTube Data API key is not set")
-	}
-	svc, err := youtube.NewService(ctx, option.WithAPIKey(apiKey), option.WithHTTPClient(c.http))
+	svc, err := c.youtubeService(ctx, apiKey)
 	if err != nil {
 		return PingResult{}, err
 	}

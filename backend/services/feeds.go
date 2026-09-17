@@ -25,7 +25,14 @@ type FeedsService struct {
 
 // NewFeedsService creates the Feeds Wails service.
 func NewFeedsService(db *storage.DB, cfg *storage.ConfigStore) *FeedsService {
-	return &FeedsService{db: db, config: cfg, client: feeds.NewClient(nil)}
+	return &FeedsService{db: db, config: cfg}
+}
+
+func (s *FeedsService) apiClient() *feeds.Client {
+	if s.client != nil {
+		return s.client
+	}
+	return feeds.NewClient(feeds.NewHTTPClient(s.config.Get().Feeds.ProxyURL))
 }
 
 func (s *FeedsService) creds() feeds.Credentials {
@@ -63,7 +70,7 @@ func (s *FeedsService) AddSource(input string) (feeds.Item, error) {
 	if err != nil {
 		return feeds.Item{}, err
 	}
-	spec, err = s.client.Enrich(ctx, spec, s.creds())
+	spec, err = s.apiClient().Enrich(ctx, spec, s.creds())
 	if err != nil {
 		return feeds.Item{}, err
 	}
@@ -286,14 +293,14 @@ func (s *FeedsService) DeleteItem(id string) error {
 func (s *FeedsService) PingYouTube() (feeds.PingResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), feedsTimeout)
 	defer cancel()
-	return s.client.PingYouTube(ctx, s.creds().YouTubeAPIKey)
+	return s.apiClient().PingYouTube(ctx, s.creds().YouTubeAPIKey)
 }
 
 // PingBilibili tests the saved SESSDATA cookie.
 func (s *FeedsService) PingBilibili() (feeds.PingResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), feedsTimeout)
 	defer cancel()
-	return s.client.PingBilibili(ctx, s.creds().BilibiliSESSDATA)
+	return s.apiClient().PingBilibili(ctx, s.creds().BilibiliSESSDATA)
 }
 
 func (s *FeedsService) refreshSource(ctx context.Context, source feeds.Source) error {
@@ -311,7 +318,7 @@ func (s *FeedsService) refreshSource(ctx context.Context, source feeds.Source) e
 			spec.FeedURL = "https://www.youtube.com/feeds/videos.xml?playlist_id=" + source.RemoteID
 		}
 	}
-	title, items, err := s.client.Fetch(ctx, spec, s.creds())
+	title, items, err := s.apiClient().Fetch(ctx, spec, s.creds())
 	errText := ""
 	if err != nil {
 		errText = err.Error()

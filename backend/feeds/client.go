@@ -27,10 +27,11 @@ type Client struct {
 	parser *gofeed.Parser
 }
 
-// NewClient builds a feed client. httpClient may be nil.
+// NewClient builds a feed client. httpClient may be nil (uses system proxy).
+// Prefer NewHTTPClient(proxyURL) when constructing from app config.
 func NewClient(httpClient *http.Client) *Client {
 	if httpClient == nil {
-		httpClient = &http.Client{Timeout: 20 * time.Second}
+		httpClient = NewHTTPClient("")
 	}
 	parser := gofeed.NewParser()
 	parser.UserAgent = defaultUserAgent

@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Badge,
-  Center,
+  EmptyState,
   Group,
-  Loader,
   Pagination,
   Paper,
   ScrollArea,
+  Skeleton,
   Stack,
   Table,
   Text,
   TextInput,
 } from "@mantine/core";
-import { IconSearch } from "@tabler/icons-react";
+import { IconSearch, IconVocabulary } from "@tabler/icons-react";
 import { EnglishService, Vocabulary, VocabularyPageResult, toApiError } from "../utils/api";
 import { VocabularyEditModal } from "../components/management/VocabularyEditModal";
 import { useDynamicScrollHeight } from "../hooks/useDynamicScrollHeight";
@@ -134,11 +134,21 @@ export function VocabularyPage() {
       </div>
 
       {showEmpty && !isSearching && pageResult?.total === 0 ? (
-        <Text c="dimmed">
-          Your vocabulary bank is empty. Import an Anki deck or add words from Reading.
-        </Text>
+        <EmptyState
+          align="left"
+          withIndicatorBackground
+          icon={<IconVocabulary size={28} />}
+          title="Your vocabulary bank is empty"
+          description="Import an Anki deck or add words from Reading."
+        />
       ) : showEmpty ? (
-        <Text c="dimmed">No matches found.</Text>
+        <EmptyState
+          align="left"
+          withIndicatorBackground
+          icon={<IconSearch size={28} />}
+          title="No matches found"
+          description="Try a different word or definition."
+        />
       ) : (
         <>
           <Paper withBorder ref={scrollAnchorRef}>
@@ -154,13 +164,24 @@ export function VocabularyPage() {
                 </Table.Thead>
                 <Table.Tbody>
                   {loading ? (
-                    <Table.Tr>
-                      <Table.Td colSpan={isNarrow ? 3 : 4}>
-                        <Center py="md">
-                          <Loader size="sm" />
-                        </Center>
-                      </Table.Td>
-                    </Table.Tr>
+                    Array.from({ length: 5 }).map((_, index) => (
+                      <Table.Tr key={`skeleton-${index}`}>
+                        <Table.Td>
+                          <Skeleton height={14} width="70%" radius="sm" />
+                        </Table.Td>
+                        {!isNarrow ? (
+                          <Table.Td>
+                            <Skeleton height={14} width="50%" radius="sm" />
+                          </Table.Td>
+                        ) : null}
+                        <Table.Td>
+                          <Skeleton height={14} radius="sm" />
+                        </Table.Td>
+                        <Table.Td>
+                          <Skeleton height={14} width={48} radius="sm" />
+                        </Table.Td>
+                      </Table.Tr>
+                    ))
                   ) : (
                     items.map((row) => (
                       <Table.Tr
