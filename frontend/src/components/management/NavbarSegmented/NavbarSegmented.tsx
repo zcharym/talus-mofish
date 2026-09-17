@@ -118,7 +118,17 @@ export function NavbarSegmented({ activeItem, debugMode, onActiveItemChange }: N
             </div>
           </Collapse>
 
-          {debugMode && renderLink({ id: ManagementRoute.Debug, label: 'Debug', icon: IconBug })}
+          {debugMode && (
+            <UnstyledButton
+              className={classes.sectionHeader}
+              data-active={activeItem === ManagementRoute.Debug || undefined}
+              onClick={() => onActiveItemChange(ManagementRoute.Debug)}
+            >
+              <IconBug className={classes.linkIcon} stroke={1.5} />
+              <span className={classes.sectionLabel}>Debug</span>
+              <IconChevronRight className={classes.chevron} size={16} />
+            </UnstyledButton>
+          )}
         </div>
       </div>
 
