@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Box, Button, Code, Group, HoverCard, LoadingOverlay, Stack, Tabs, Text, ThemeIcon } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import {
   IconBook,
   IconCloud,
@@ -20,6 +21,7 @@ import { CloudflareTab } from "./config/CloudflareTab";
 import { FeedsTab } from "./config/FeedsTab";
 import { ObsidianTab } from "./config/ObsidianTab";
 import { SudokuTab } from "./config/SudokuTab";
+import classes from "./ConfigPage.module.css";
 
 interface ConfigPageProps {
   onThemeChange: (theme: ThemeOption) => void;
@@ -39,6 +41,7 @@ const CONFIG_TABS = [
 
 export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps) {
   const [activeTab, setActiveTab] = useState<string | null>("general");
+  const isNarrow = useMediaQuery("(max-width: 48em)");
   const { form, updateForm, configPath, loading, saving, save } = useAppConfig({
     onThemeChange,
     onDebugModeChange,
@@ -49,27 +52,33 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
   }
 
   return (
-    <Box pos="relative" maw={560}>
+    <Box pos="relative" className={classes.page}>
       <LoadingOverlay visible={saving} zIndex={10} overlayProps={{ radius: "sm", blur: 1 }} />
-      <Stack gap="md">
-        <Tabs value={activeTab} onChange={setActiveTab}>
-          <Tabs.List style={{ flexWrap: "wrap" }}>
-            {CONFIG_TABS.map((tab) => (
-              <Tabs.Tab
-                key={tab.value}
-                value={tab.value}
-                leftSection={
-                  <ThemeIcon size={22} variant="light" radius="sm">
-                    <tab.icon size={14} stroke={1.5} />
-                  </ThemeIcon>
-                }
-              >
-                {tab.label}
-              </Tabs.Tab>
-            ))}
-          </Tabs.List>
+      <Tabs
+        value={activeTab}
+        onChange={setActiveTab}
+        orientation={isNarrow ? "horizontal" : "vertical"}
+        className={classes.tabs}
+      >
+        <Tabs.List grow={isNarrow} className={classes.list}>
+          {CONFIG_TABS.map((tab) => (
+            <Tabs.Tab
+              key={tab.value}
+              value={tab.value}
+              leftSection={
+                <ThemeIcon size={22} variant="light" radius="sm">
+                  <tab.icon size={14} stroke={1.5} />
+                </ThemeIcon>
+              }
+            >
+              {tab.label}
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
 
-          <Tabs.Panel value="general" pt="md">
+        <Stack gap="md" className={classes.content}>
+
+          <Tabs.Panel value="general" className={classes.panel} pt="md">
             <GeneralTab
               theme={form.theme}
               autoStart={form.autoStart}
@@ -78,7 +87,7 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
             />
           </Tabs.Panel>
 
-          <Tabs.Panel value="english" pt="md">
+          <Tabs.Panel value="english" className={classes.panel} pt="md">
             <EnglishLearningTab
               dailyGoalMinutes={form.dailyGoalMinutes}
               wordsPerSession={form.wordsPerSession}
@@ -86,7 +95,7 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
             />
           </Tabs.Panel>
 
-          <Tabs.Panel value="ai" pt="md">
+          <Tabs.Panel value="ai" className={classes.panel} pt="md">
             <AITab
               aiProvider={form.aiProvider}
               aiModel={form.aiModel}
@@ -96,7 +105,7 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
             />
           </Tabs.Panel>
 
-          <Tabs.Panel value="oauth" pt="md">
+          <Tabs.Panel value="oauth" className={classes.panel} pt="md">
             <OAuthTab
               githubClientId={form.githubClientId}
               githubClientSecret={form.githubClientSecret}
@@ -106,11 +115,11 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
             />
           </Tabs.Panel>
 
-          <Tabs.Panel value="sudoku" pt="md">
+          <Tabs.Panel value="sudoku" className={classes.panel} pt="md">
             <SudokuTab sudokuAPIKey={form.sudokuAPIKey} onChange={updateForm} />
           </Tabs.Panel>
 
-          <Tabs.Panel value="obsidian" pt="md">
+          <Tabs.Panel value="obsidian" className={classes.panel} pt="md">
             <ObsidianTab
               obsidianBaseUrl={form.obsidianBaseUrl}
               obsidianAPIKey={form.obsidianAPIKey}
@@ -118,7 +127,7 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
             />
           </Tabs.Panel>
 
-          <Tabs.Panel value="cloudflare" pt="md">
+          <Tabs.Panel value="cloudflare" className={classes.panel} pt="md">
             <CloudflareTab
               cloudflareAccountId={form.cloudflareAccountId}
               cloudflareAPIToken={form.cloudflareAPIToken}
@@ -126,7 +135,7 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
             />
           </Tabs.Panel>
 
-          <Tabs.Panel value="feeds" pt="md">
+          <Tabs.Panel value="feeds" className={classes.panel} pt="md">
             <FeedsTab
               youtubeApiKey={form.youtubeApiKey}
               bilibiliSessdata={form.bilibiliSessdata}
@@ -134,7 +143,6 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
               onChange={updateForm}
             />
           </Tabs.Panel>
-        </Tabs>
 
         <Group>
           {configPath ? (
@@ -156,7 +164,8 @@ export function ConfigPage({ onThemeChange, onDebugModeChange }: ConfigPageProps
             </Button>
           )}
         </Group>
-      </Stack>
+        </Stack>
+      </Tabs>
     </Box>
   );
 }

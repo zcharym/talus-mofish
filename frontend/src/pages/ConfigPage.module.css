@@ -1,0 +1,43 @@
+.page {
+  width: 100%;
+  min-height: calc(100dvh - 52px - var(--mantine-spacing-md) * 2);
+  display: flex;
+  flex-direction: column;
+}
+
+.tabs {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.tabs[data-orientation='vertical'] {
+  flex-direction: row;
+}
+
+.tabs[data-orientation='horizontal'] {
+  flex-direction: column;
+}
+
+.list {
+  flex-shrink: 0;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.panel {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+@media (min-width: 48.1em) {
+  .list {
+    width: 240px;
+  }
+}

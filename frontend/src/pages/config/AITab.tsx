@@ -1,4 +1,4 @@
-import { Fieldset, PasswordInput, Select, Stack, Text, TextInput } from "@mantine/core";
+import { Box, Fieldset, PasswordInput, Select, Stack, Text, TextInput } from "@mantine/core";
 import { Provider } from "../../utils/api";
 import type { AppConfigForm } from "../../hooks/useAppConfig";
 
@@ -12,56 +12,58 @@ interface AITabProps {
 
 export function AITab({ aiProvider, aiModel, aiAPIKey, aiBaseURL, onChange }: AITabProps) {
   return (
-    <Stack gap="md">
-      <Text size="sm" c="dimmed">
-        Provider settings for Talus Agent chat responses.
-      </Text>
+    <Box p="md">
+      <Stack gap="md">
+        <Text size="sm" c="dimmed">
+          Provider settings for Talus Agent chat responses.
+        </Text>
 
-      <Fieldset legend="Provider">
-        <Stack gap="sm">
-          <Select
-            label="Provider"
-            value={aiProvider}
-            onChange={(value) => onChange("aiProvider", value ?? Provider.ProviderOpenAI)}
-            data={[
-              { value: Provider.ProviderOpenAI, label: "OpenAI" },
-              { value: Provider.ProviderDeepSeek, label: "DeepSeek" },
-              { value: Provider.ProviderMoonshot, label: "Moonshot (Kimi)" },
-              { value: Provider.ProviderOllama, label: "Ollama (local)" },
-            ]}
-          />
+        <Fieldset legend="Provider">
+          <Stack gap="sm">
+            <Select
+              label="Provider"
+              value={aiProvider}
+              onChange={(value) => onChange("aiProvider", value ?? Provider.ProviderOpenAI)}
+              data={[
+                { value: Provider.ProviderOpenAI, label: "OpenAI" },
+                { value: Provider.ProviderDeepSeek, label: "DeepSeek" },
+                { value: Provider.ProviderMoonshot, label: "Moonshot (Kimi)" },
+                { value: Provider.ProviderOllama, label: "Ollama (local)" },
+              ]}
+            />
 
-          <TextInput
-            label="Model"
-            description="Model name for the selected provider"
-            value={aiModel}
-            onChange={(event) => onChange("aiModel", event.currentTarget.value)}
-            placeholder="gpt-4o-mini"
-          />
-        </Stack>
-      </Fieldset>
+            <TextInput
+              label="Model"
+              description="Model name for the selected provider"
+              value={aiModel}
+              onChange={(event) => onChange("aiModel", event.currentTarget.value)}
+              placeholder="gpt-4o-mini"
+            />
+          </Stack>
+        </Fieldset>
 
-      <Fieldset legend="Credentials">
-        <Stack gap="sm">
-          <PasswordInput
-            label="API key"
-            description={
-              aiProvider === Provider.ProviderOllama
-                ? "Optional for local Ollama"
-                : "Required for cloud providers"
-            }
-            value={aiAPIKey}
-            onChange={(event) => onChange("aiAPIKey", event.currentTarget.value)}
-          />
+        <Fieldset legend="Credentials">
+          <Stack gap="sm">
+            <PasswordInput
+              label="API key"
+              description={
+                aiProvider === Provider.ProviderOllama
+                  ? "Optional for local Ollama"
+                  : "Required for cloud providers"
+              }
+              value={aiAPIKey}
+              onChange={(event) => onChange("aiAPIKey", event.currentTarget.value)}
+            />
 
-          <TextInput
-            label="Base URL"
-            description="Optional API root, e.g. https://api.openai.com/v1 or https://api.moonshot.cn/v1 (not /anthropic)"
-            value={aiBaseURL}
-            onChange={(event) => onChange("aiBaseURL", event.currentTarget.value)}
-          />
-        </Stack>
-      </Fieldset>
-    </Stack>
+            <TextInput
+              label="Base URL"
+              description="Optional API root, e.g. https://api.openai.com/v1 or https://api.moonshot.cn/v1 (not /anthropic)"
+              value={aiBaseURL}
+              onChange={(event) => onChange("aiBaseURL", event.currentTarget.value)}
+            />
+          </Stack>
+        </Fieldset>
+      </Stack>
+    </Box>
   );
 }

@@ -1,4 +1,4 @@
-import { Fieldset, NumberInput, Stack, Text } from "@mantine/core";
+import { Box, Fieldset, NumberInput, Stack, Text } from "@mantine/core";
 import type { AppConfigForm } from "../../hooks/useAppConfig";
 
 interface EnglishLearningTabProps {
@@ -13,33 +13,35 @@ export function EnglishLearningTab({
   onChange,
 }: EnglishLearningTabProps) {
   return (
-    <Stack gap="md">
-      <Text size="sm" c="dimmed">
-        Settings for the English Learning domain in Management and Agent quick actions.
-      </Text>
+    <Box p="md">
+      <Stack gap="md">
+        <Text size="sm" c="dimmed">
+          Settings for the English Learning domain in Management and Agent quick actions.
+        </Text>
 
-      <Fieldset legend="Session goals">
-        <Stack gap="sm">
-          <NumberInput
-            label="Daily study goal"
-            description="Target minutes per day for English Learning sessions"
-            value={dailyGoalMinutes}
-            onChange={(value) => onChange("dailyGoalMinutes", Number(value) || 30)}
-            min={1}
-            max={480}
-            suffix=" min"
-          />
+        <Fieldset legend="Session goals">
+          <Stack gap="sm">
+            <NumberInput
+              label="Daily study goal"
+              description="Target minutes per day for English Learning sessions"
+              value={dailyGoalMinutes}
+              onChange={(value) => onChange("dailyGoalMinutes", Number(value) || 30)}
+              min={1}
+              max={480}
+              suffix=" min"
+            />
 
-          <NumberInput
-            label="Words per session"
-            description="Number of words to practice in each recite session"
-            value={wordsPerSession}
-            onChange={(value) => onChange("wordsPerSession", Number(value) || 20)}
-            min={1}
-            max={200}
-          />
-        </Stack>
-      </Fieldset>
-    </Stack>
+            <NumberInput
+              label="Words per session"
+              description="Number of words to practice in each recite session"
+              value={wordsPerSession}
+              onChange={(value) => onChange("wordsPerSession", Number(value) || 20)}
+              min={1}
+              max={200}
+            />
+          </Stack>
+        </Fieldset>
+      </Stack>
+    </Box>
   );
 }

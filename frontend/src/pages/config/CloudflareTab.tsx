@@ -31,7 +31,7 @@ export function CloudflareTab({
   };
 
   return (
-    <Box pos="relative">
+    <Box pos="relative" p="md">
       <LoadingOverlay visible={testing} zIndex={10} overlayProps={{ radius: "sm", blur: 1 }} />
       <Stack gap="md">
         <Text size="sm" c="dimmed">

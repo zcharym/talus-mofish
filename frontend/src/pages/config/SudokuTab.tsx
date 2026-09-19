@@ -1,4 +1,4 @@
-import { Fieldset, PasswordInput, Stack, Text } from "@mantine/core";
+import { Box, Fieldset, PasswordInput, Stack, Text } from "@mantine/core";
 import type { AppConfigForm } from "../../hooks/useAppConfig";
 
 interface SudokuTabProps {
@@ -8,18 +8,20 @@ interface SudokuTabProps {
 
 export function SudokuTab({ sudokuAPIKey, onChange }: SudokuTabProps) {
   return (
-    <Stack gap="md">
-      <Text size="sm" c="dimmed">
-        Optional API key for the YouDoSudoku puzzle service used by Agent window games.
-      </Text>
-      <Fieldset legend="YouDoSudoku">
-        <PasswordInput
-          label="API key"
-          description="Generate a key at youdosudoku.com. Leave blank if the API accepts unauthenticated requests."
-          value={sudokuAPIKey}
-          onChange={(event) => onChange("sudokuAPIKey", event.currentTarget.value)}
-        />
-      </Fieldset>
-    </Stack>
+    <Box p="md">
+      <Stack gap="md">
+        <Text size="sm" c="dimmed">
+          Optional API key for the YouDoSudoku puzzle service used by Agent window games.
+        </Text>
+        <Fieldset legend="YouDoSudoku">
+          <PasswordInput
+            label="API key"
+            description="Generate a key at youdosudoku.com. Leave blank if the API accepts unauthenticated requests."
+            value={sudokuAPIKey}
+            onChange={(event) => onChange("sudokuAPIKey", event.currentTarget.value)}
+          />
+        </Fieldset>
+      </Stack>
+    </Box>
   );
 }
